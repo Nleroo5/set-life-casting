@@ -10,8 +10,10 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Card({ children, className, hover = false, ...props }: CardProps) {
+  const MotionDiv = motion.div;
+
   return (
-    <motion.div
+    <MotionDiv
       className={cn(
         "rounded-2xl bg-white shadow-sm border border-gray-100",
         hover && "transition-shadow hover:shadow-lg cursor-pointer",
@@ -21,10 +23,10 @@ export function Card({ children, className, hover = false, ...props }: CardProps
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      {...props}
+      {...(props as any)}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   );
 }
 

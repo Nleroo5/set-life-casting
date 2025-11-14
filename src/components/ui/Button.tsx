@@ -41,8 +41,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-8 py-4 text-lg",
     };
 
+    const MotionButton = motion.button;
+
     return (
-      <motion.button
+      <MotionButton
         ref={ref}
         type={type}
         className={cn(
@@ -54,10 +56,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        {...props}
+        {...(props as any)}
       >
         {children}
-      </motion.button>
+      </MotionButton>
     );
   }
 );

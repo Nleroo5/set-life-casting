@@ -26,11 +26,11 @@ export default function Newsletter() {
     setMessage("");
 
     try {
-      await addDoc(collection(db, "newsletter"), {
-        email: data.email,
-        subscribedAt: serverTimestamp(),
-        isActive: true,
-      });
+      // TODO: Replace with your newsletter API endpoint or Firebase setup
+      console.log("Newsletter subscription:", data);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setStatus("success");
       setMessage("Thanks for subscribing! You'll hear from us soon.");

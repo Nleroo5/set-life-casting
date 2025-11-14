@@ -2,14 +2,86 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 const projects = [
-  { id: 1, title: "Ozark", type: "TV Series" },
-  { id: 2, title: "Feature Film", type: "Film" },
-  { id: 3, title: "Commercial", type: "Commercial" },
-  { id: 4, title: "TV Series", type: "Television" },
-  { id: 5, title: "Music Video", type: "Music Video" },
-  { id: 6, title: "Independent Film", type: "Film" },
+  {
+    id: 10,
+    title: "Film & TV Casting",
+    type: "Production",
+    image: "/images/atlanta-extras-agency-film-tv-casting-10.jpg",
+    alt: "Atlanta extras agency film and TV casting production"
+  },
+  {
+    id: 1,
+    title: "Film Production",
+    type: "Feature Film",
+    image: "/images/set-life-casting-atlanta-film-production-1.jpg",
+    alt: "Set Life Casting Atlanta film production"
+  },
+  {
+    id: 2,
+    title: "Movie Poster",
+    type: "Film",
+    image: "/images/atlanta-extras-casting-movie-poster-2.jpg",
+    alt: "Atlanta extras casting movie poster"
+  },
+  {
+    id: 3,
+    title: "TV Commercial",
+    type: "Commercial",
+    image: "/images/set-life-casting-tv-commercial-production-3.jpg",
+    alt: "Set Life Casting TV commercial production"
+  },
+  {
+    id: 4,
+    title: "Film Set",
+    type: "Film",
+    image: "/images/atlanta-background-actors-film-set-4.jpg",
+    alt: "Atlanta background actors on film set"
+  },
+  {
+    id: 5,
+    title: "Feature Film",
+    type: "Film",
+    image: "/images/set-life-casting-feature-film-project-5.jpg",
+    alt: "Set Life Casting feature film project"
+  },
+  {
+    id: 6,
+    title: "Movie Production",
+    type: "Film",
+    image: "/images/atlanta-casting-agency-movie-production-6.jpg",
+    alt: "Atlanta casting agency movie production"
+  },
+  {
+    id: 7,
+    title: "Extras Talent",
+    type: "Television",
+    image: "/images/set-life-casting-extras-talent-work-7.jpg",
+    alt: "Set Life Casting extras talent work"
+  },
+  {
+    id: 8,
+    title: "Background Casting",
+    type: "Film",
+    image: "/images/atlanta-film-industry-background-casting-8.jpg",
+    alt: "Atlanta film industry background casting"
+  },
+  {
+    id: 9,
+    title: "Production",
+    type: "Film",
+    image: "/images/set-life-casting-production-company-poster-9.jpg",
+    alt: "Set Life Casting production company poster"
+  },
+  {
+    id: 11,
+    title: "Background Talent",
+    type: "Film",
+    image: "/images/atlanta-background-talent-poster-11.jpg",
+    alt: "Atlanta background talent poster"
+  },
 ];
 
 export default function Portfolio() {
@@ -144,14 +216,20 @@ export default function Portfolio() {
                     className="absolute w-[280px] md:w-[300px]"
                   >
                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary-dark shadow-2xl">
-                      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent-dark/40" />
-                      <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                        <div>
-                          <span className="text-xs font-semibold text-accent uppercase mb-2 block">
-                            {project.type}
-                          </span>
-                          <h3 className="text-xl font-bold">{project.title}</h3>
-                        </div>
+                      <Image
+                        src={project.image}
+                        alt={project.alt}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 280px, 300px"
+                        priority={project.position === 0}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/40 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+                        <span className="text-xs font-semibold text-accent uppercase mb-2 block">
+                          {project.type}
+                        </span>
+                        <h3 className="text-xl font-bold">{project.title}</h3>
                       </div>
                     </div>
                   </motion.div>
