@@ -71,8 +71,8 @@ const faqs = [
         a: "Follow our Facebook page and turn on notifications to be alerted when we post new casting opportunities. You can also subscribe to our newsletter on our homepage.",
       },
       {
-        q: "What makes Set Life Casting different?",
-        a: "We take a hands-on approach to every casting. We don't just fill roles—we carefully curate talent to match your production's unique needs. We also brief all talent on professionalism and set etiquette.",
+        q: "What makes Set Life Casting different from other Atlanta casting agencies?",
+        a: "We've been casting background actors in Atlanta for over a decade, working on everything from independent films to blockbuster productions. What sets us apart is our hands-on approach—we're known for being easy to work with, highly responsive, and committed to finding the perfect fit for every role, no matter how specific or unique. Productions and talent both appreciate how we make the process smooth and straightforward.",
       },
       {
         q: "Are your background actors reliable?",
@@ -96,13 +96,15 @@ export default function FAQPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-light to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 overflow-hidden">
+        {/* Translucent charcoal background */}
+        <div className="absolute inset-0 bg-gray-900/85"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-secondary mb-6">
-              Frequently Asked Questions
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+              Frequently Asked <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]">Questions</span>
             </h1>
-            <p className="text-xl text-secondary-light leading-relaxed">
+            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md">
               Find answers to common questions about working with Set Life
               Casting
             </p>

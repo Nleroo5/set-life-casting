@@ -1,96 +1,43 @@
-import { Metadata } from "next";
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
-
-export const metadata: Metadata = {
-  title: "Talent Resources | Set Life Casting",
-  description:
-    "Resources for background actors including photo submission guidelines, set etiquette, and tips for success in the extras casting industry.",
-};
 
 export default function ResourcesPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-light to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 overflow-hidden">
+        {/* Translucent charcoal background */}
+        <div className="absolute inset-0 bg-gray-900/85"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-secondary mb-6">
-              Talent Resources
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+              Everything You Need to Know About <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]">Working with Us</span>
             </h1>
-            <p className="text-xl text-secondary-light leading-relaxed">
-              Everything you need to know to succeed as a background actor
+            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md">
+              New to being an extra? Perfect! We&apos;ve got you covered with all the info you need to get started & succeed on set.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Getting Started */}
+      {/* START HERE */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4">
-              Getting Started
+            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <h2 className="text-3xl font-bold text-secondary mb-4 text-center">
+              <span className="text-accent">START HERE:</span> New to Background Work?
             </h2>
-            <p className="text-xl text-secondary-light">
-              Ready to become a background actor? Here&apos;s what you need to
-              know.
+            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto">
+              Never been an extra before? No worries! Here&apos;s the deal: background actors (also called extras) are the people you see in the background of films, TV shows, and commercials. You know, the ones sitting in the restaurant, walking down the street, or filling the courtroom. It&apos;s a fun way to be part of the magic of filmmaking, & you get paid for it!
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                title: "Follow Us on Facebook",
-                description:
-                  "All casting calls are posted on our Facebook page. Make sure to follow us and turn on notifications!",
-                icon: "📱",
-                link: "https://www.facebook.com/SetLifeCastingATL/",
-              },
-              {
-                title: "Prepare Your Photos",
-                description:
-                  "Have recent, clear headshots and full-body photos ready. See our photo guidelines below.",
-                icon: "📸",
-                link: "#photos",
-              },
-              {
-                title: "Stay Professional",
-                description:
-                  "Punctuality, preparation, and professionalism are key to success on set.",
-                icon: "⭐",
-                link: "#etiquette",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="bg-primary-light rounded-2xl p-6 text-center"
-              >
-                <div className="text-5xl mb-4">{item.icon}</div>
-                <h3 className="text-xl font-bold text-secondary mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-secondary-light mb-4">{item.description}</p>
-                <a
-                  href={item.link}
-                  className="text-accent hover:text-accent-dark font-semibold inline-flex items-center"
-                >
-                  Learn More
-                  <svg
-                    className="w-4 h-4 ml-1"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
-              </div>
-            ))}
+            <p className="text-xl text-secondary-light leading-relaxed mt-4 text-center max-w-3xl mx-auto">
+              Follow us on Facebook to see casting calls, submit your photos when you find a role that fits, and show up ready to work. It&apos;s that simple.
+            </p>
           </div>
         </div>
       </section>
@@ -99,28 +46,28 @@ export default function ResourcesPage() {
       <section id="photos" className="py-20 bg-primary-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4">
-              Photo Submission Guidelines
+            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <h2 className="text-3xl font-bold text-secondary mb-4 text-center">
+              How to Submit <span className="text-accent">Like a Pro</span>
             </h2>
-            <p className="text-xl text-secondary-light">
-              Your photos are your first impression. Here&apos;s how to make them
-              count.
+            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto">
+              Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-12 mb-12">
             <div>
               <h3 className="text-2xl font-bold text-secondary mb-6">DO:</h3>
               <ul className="space-y-4">
                 {[
-                  "Use natural lighting (outdoors or near a window)",
-                  "Choose a plain, neutral background",
-                  "Show your face clearly with a friendly expression",
+                  "Use natural lighting—outdoors or near a window works great!",
+                  "Choose a plain, neutral background (nothing distracting)",
+                  "Show your face clearly with a friendly expression (we need to see your beautiful face!)",
                   "Include a full-body shot in neutral clothing",
-                  "Make sure photos are recent (within 6 months)",
-                  "Use high-resolution images",
-                  "Show your natural look (minimal makeup)",
-                  "Include photos from different angles",
+                  "Make sure photos are recent (within 6 months—we want the real you!)",
+                  "Use high-resolution images that aren't blurry",
+                  "Show your natural look with minimal makeup",
+                  "Read the casting call carefully & give us exactly what we ask for",
                 ].map((item) => (
                   <li key={item} className="flex items-start">
                     <svg
@@ -146,14 +93,14 @@ export default function ResourcesPage() {
               </h3>
               <ul className="space-y-4">
                 {[
-                  "Use heavily filtered or edited photos",
-                  "Include group photos or photos with others",
+                  "Use heavily filtered or edited photos (no Instagram filters!)",
+                  "Include group photos or photos with other people",
                   "Wear sunglasses or hats that hide your face",
                   "Submit blurry or low-quality images",
                   "Use old photos that don't reflect your current look",
-                  "Include excessive makeup or styling",
-                  "Take photos in cluttered locations",
-                  "Use selfies with extreme angles",
+                  "Include excessive makeup, wigs, or heavy styling",
+                  "Take photos in cluttered locations or busy backgrounds",
+                  "Use extreme angles or poses—keep it natural!",
                 ].map((item) => (
                   <li key={item} className="flex items-start">
                     <svg
@@ -174,28 +121,69 @@ export default function ResourcesPage() {
             </div>
           </div>
 
-          <div className="mt-12 bg-white rounded-2xl p-8">
-            <h3 className="text-xl font-bold text-secondary mb-4">
-              Photo Examples
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Example Submission Photos */}
+          <div className="max-w-5xl mx-auto">
+            <motion.h3
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-2xl font-bold text-secondary mb-6 text-center"
+            >
+              Example Submission Photos
+            </motion.h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
-                "Headshot - Front",
-                "Headshot - Side Profile",
-                "Full Body - Front",
-                "Full Body - Side",
-              ].map((label) => (
-                <div
-                  key={label}
-                  className="aspect-[3/4] bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg flex items-center justify-center text-center p-4"
+                {
+                  src: "/images/atlanta-extras-headshot-front-example.jpg",
+                  alt: "Atlanta extras casting headshot front view example"
+                },
+                {
+                  src: "/images/atlanta-extras-headshot-side-profile-example.jpg",
+                  alt: "Atlanta extras casting headshot side profile example"
+                },
+                {
+                  src: "/images/atlanta-background-actor-full-body-front.jpg",
+                  alt: "Atlanta background actor full body front view casting photo"
+                },
+                {
+                  src: "/images/atlanta-background-actor-full-body-side.jpg",
+                  alt: "Atlanta background actor full body side view casting photo"
+                },
+                {
+                  src: "/images/film-casting-headshot-submission-example.jpg",
+                  alt: "Film casting headshot submission example for extras"
+                },
+                {
+                  src: "/images/tv-extras-casting-photo-submission-guide.jpg",
+                  alt: "TV extras casting photo submission guide example"
+                },
+              ].map((photo, index) => (
+                <motion.div
+                  key={photo.src}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{
+                    duration: 0.5,
+                    delay: index * 0.1,
+                    ease: "easeOut"
+                  }}
+                  whileHover={{
+                    y: -8,
+                    scale: 1.02,
+                    transition: { duration: 0.3 }
+                  }}
+                  className="aspect-[3/4] rounded-xl border-2 border-accent/20 overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
                 >
-                  <div>
-                    <div className="text-3xl mb-2">📷</div>
-                    <p className="text-sm font-semibold text-secondary">
-                      {label}
-                    </p>
-                  </div>
-                </div>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={400}
+                    height={533}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
               ))}
             </div>
           </div>
@@ -206,74 +194,52 @@ export default function ResourcesPage() {
       <section id="etiquette" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4">
-              On-Set Etiquette
+            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <h2 className="text-3xl font-bold text-secondary mb-4 text-center">
+              On Set: <span className="text-accent">How to Be a Pro</span>
             </h2>
-            <p className="text-xl text-secondary-light">
-              Professional behavior on set ensures you&apos;ll be called back for
-              future projects.
+            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto">
+              Professional behavior on set ensures you&apos;ll be called back for future projects. Follow these tips & you&apos;ll do great!
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {[
               {
-                title: "Before You Arrive",
+                title: "Your First Day",
                 tips: [
-                  "Confirm your call time and location",
-                  "Get a good night's sleep",
-                  "Bring the requested wardrobe",
-                  "Eat before arriving (unless meals are provided)",
-                  "Arrive 15 minutes early",
-                  "Silence your phone",
+                  "Confirm your call time & location the night before",
+                  "Show up on time (or better yet, a few minutes early!)",
+                  "Bring valid ID & work documentation (required!)",
+                  "Pack the requested wardrobe (read the details carefully)",
+                  "Bring snacks, water & a phone charger",
+                  "Get a good night's sleep—you'll need your energy!",
                 ],
               },
               {
-                title: "On Set Behavior",
+                title: "On Set",
                 tips: [
-                  "Follow all directions from ADs and crew",
-                  "Stay quiet during filming",
-                  "Don't touch equipment or props",
-                  "Be patient during long setups",
-                  "Ask permission before taking photos",
-                  "Respect other actors' space",
-                ],
-              },
-              {
-                title: "What to Bring",
-                tips: [
-                  "Valid ID and work documentation",
-                  "Snacks and water bottle",
-                  "Phone charger",
-                  "Book or entertainment for downtime",
-                  "Requested wardrobe options",
-                  "Comfortable shoes for standing",
-                ],
-              },
-              {
-                title: "What NOT to Do",
-                tips: [
-                  "Approach principal actors",
-                  "Post on social media without permission",
-                  "Leave without checking out",
-                  "Cause distractions or noise",
-                  "Complain about wait times",
-                  "Ask for autographs or selfies",
+                  "Follow all directions from ADs & crew—they're running the show",
+                  "Stay quiet during filming (nothing kills a take faster than background noise)",
+                  "Keep your phone on silent at all times",
+                  "Be patient during long setups—filmmaking takes time",
+                  "Don't approach principal actors (they're working, not socializing)",
+                  "Don't post on social media without permission (seriously, don't)",
                 ],
               },
             ].map((section) => (
               <div
                 key={section.title}
-                className="bg-primary-light rounded-2xl p-6"
+                className="bg-primary-light rounded-2xl p-8"
               >
-                <h3 className="text-xl font-bold text-secondary mb-4">
+                <h3 className="text-2xl font-bold text-secondary mb-6">
                   {section.title}
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {section.tips.map((tip) => (
                     <li key={tip} className="flex items-start">
                       <svg
-                        className="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5"
+                        className="w-5 h-5 text-accent mr-3 flex-shrink-0 mt-0.5"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -283,7 +249,7 @@ export default function ResourcesPage() {
                       >
                         <path d="M9 5l7 7-7 7" />
                       </svg>
-                      <span className="text-secondary-light">{tip}</span>
+                      <span className="text-secondary-light text-base leading-relaxed">{tip}</span>
                     </li>
                   ))}
                 </ul>
@@ -293,14 +259,47 @@ export default function ResourcesPage() {
         </div>
       </section>
 
+      {/* Getting Paid Section */}
+      <section className="py-20 bg-primary-light">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <h2 className="text-3xl font-bold text-secondary mb-4 text-center">
+              <span className="text-accent">Getting Paid</span>
+            </h2>
+            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto">
+              Your hard work earns you a voucher at the end of your shoot day. Hang onto that voucher—it's your proof of work! Payment typically processes within 2-4 weeks. If it's been over 4 weeks, no worries! Just reach out to the payroll company using the contact info on your voucher. Your booking contact is your go-to person for any payment questions.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Questions Section */}
+      <section className="py-20 bg-gradient-to-br from-primary-light to-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+          <h2 className="text-3xl font-bold text-secondary mb-6">
+            Still Have <span className="text-accent">Questions?</span>
+          </h2>
+          <p className="text-xl text-secondary-light leading-relaxed mb-8">
+            We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.
+          </p>
+          <Link href="/contact">
+            <Button variant="primary" size="lg">
+              Get in Touch
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="py-20 bg-accent text-white">
+      <section className="py-20 bg-gradient-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-6">
-            Ready to Join Our Talent Network?
+            Ready to Get Started?
           </h2>
-          <p className="text-xl mb-8 text-white/90">
-            Follow us on Facebook to see current casting calls and opportunities
+          <p className="text-xl mb-8 text-white/90 leading-relaxed">
+            Follow us on Facebook to see current casting calls & start your journey in the film industry today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

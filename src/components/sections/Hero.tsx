@@ -54,12 +54,12 @@ export default function Hero() {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
         >
           <source src="/videos/atlanta-casting-video.mp4" type="video/mp4" />
         </video>
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary/70 via-secondary/60 to-secondary/70" />
+        {/* Translucent charcoal overlay */}
+        <div className="absolute inset-0 bg-gray-900/80" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center z-10">
@@ -69,17 +69,21 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
             Your Next Role
             <br />
-            <span className="text-white">Starts Here</span>
+            <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Starts Here</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl sm:text-2xl text-white max-w-3xl mx-auto mb-12 leading-relaxed drop-shadow-md">
-            Atlanta&apos;s premier extras casting company connecting talented
-            background actors with exciting opportunities in film, TV,
-            commercials, and music videos.
+          <p className="text-xl sm:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed">
+            <span className="inline-block bg-gradient-to-r from-accent via-purple-400 to-accent bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+              Atlanta&apos;s Premier Extras Casting Agency
+            </span>
+            {" "}
+            <span className="text-white/90">
+              for film, television, commercials & music videos across Georgia and the Southeast.
+            </span>
           </p>
 
           {/* CTA Buttons */}
@@ -118,10 +122,10 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+              <div className="text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={100} duration={4} suffix="+" />
               </div>
-              <div className="text-sm text-white font-medium">
+              <div className="text-sm text-white/80 font-medium">
                 Productions Served
               </div>
             </motion.div>
@@ -132,10 +136,10 @@ export default function Hero() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+              <div className="text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
-              <div className="text-sm text-white font-medium">
+              <div className="text-sm text-white/80 font-medium">
                 Talent Cast
               </div>
             </motion.div>
@@ -153,7 +157,7 @@ export default function Hero() {
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-white"
+          className="text-white/70"
         >
           <svg
             className="w-6 h-6"
