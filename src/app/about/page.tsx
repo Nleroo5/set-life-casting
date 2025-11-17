@@ -3,9 +3,47 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "About Us | Set Life Casting",
+  title: "About Set Life Casting | Atlanta's Premier Extras Casting Agency Since 2015",
   description:
-    "Learn about Set Life Casting, Atlanta's premier extras casting company with a hands-on approach to connecting background talent with film, TV, and commercial productions.",
+    "Learn about Set Life Casting, Atlanta's premier extras casting company with 10+ years experience connecting background talent with film, TV, and commercial productions across Georgia and the Southeast.",
+  keywords: [
+    "about set life casting",
+    "atlanta casting agency",
+    "extras casting company atlanta",
+    "background talent agency",
+    "atlanta film industry",
+    "georgia casting services",
+    "professional extras agency",
+  ],
+  openGraph: {
+    title: "About Set Life Casting | Atlanta Extras Casting Agency",
+    description:
+      "10+ years connecting background talent with film, TV, and commercial productions across Georgia and the Southeast.",
+    url: "https://www.setlifecasting.com/about",
+    siteName: "Set Life Casting",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Set Life Casting | Atlanta Extras Casting",
+    description:
+      "10+ years connecting background talent with productions across Georgia and the Southeast.",
+  },
+  alternates: {
+    canonical: "https://www.setlifecasting.com/about",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function AboutPage() {
