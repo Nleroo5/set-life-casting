@@ -529,7 +529,7 @@ export default function ResourcesPage() {
               </span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Your hard work earns you a voucher at the end of your shoot day. Hang onto that voucher—it's your proof of work! Payment typically processes within 2-4 weeks. If it's been over 4 weeks, no worries! Just reach out to the payroll company using the contact info on your voucher. Your booking contact is your go-to person for any payment questions.
+              Your hard work earns you a voucher at the end of your shoot day. Hang onto that voucher, it's your proof of work! Payment typically processes within 2-4 weeks. If it's been over 4 weeks, no worries! Just reach out to the payroll company using the contact info on your voucher. Your booking contact is your go-to person for any payment questions.
             </p>
 
             {/* Down Arrow */}
