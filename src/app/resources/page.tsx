@@ -63,22 +63,22 @@ export default function ResourcesPage() {
                 About{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
                 style={{ display: "inline-block", animationDelay: "1.3s" }}
               >
-                Working{" "}
+                Being{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
                 style={{ display: "inline-block", animationDelay: "1.5s" }}
               >
-                with{" "}
+                An{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
                 style={{ display: "inline-block", animationDelay: "1.7s" }}
               >
-                Us
+                Extra
               </span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -102,9 +102,34 @@ export default function ResourcesPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <div className="text-5xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
+              START HERE
+            </div>
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span className="text-accent">START HERE:</span> New to Background Work?
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                New{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.7s" }}
+              >
+                to{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.9s" }}
+              >
+                Background{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "1.1s" }}
+              >
+                Work?
+              </span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Never been an extra before? No worries! Here&apos;s the deal: background actors (also called extras) are the people you see in the background of films, TV shows, and commercials. You know, the ones sitting in the restaurant, walking down the street, or filling the courtroom. It&apos;s a fun way to be part of the magic of filmmaking, & you get paid for it!
@@ -112,6 +137,21 @@ export default function ResourcesPage() {
             <p className="text-xl text-secondary-light leading-relaxed mt-4 text-center max-w-3xl mx-auto">
               Follow us on Facebook to see casting calls, submit your photos when you find a role that fits, and show up ready to work. It&apos;s that simple.
             </p>
+
+            {/* Down Arrow */}
+            <div className="flex justify-center mt-8">
+              <svg
+                className="w-8 h-8 text-accent animate-bounce"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
           </div>
         </div>
       </section>
@@ -122,16 +162,67 @@ export default function ResourcesPage() {
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              How to Submit <span className="text-accent">Like a Pro</span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                How{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                to{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                Submit{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.7s" }}
+              >
+                Like{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.9s" }}
+              >
+                a{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "1.1s" }}
+              >
+                Pro
+              </span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 mb-12">
-            <div>
-              <h3 className="text-2xl font-bold text-secondary mb-6">DO:</h3>
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* DO Section */}
+            <div className="bg-gradient-to-br from-white to-green-50/30 rounded-2xl p-8 border-2 border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:shadow-[0_0_50px_rgba(34,197,94,0.25)] transition-all duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center">
+                  <svg
+                    className="w-7 h-7 text-white"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-green-700" style={{ fontFamily: 'var(--font-galindo)' }}>DO</h3>
+              </div>
               <ul className="space-y-4">
                 {[
                   "Use natural lighting—outdoors or near a window works great!",
@@ -142,29 +233,43 @@ export default function ResourcesPage() {
                   "Use high-resolution images that aren't blurry",
                   "Show your natural look with minimal makeup",
                   "Read the casting call carefully & give us exactly what we ask for",
-                ].map((item) => (
+                ].map((item, index) => (
                   <li key={item} className="flex items-start">
                     <svg
-                      className="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5"
+                      className="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5"
                       fill="none"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
                       <path d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-secondary-light">{item}</span>
+                    <span className="text-secondary leading-relaxed">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-2xl font-bold text-secondary mb-6">
-                DON&apos;T:
-              </h3>
+            {/* DON'T Section */}
+            <div className="bg-gradient-to-br from-white to-red-50/30 rounded-2xl p-8 border-2 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.25)] transition-all duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-500 rounded-xl flex items-center justify-center">
+                  <svg
+                    className="w-7 h-7 text-white"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-red-700" style={{ fontFamily: 'var(--font-galindo)' }}>DON&apos;T</h3>
+              </div>
               <ul className="space-y-4">
                 {[
                   "Use heavily filtered or edited photos (no Instagram filters!)",
@@ -175,20 +280,20 @@ export default function ResourcesPage() {
                   "Include excessive makeup, wigs, or heavy styling",
                   "Take photos in cluttered locations or busy backgrounds",
                   "Use extreme angles or poses—keep it natural!",
-                ].map((item) => (
+                ].map((item, index) => (
                   <li key={item} className="flex items-start">
                     <svg
-                      className="w-6 h-6 text-red-500 mr-3 flex-shrink-0 mt-0.5"
+                      className="w-6 h-6 text-red-600 mr-3 flex-shrink-0 mt-0.5"
                       fill="none"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
                       <path d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <span className="text-secondary-light">{item}</span>
+                    <span className="text-secondary leading-relaxed">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -260,6 +365,21 @@ export default function ResourcesPage() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Down Arrow */}
+            <div className="flex justify-center mt-12">
+              <svg
+                className="w-8 h-8 text-accent animate-bounce"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
           </div>
         </div>
       </section>
@@ -270,7 +390,48 @@ export default function ResourcesPage() {
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              On Set: <span className="text-accent">How to Be a Pro</span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                On{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                Set:{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                How{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.7s" }}
+              >
+                to{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.9s" }}
+              >
+                Be{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "1.1s" }}
+              >
+                a{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "1.3s" }}
+              >
+                Pro
+              </span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Professional behavior on set ensures you&apos;ll be called back for future projects. Follow these tips & you&apos;ll do great!
@@ -330,6 +491,21 @@ export default function ResourcesPage() {
               </div>
             ))}
           </div>
+
+          {/* Down Arrow */}
+          <div className="flex justify-center mt-12">
+            <svg
+              className="w-8 h-8 text-accent animate-bounce"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
         </div>
       </section>
 
@@ -339,11 +515,37 @@ export default function ResourcesPage() {
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span className="text-accent">Getting Paid</span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                Getting{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                Paid
+              </span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Your hard work earns you a voucher at the end of your shoot day. Hang onto that voucher—it's your proof of work! Payment typically processes within 2-4 weeks. If it's been over 4 weeks, no worries! Just reach out to the payroll company using the contact info on your voucher. Your booking contact is your go-to person for any payment questions.
             </p>
+
+            {/* Down Arrow */}
+            <div className="flex justify-center mt-8">
+              <svg
+                className="w-8 h-8 text-accent animate-bounce"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
           </div>
         </div>
       </section>
@@ -353,7 +555,24 @@ export default function ResourcesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
           <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
-            Still Have <span className="text-accent">Questions?</span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.1s" }}
+            >
+              Still{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.3s" }}
+            >
+              Have{" "}
+            </span>
+            <span
+              className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+              style={{ display: "inline-block", animationDelay: "0.5s" }}
+            >
+              Questions?
+            </span>
           </h2>
           <p className="text-xl text-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.
@@ -370,7 +589,7 @@ export default function ResourcesPage() {
       {/* CTA */}
       <section className="py-20 bg-gradient-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-3xl font-bold mb-6 text-white" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?
           </h2>
           <p className="text-xl mb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
