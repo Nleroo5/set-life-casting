@@ -90,7 +90,7 @@ export default function CastingsPage() {
                   <strong className="text-accent">Step 1:</strong> Check the casting calls above for roles that match your profile
                 </p>
                 <p>
-                  <strong className="text-accent">Step 2:</strong> Follow us on{" "}
+                  <strong className="text-accent">Step 2:</strong> Apply directly through the Airtable interface above, OR follow us on{" "}
                   <a
                     href="https://www.facebook.com/SetLifeCastingATL/"
                     target="_blank"
@@ -102,7 +102,7 @@ export default function CastingsPage() {
                   {" "}for detailed submission instructions
                 </p>
                 <p>
-                  <strong className="text-accent">Step 3:</strong> Submit your photos and information as directed in the Facebook post
+                  <strong className="text-accent">Step 3:</strong> Submit your photos and information as directed in the casting call
                 </p>
               </div>
             </div>
