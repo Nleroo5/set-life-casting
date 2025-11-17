@@ -69,7 +69,7 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight px-2" style={{ fontFamily: 'var(--font-galindo)' }}>
             <span
               className="animate-word"
               style={{ display: "inline-block", animationDelay: "0.1s" }}
@@ -104,7 +104,7 @@ export default function Hero() {
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl sm:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
             <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
               Atlanta&apos;s Premier Extras Casting Agency
             </span>

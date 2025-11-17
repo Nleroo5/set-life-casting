@@ -2,6 +2,7 @@ import Hero from "@/components/sections/Hero";
 import CastingStatus from "@/components/sections/CastingStatus";
 import Portfolio from "@/components/sections/Portfolio";
 import WhyChooseUs from "@/components/sections/WhyChooseUs";
+import Features from "@/components/sections/Features";
 import Newsletter from "@/components/sections/Newsletter";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
         <WhyChooseUs />
+        <Features />
         <CastingStatus />
       </div>
       <Newsletter />

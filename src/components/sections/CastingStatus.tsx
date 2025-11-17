@@ -53,7 +53,7 @@ export default function CastingStatus() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex justify-center mb-20"
+          className="flex justify-center mb-20 px-2"
         >
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-[500px]">
             <iframe
@@ -63,12 +63,13 @@ export default function CastingStatus() {
               style={{
                 border: "none",
                 overflow: "hidden",
+                maxWidth: "100%",
               }}
               scrolling="no"
               frameBorder="0"
               allowFullScreen={true}
               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              className="w-full"
+              className="w-full min-w-0"
             />
           </div>
         </motion.div>

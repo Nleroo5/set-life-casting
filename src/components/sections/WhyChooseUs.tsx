@@ -20,7 +20,7 @@ export default function WhyChooseUs() {
         />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -34,7 +34,7 @@ export default function WhyChooseUs() {
           <div className="relative bg-white shadow-2xl overflow-hidden rounded-lg">
 
             {/* TOP CLAPPER STICK with diagonal stripes */}
-            <div className="relative bg-black h-20">
+            <div className="relative bg-black h-16 sm:h-20">
               {/* Diagonal black and white stripes */}
               <div className="absolute inset-0 flex">
                 {[...Array(14)].map((_, i) => (
@@ -76,21 +76,21 @@ export default function WhyChooseUs() {
             </div>
 
             {/* MAIN BOARD - Header */}
-            <div className="px-8 py-6 relative">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 text-center" style={{ fontFamily: 'var(--font-fredoka)' }}>
+            <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 relative">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center" style={{ fontFamily: 'var(--font-fredoka)' }}>
                 Why Productions Choose Set Life Casting
               </h2>
             </div>
 
             {/* MAIN BOARD - Content */}
             <motion.div
-              className="px-8 md:px-12 py-10 space-y-6 bg-white relative"
+              className="px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-10 space-y-4 sm:space-y-6 bg-white relative"
               animate={{
                 y: isHovered ? -4 : 0
               }}
               transition={{ duration: 0.3 }}
             >
-              <p className="text-lg leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 With over a decade of experience in Atlanta&apos;s film and television industry,
                 Set Life Casting has become the go-to extras casting company for productions
                 across Georgia and the Southeast. From independent films to major studio projects,
@@ -98,14 +98,14 @@ export default function WhyChooseUs() {
                 completely hands-on throughout the casting process.
               </p>
 
-              <p className="text-lg leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 We specialize in connecting productions with the right background actors and
                 talent, whether you need featured extras, UGC talent, or specialized roles.
                 Our team brings industry knowledge and attention to detail that ensures every
                 project gets exactly what it needs, no matter how unique the requirements.
               </p>
 
-              <p className="text-lg leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 For productions and talent alike, we make the casting process seamless from
                 start to finish.
               </p>

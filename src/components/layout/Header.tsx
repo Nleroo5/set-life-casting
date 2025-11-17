@@ -35,8 +35,8 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="relative w-12 h-12">
+          <Link href="/" className="flex items-center space-x-2 sm:space-x-3 flex-shrink min-w-0">
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
               <Image
                 src="https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d"
                 alt="Set Life Casting Logo"
@@ -45,7 +45,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="text-xl font-bold text-secondary hidden sm:block">
+            <span className="text-base sm:text-lg md:text-xl font-bold text-secondary truncate" style={{ fontFamily: 'var(--font-galindo)' }}>
               Set Life Casting
             </span>
           </Link>

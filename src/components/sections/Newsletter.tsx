@@ -83,10 +83,10 @@ export default function Newsletter() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-4xl font-bold mb-4 text-secondary" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-secondary px-2" style={{ fontFamily: 'var(--font-galindo)' }}>
             Never Miss a <span className="text-accent">Casting Call</span>
           </h2>
-          <p className="text-xl text-secondary-light mb-8 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg sm:text-xl text-secondary-light mb-8 max-w-2xl mx-auto px-2" style={{ fontFamily: 'var(--font-outfit)' }}>
             Subscribe to our newsletter and be the first to know about new
             casting opportunities, industry tips, and exclusive updates.
           </p>
@@ -95,7 +95,7 @@ export default function Newsletter() {
             onSubmit={handleSubmit(onSubmit)}
             className="max-w-2xl mx-auto"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <Input
                 type="text"
                 placeholder="First Name"

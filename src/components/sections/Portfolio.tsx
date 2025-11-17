@@ -193,7 +193,7 @@ export default function Portfolio() {
             onTouchStart={handleDragStart}
             onTouchEnd={handleDragEnd}
           >
-            <div className="flex items-center justify-center h-full gap-6 px-20">
+            <div className="flex items-center justify-center h-full gap-6 px-4 sm:px-8 md:px-20">
               <AnimatePresence initial={false} custom={direction}>
                 {getVisibleCards().map((project, idx) => (
                   <motion.div
@@ -208,7 +208,7 @@ export default function Portfolio() {
                     }}
                     exit={{ opacity: 0, x: direction > 0 ? -300 : 300, scale: 0.8 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="absolute w-[280px] md:w-[300px]"
+                    className="absolute w-[240px] sm:w-[280px] md:w-[300px]"
                   >
                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary-dark shadow-2xl">
                       <Image
@@ -216,7 +216,7 @@ export default function Portfolio() {
                         alt={project.alt}
                         fill
                         className="object-cover"
-                        sizes="(max-width: 768px) 280px, 300px"
+                        sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, 300px"
                         priority={project.position === 0}
                       />
                     </div>

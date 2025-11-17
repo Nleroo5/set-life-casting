@@ -149,7 +149,30 @@ export default function ServicesPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
-                Productions We Work With
+                <span
+                  className="animate-word"
+                  style={{ display: "inline-block", animationDelay: "0.1s" }}
+                >
+                  Productions{" "}
+                </span>
+                <span
+                  className="animate-word"
+                  style={{ display: "inline-block", animationDelay: "0.3s" }}
+                >
+                  We{" "}
+                </span>
+                <span
+                  className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                  style={{ display: "inline-block", animationDelay: "0.5s" }}
+                >
+                  Work{" "}
+                </span>
+                <span
+                  className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                  style={{ display: "inline-block", animationDelay: "0.7s" }}
+                >
+                  With
+                </span>
               </h2>
               <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
                 We provide professional background talent for all types of productions, from major studio films to independent projects.
@@ -198,7 +221,24 @@ export default function ServicesPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
-              How We Work
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                How{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                We{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                Work
+              </span>
             </h2>
             <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               When you hire Set Life Casting, we take care of every step of the casting process to ensure your production runs smoothly:
@@ -230,7 +270,30 @@ export default function ServicesPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
-            Ready to Get Started?
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.1s" }}
+            >
+              Ready{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.3s" }}
+            >
+              to{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.5s" }}
+            >
+              Get{" "}
+            </span>
+            <span
+              className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
+              style={{ display: "inline-block", animationDelay: "0.7s" }}
+            >
+              Started?
+            </span>
           </h2>
           <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             Contact us today to discuss your casting needs
