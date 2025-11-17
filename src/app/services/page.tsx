@@ -4,7 +4,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import React, { useRef } from "react";
 import Button from "@/components/ui/Button";
 
 function AnimatedCheckmark({ index }: { index: number }) {
@@ -71,81 +71,141 @@ export default function ServicesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
-              Full-Service Casting for Film, Television & Commercials in <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]">Atlanta</span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                Full-Service{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                Casting{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                for{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.7s" }}
+              >
+                Film,{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.9s" }}
+              >
+                Television{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "1.1s" }}
+              >
+                &{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "1.3s" }}
+              >
+                Commercials{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "1.5s" }}
+              >
+                in{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                style={{ display: "inline-block", animationDelay: "1.7s" }}
+              >
+                Atlanta
+              </span>
             </h1>
-            <p className="text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md">
-              Set Life Casting provides professional background casting services for productions
-              filming throughout Georgia and the Southeast. With years of hands-on experience
-              in Atlanta&apos;s booming film industry, we understand what it takes to deliver the
-              right talent on time, every time.
+            <p className="text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+                Set Life Casting provides professional background casting services
+              </span>
+              {" "}
+              for productions filming throughout Georgia and the Southeast. With years of hands-on experience in Atlanta&apos;s booming film industry, we understand what it takes to deliver the right talent on time, every time.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Production Types */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4">
-              Productions We Work With
-            </h2>
-            <p className="text-xl text-secondary-light max-w-3xl mx-auto">
-              We provide professional background talent for all types of productions, from major studio films to independent projects.
-            </p>
-          </div>
+      {/* Unified Background Section */}
+      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {productionTypes.map((type) => (
-              <div
-                key={type.title}
-                className="bg-gradient-to-br from-primary-light to-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-accent/20"
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-xl flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-accent"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
+        {/* Production Types */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+                Productions We Work With
+              </h2>
+              <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+                We provide professional background talent for all types of productions, from major studio films to independent projects.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {productionTypes.map((type) => (
+                <div
+                  key={type.title}
+                  className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-12 h-12 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-xl flex items-center justify-center">
+                        <svg
+                          className="w-6 h-6 text-accent"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-accent mb-2">
+                        {type.title}
+                      </h3>
+                      <p className="text-secondary leading-relaxed">
+                        {type.description}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-secondary mb-2">
-                      {type.title}
-                    </h3>
-                    <p className="text-secondary-light leading-relaxed">
-                      {type.description}
-                    </p>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How We Work Section */}
-      <section className="py-20 bg-primary-light">
+        {/* How We Work Section */}
+        <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4">
+            <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
               How We Work
             </h2>
-            <p className="text-xl text-secondary-light max-w-3xl mx-auto">
+            <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               When you hire Set Life Casting, we take care of every step of the casting process to ensure your production runs smoothly:
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-10 shadow-lg">
+          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
             <ul className="space-y-6">
               {[
                 "Finding & booking talent that matches your project's exact needs",
@@ -156,7 +216,7 @@ export default function ServicesPage() {
               ].map((item, index) => (
                 <li key={index} className="flex items-start">
                   <AnimatedCheckmark index={index} />
-                  <span className="ml-4 text-lg text-secondary-light leading-relaxed">
+                  <span className="ml-4 text-lg text-secondary leading-relaxed">
                     {item}
                   </span>
                 </li>
@@ -167,12 +227,12 @@ export default function ServicesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-secondary mb-6">
+          <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-secondary-light mb-8">
+          <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             Contact us today to discuss your casting needs
           </p>
           <Link href="/contact">
@@ -182,6 +242,7 @@ export default function ServicesPage() {
           </Link>
         </div>
       </section>
+      </div>
     </div>
   );
 }

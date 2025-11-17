@@ -1,8 +1,9 @@
 "use client";
 
 import { Metadata } from "next";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 const faqs = [
   {
@@ -97,23 +98,59 @@ export default function FAQPage() {
     <div className="pt-20">
       {/* Hero */}
       <section className="relative py-20 overflow-hidden">
-        {/* Translucent charcoal background */}
-        <div className="absolute inset-0 bg-gray-900/85"></div>
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/atlanta-casting-agency-questions-answers.jpg"
+            alt="Atlanta casting agency frequently asked questions - Set Life Casting"
+            fill
+            className="object-cover object-[center_80%]"
+            priority
+          />
+          {/* Translucent charcoal overlay */}
+          <div className="absolute inset-0 bg-gray-900/85"></div>
+        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
-              Frequently Asked <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]">Questions</span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
+              >
+                Frequently{" "}
+              </span>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
+              >
+                Asked{" "}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
+              >
+                Questions
+              </span>
             </h1>
-            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md">
-              Find answers to common questions about working with Set Life
-              Casting
+            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+                Find answers to common questions
+              </span>
+              {" "}
+              about working with Set Life Casting
             </p>
           </div>
         </div>
       </section>
 
+      {/* Unified Background Section */}
+      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
+
       {/* FAQ Sections */}
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {faqs.map((section, sectionIndex) => (
             <div key={section.category} className="mb-12">
@@ -128,13 +165,13 @@ export default function FAQPage() {
                   return (
                     <div
                       key={id}
-                      className="bg-primary-light rounded-xl overflow-hidden"
+                      className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl overflow-hidden border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
                     >
                       <button
                         onClick={() => toggleAccordion(id)}
-                        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-primary transition-colors"
+                        className="w-full px-6 py-4 text-left flex items-center justify-between transition-colors"
                       >
-                        <span className="font-semibold text-secondary pr-8">
+                        <span className="font-semibold text-accent pr-8">
                           {faq.q}
                         </span>
                         <motion.svg
@@ -160,7 +197,7 @@ export default function FAQPage() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-6 pb-4 text-secondary-light">
+                            <div className="px-6 pb-4 text-secondary">
                               {faq.a}
                             </div>
                           </motion.div>
@@ -176,12 +213,12 @@ export default function FAQPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-primary-light">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-secondary mb-6">
+          <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have Questions?
           </h2>
-          <p className="text-xl text-secondary-light mb-8">
+          <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We&apos;re here to help! Reach out and we&apos;ll get back to you as
             soon as possible.
           </p>
@@ -193,6 +230,7 @@ export default function FAQPage() {
           </a>
         </div>
       </section>
+      </div>
     </div>
   );
 }

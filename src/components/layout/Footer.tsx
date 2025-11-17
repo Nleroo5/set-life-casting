@@ -6,7 +6,6 @@ import Image from "next/image";
 
 const footerLinks = {
   company: [
-    { name: "About Us", href: "/about" },
     { name: "Services", href: "/services" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
@@ -43,6 +42,11 @@ export default function Footer() {
 
   return (
     <footer className="bg-secondary text-white">
+      {/*
+        Website Design & Development by Drive Lead Media
+        Atlanta Web Design | Digital Marketing | SEO Services
+        https://www.driveleadmedia.com
+      */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -103,16 +107,16 @@ export default function Footer() {
             <h3 className="font-bold mb-4">Connect</h3>
             <div className="space-y-3 mb-6">
               <a
-                href="mailto:contact@setlifecasting.com"
+                href="mailto:SetLifeCasting@gmail.com"
                 className="text-white hover:text-accent transition-colors duration-200 text-sm block"
               >
-                contact@setlifecasting.com
+                SetLifeCasting@gmail.com
               </a>
               <a
-                href="tel:+1234567890"
+                href="tel:+14706938314"
                 className="text-white hover:text-accent transition-colors duration-200 text-sm block"
               >
-                (123) 456-7890
+                (470) 693-8314
               </a>
             </div>
             <div className="flex space-x-4">
@@ -135,9 +139,26 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-secondary-light/20">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-white text-sm">
-              © {currentYear} Set Life Casting LLC. All rights reserved.
-            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm">
+              <p className="text-white">
+                © {currentYear} Set Life Casting LLC. All rights reserved.
+              </p>
+              <span className="hidden sm:inline text-white/40">•</span>
+              <p className="text-white/80" itemScope itemType="https://schema.org/WebSite">
+                Website by{" "}
+                <a
+                  href="https://www.driveleadmedia.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  itemProp="creator"
+                  className="text-white hover:text-accent transition-colors duration-200 font-medium underline decoration-white/30 hover:decoration-accent underline-offset-2"
+                  title="Drive Lead Media - Digital Marketing & Web Design Agency"
+                  aria-label="Visit Drive Lead Media - Professional Web Design and Digital Marketing Agency in Atlanta"
+                >
+                  Drive Lead Media
+                </a>
+              </p>
+            </div>
             <div className="flex space-x-6">
               <Link
                 href="/privacy"

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, MotionConfig } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 
@@ -54,12 +54,12 @@ export default function Hero() {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/videos/atlanta-casting-video.mp4" type="video/mp4" />
         </video>
-        {/* Translucent charcoal overlay */}
-        <div className="absolute inset-0 bg-gray-900/80" />
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary/70 via-secondary/60 to-secondary/70" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center z-10">
@@ -69,15 +69,43 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            Your Next Role
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.1s" }}
+            >
+              Your{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.3s" }}
+            >
+              Next{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.5s" }}
+            >
+              Opportunity
+            </span>
             <br />
-            <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Starts Here</span>
+            <span
+              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
+              style={{ display: "inline-block", animationDelay: "0.7s" }}
+            >
+              Starts{" "}
+            </span>
+            <span
+              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
+              style={{ display: "inline-block", animationDelay: "0.9s" }}
+            >
+              Here
+            </span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl sm:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed">
-            <span className="inline-block bg-gradient-to-r from-accent via-purple-400 to-accent bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+          <p className="text-xl sm:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
               Atlanta&apos;s Premier Extras Casting Agency
             </span>
             {" "}

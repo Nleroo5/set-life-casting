@@ -7,7 +7,12 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 interface NewsletterFormData {
+  firstName: string;
+  lastName: string;
   email: string;
+  phone: string;
+  city: string;
+  state: string;
 }
 
 export default function Newsletter() {
@@ -26,14 +31,29 @@ export default function Newsletter() {
     setMessage("");
 
     try {
-      // TODO: Replace with your newsletter API endpoint or Firebase setup
-      console.log("Newsletter subscription:", data);
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          city: data.city,
+          state: data.state,
+        }),
+      });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to subscribe');
+      }
 
       setStatus("success");
-      setMessage("Thanks for subscribing! You'll hear from us soon.");
+      setMessage(result.message || "Thanks for subscribing! You'll hear from us soon.");
       reset();
 
       // Reset status after 5 seconds
@@ -44,7 +64,7 @@ export default function Newsletter() {
     } catch (error) {
       console.error("Newsletter subscription error:", error);
       setStatus("error");
-      setMessage("Something went wrong. Please try again.");
+      setMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
 
       setTimeout(() => {
         setStatus("idle");
@@ -63,45 +83,98 @@ export default function Newsletter() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-4xl font-bold mb-4 text-secondary">
-            Never Miss a Casting Call
+          <h2 className="text-4xl font-bold mb-4 text-secondary" style={{ fontFamily: 'var(--font-galindo)' }}>
+            Never Miss a <span className="text-accent">Casting Call</span>
           </h2>
-          <p className="text-xl text-secondary-light mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-secondary-light mb-8 max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
             Subscribe to our newsletter and be the first to know about new
             casting opportunities, industry tips, and exclusive updates.
           </p>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="max-w-md mx-auto"
+            className="max-w-2xl mx-auto"
           >
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-white border-secondary/20 text-secondary placeholder:text-secondary/60 focus:ring-accent"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "Invalid email address",
-                    },
-                  })}
-                  error={errors.email?.message}
-                  disabled={status === "loading"}
-                />
-              </div>
-              <Button
-                type="submit"
-                variant="secondary"
-                size="md"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Input
+                type="text"
+                placeholder="First Name"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("firstName", {
+                  required: "First name is required",
+                })}
+                error={errors.firstName?.message}
                 disabled={status === "loading"}
-                className="sm:w-auto whitespace-nowrap"
-              >
-                {status === "loading" ? "Subscribing..." : "Subscribe"}
-              </Button>
+              />
+              <Input
+                type="text"
+                placeholder="Last Name"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("lastName", {
+                  required: "Last name is required",
+                })}
+                error={errors.lastName?.message}
+                disabled={status === "loading"}
+              />
+              <Input
+                type="email"
+                placeholder="Email"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                })}
+                error={errors.email?.message}
+                disabled={status === "loading"}
+              />
+              <Input
+                type="tel"
+                placeholder="Phone Number"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("phone", {
+                  required: "Phone number is required",
+                  pattern: {
+                    value: /^[\d\s\-\(\)]+$/,
+                    message: "Invalid phone number",
+                  },
+                })}
+                error={errors.phone?.message}
+                disabled={status === "loading"}
+              />
+              <Input
+                type="text"
+                placeholder="City"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("city", {
+                  required: "City is required",
+                })}
+                error={errors.city?.message}
+                disabled={status === "loading"}
+              />
+              <Input
+                type="text"
+                placeholder="State"
+                className="bg-white border-accent/30 text-secondary placeholder:text-secondary/60 focus:ring-accent focus:border-accent"
+                {...register("state", {
+                  required: "State is required",
+                })}
+                error={errors.state?.message}
+                disabled={status === "loading"}
+              />
             </div>
+
+            <Button
+              type="submit"
+              variant="secondary"
+              size="md"
+              disabled={status === "loading"}
+              className="w-full"
+            >
+              {status === "loading" ? "Subscribing..." : "Subscribe"}
+            </Button>
 
             {message && (
               <motion.p

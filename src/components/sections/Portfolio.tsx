@@ -85,7 +85,8 @@ const projects = [
 ];
 
 export default function Portfolio() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Start at projects.length (middle set) to avoid immediate jump
+  const [currentIndex, setCurrentIndex] = useState(projects.length);
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -104,6 +105,15 @@ export default function Portfolio() {
     setDirection(-1);
     setCurrentIndex((prev) => prev - 1);
   };
+
+  // Auto-rotation effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 3000); // Rotate every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
 
   // Reset to middle set when reaching edges (infinite loop)
   useEffect(() => {
@@ -124,6 +134,10 @@ export default function Portfolio() {
     for (let i = -1; i <= 1; i++) {
       const index = (startIndex + currentIndex + i) % extendedProjects.length;
       cards.push({ ...extendedProjects[index], position: i });
+    }
+    // Debug: Log the center card on initial load
+    if (currentIndex === projects.length && cards[1]) {
+      console.log('🎬 Center poster on load:', cards[1].image.split('/').pop());
     }
     return cards;
   };
@@ -159,35 +173,16 @@ export default function Portfolio() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">
-            Productions We&apos;ve Worked On
+          <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <span className="text-accent">Productions</span> We&apos;ve Worked On
           </h2>
-          <p className="text-xl text-white max-w-2xl mx-auto">
+          <p className="text-xl text-white max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
             Proud to have provided talented extras for these amazing projects
           </p>
         </motion.div>
 
         {/* Carousel Container */}
         <div className="relative">
-          {/* Left Arrow */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-accent hover:bg-accent-dark text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110 -ml-6"
-            aria-label="Previous project"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
           {/* Carousel Track */}
           <div
             ref={containerRef}
@@ -224,38 +219,12 @@ export default function Portfolio() {
                         sizes="(max-width: 768px) 280px, 300px"
                         priority={project.position === 0}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/40 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-                        <span className="text-xs font-semibold text-accent uppercase mb-2 block">
-                          {project.type}
-                        </span>
-                        <h3 className="text-xl font-bold">{project.title}</h3>
-                      </div>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
           </div>
-
-          {/* Right Arrow */}
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-accent hover:bg-accent-dark text-white rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110 -mr-6"
-            aria-label="Next project"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
         </div>
 
         {/* Dot Indicators */}

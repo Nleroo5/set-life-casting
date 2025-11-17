@@ -1,14 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function ContactPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-visible">
-        {/* Translucent charcoal background */}
-        <div className="absolute inset-0 bg-gray-900/85"></div>
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/atlanta-background-actor-casting-services.jpg"
+            alt="Atlanta background actor casting services - Contact Set Life Casting"
+            fill
+            className="object-cover object-[center_60%]"
+            priority
+          />
+          {/* Translucent charcoal overlay */}
+          <div className="absolute inset-0 bg-gray-900/85"></div>
+        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -16,77 +27,45 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1
-              className="text-5xl font-bold text-white mb-6"
-              style={{
-                animation: "wiggle 2s ease-in-out infinite 1s",
-                lineHeight: "1.6",
-                paddingBottom: "0.5rem"
-              }}
-            >
-              <motion.span
-                initial={{ opacity: 0, scale: 0.3, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.1,
-                  ease: [0.34, 1.56, 0.64, 1]
-                }}
-                style={{
-                  animation: "bounceIn 0.8s ease-out 0.1s backwards",
-                  display: "inline-block"
-                }}
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <span
+                className="animate-word"
+                style={{ display: "inline-block", animationDelay: "0.1s" }}
               >
                 Let&apos;s{" "}
-              </motion.span>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.3, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.3,
-                  ease: [0.34, 1.56, 0.64, 1]
-                }}
-                className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
-                style={{
-                  animation: "bounceIn 0.8s ease-out 0.3s backwards",
-                  display: "inline-block"
-                }}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                style={{ display: "inline-block", animationDelay: "0.3s" }}
               >
                 Work{" "}
-              </motion.span>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.3, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.5,
-                  ease: [0.34, 1.56, 0.64, 1]
-                }}
-                className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
-                style={{
-                  animation: "bounceIn 0.8s ease-out 0.5s backwards",
-                  display: "inline-block"
-                }}
+              </span>
+              <span
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                style={{ display: "inline-block", animationDelay: "0.5s" }}
               >
                 Together!
-              </motion.span>
+              </span>
             </h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-xl text-white/90 leading-relaxed"
-            >
-              Whether you&apos;re a production looking for talent or an actor
-              ready to work, we&apos;d love to hear from you!
-            </motion.p>
+            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+                Whether you&apos;re a production looking for talent or an actor ready to work,
+              </span>
+              {" "}
+              we&apos;d love to hear from you!
+            </p>
           </motion.div>
         </div>
       </section>
 
+      {/* Unified Background Section */}
+      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
+
       {/* Contact Content */}
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Production Inquiries */}
@@ -95,12 +74,7 @@ export default function ContactPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              whileHover={{
-                y: -4,
-                boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15)",
-                transition: { duration: 0.3, ease: "easeOut" }
-              }}
-              className="bg-gradient-to-br from-primary-light to-white rounded-2xl p-8 shadow-lg transition-all duration-300 border-2 border-transparent hover:border-accent/20"
+              className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
             >
               <div className="text-center mb-6">
                 <motion.div
@@ -120,7 +94,7 @@ export default function ContactPage() {
                     <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </motion.div>
-                <h2 className="text-3xl font-bold text-secondary mb-2">
+                <h2 className="text-3xl font-bold text-secondary mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   Production Inquiries
                 </h2>
                 <p className="text-accent font-medium text-sm">No talent please</p>
@@ -199,12 +173,7 @@ export default function ContactPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              whileHover={{
-                y: -4,
-                boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15)",
-                transition: { duration: 0.3, ease: "easeOut" }
-              }}
-              className="bg-gradient-to-br from-primary-light to-white rounded-2xl p-8 shadow-lg transition-all duration-300 border-2 border-transparent hover:border-accent/20"
+              className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
             >
               <div className="text-center mb-6">
                 <motion.div
@@ -224,7 +193,7 @@ export default function ContactPage() {
                     <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </motion.div>
-                <h2 className="text-3xl font-bold text-secondary mb-2">
+                <h2 className="text-3xl font-bold text-secondary mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   Talent Inquiries
                 </h2>
                 <p className="text-secondary-light text-sm">Background actors & extras</p>
@@ -306,8 +275,8 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-12 text-center"
           >
-            <div className="bg-primary-light rounded-2xl p-8 max-w-3xl mx-auto">
-              <h3 className="text-2xl font-bold text-secondary mb-4">
+            <div className="p-8 max-w-3xl mx-auto">
+              <h3 className="text-2xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Location
               </h3>
               <div className="flex items-center justify-center text-secondary-light">
@@ -323,7 +292,7 @@ export default function ContactPage() {
                   <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <p className="text-lg">Atlanta, Georgia — Serving the Southeast</p>
+                <p className="text-lg" style={{ fontFamily: 'var(--font-outfit)' }}>Atlanta, Georgia — Serving the Southeast</p>
               </div>
             </div>
           </motion.div>
@@ -336,7 +305,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-12 text-center"
           >
-            <h3 className="text-xl font-semibold text-secondary mb-6">
+            <h3 className="text-xl font-semibold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
               Follow Us for Casting Updates
             </h3>
             <div className="flex justify-center space-x-4">
@@ -380,6 +349,7 @@ export default function ContactPage() {
           </motion.div>
         </div>
       </section>
+      </div>
     </div>
   );
 }

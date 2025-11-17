@@ -1,0 +1,27 @@
+/* TEAM */
+
+Web Design & Development: Drive Lead Media
+Site: https://www.driveleadmedia.com
+Location: Atlanta, Georgia, USA
+Description: Digital Marketing & Web Design Agency
+
+/* THANKS */
+
+Drive Lead Media - For professional web design and development services
+
+/* SITE */
+
+Last update: 2025/01/16
+Standards: HTML5, CSS3, JavaScript, TypeScript
+Components: React, Next.js, Tailwind CSS, Framer Motion
+Software: Visual Studio Code, Git
+Doctype: HTML5
+IDE: Visual Studio Code
+
+/* CLIENT */
+
+Client: Set Life Casting
+Website: https://www.setlifecasting.com
+Business: Extras Casting Company
+Location: Atlanta, Georgia, USA
+Industry: Film & Television Production

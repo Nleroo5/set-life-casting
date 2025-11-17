@@ -9,9 +9,8 @@ import Button from "@/components/ui/Button";
 
 const navigation = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
   { name: "Services", href: "/services" },
-  { name: "Resources", href: "/resources" },
+  { name: "Talent Resources", href: "/resources" },
   { name: "FAQ", href: "/faq" },
   { name: "Contact", href: "/contact" },
 ];
@@ -58,6 +57,7 @@ export default function Header() {
                 key={item.name}
                 href={item.href}
                 className="px-4 py-2 text-secondary hover:text-accent transition-colors duration-200 font-medium"
+                style={{ fontFamily: 'var(--font-outfit)' }}
               >
                 {item.name}
               </Link>
@@ -66,9 +66,11 @@ export default function Header() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button variant="primary" size="md">
-              Check Castings
-            </Button>
+            <Link href="/castings">
+              <Button variant="primary" size="md">
+                Check Castings
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -112,15 +114,18 @@ export default function Header() {
                   key={item.name}
                   href={item.href}
                   className="block px-4 py-2 text-secondary hover:text-accent hover:bg-primary-light rounded-lg transition-all duration-200 font-medium"
+                  style={{ fontFamily: 'var(--font-outfit)' }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
               <div className="pt-4">
-                <Button variant="primary" size="md" className="w-full">
-                  Check Castings
-                </Button>
+                <Link href="/castings" className="block">
+                  <Button variant="primary" size="md" className="w-full">
+                    Check Castings
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>

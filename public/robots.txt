@@ -1,0 +1,14 @@
+# Website designed and developed by Drive Lead Media
+# https://www.driveleadmedia.com
+# Digital Marketing & Web Design Agency - Atlanta, GA
+
+User-agent: *
+Allow: /
+Allow: /credits
+Allow: /humans.txt
+
+# Sitemaps
+Sitemap: https://www.setlifecasting.com/sitemap.xml
+
+# Humans
+# Team credits at /humans.txt
