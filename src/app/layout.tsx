@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Outfit, Poppins, Baloo_2, Londrina_Solid, Lilita_One } from "next/font/google";
+import { Fredoka, Outfit } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/layout/Header";
@@ -13,33 +13,6 @@ const fredoka = Fredoka({
 
 const outfit = Outfit({
   variable: "--font-outfit",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  weight: ["700"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const baloo2 = Baloo_2({
-  variable: "--font-baloo2",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const londrinaSolid = Londrina_Solid({
-  variable: "--font-londrina-solid",
-  weight: ["400", "900"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const lilitaOne = Lilita_One({
-  variable: "--font-lilita-one",
-  weight: ["400"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -262,7 +235,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${fredoka.variable} ${outfit.variable} ${poppins.variable} ${baloo2.variable} ${londrinaSolid.variable} ${lilitaOne.variable} ${galindo.variable} antialiased`}
+        className={`${fredoka.variable} ${outfit.variable} ${galindo.variable} antialiased`}
       >
         {/* Website designed and developed by Drive Lead Media - https://www.driveleadmedia.com */}
         {/* Digital Marketing | Web Design | SEO Services | Atlanta, GA */}
