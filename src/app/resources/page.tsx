@@ -5,6 +5,7 @@ import Link from "next/link";
 import React from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
+import StarFrameImage from "@/components/ui/StarFrameImage";
 
 export default function ResourcesPage() {
   return (
@@ -308,10 +309,11 @@ export default function ResourcesPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               className="text-2xl font-bold text-secondary mb-6 text-center"
+              style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Example Submission Photos
             </motion.h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
                 {
                   src: "/images/atlanta-extras-headshot-front-example.jpg",
@@ -350,17 +352,15 @@ export default function ResourcesPage() {
                   }}
                   whileHover={{
                     y: -8,
-                    scale: 1.02,
+                    scale: 1.05,
                     transition: { duration: 0.3 }
                   }}
-                  className="aspect-[3/4] rounded-xl border-2 border-accent/20 overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
+                  className="flex items-center justify-center"
                 >
-                  <Image
+                  <StarFrameImage
                     src={photo.src}
                     alt={photo.alt}
-                    width={400}
-                    height={533}
-                    className="w-full h-full object-cover"
+                    className="w-full"
                   />
                 </motion.div>
               ))}

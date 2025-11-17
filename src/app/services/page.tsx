@@ -7,27 +7,23 @@ import { useInView } from "framer-motion";
 import React, { useRef } from "react";
 import Button from "@/components/ui/Button";
 
-function AnimatedCheckmark({ index }: { index: number }) {
+function AnimatedStar({ index }: { index: number }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
   return (
     <div ref={ref} className="flex-shrink-0 mt-1">
       <svg
-        className="w-6 h-6 text-accent"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
+        className="w-6 h-6 text-yellow-500"
+        fill="currentColor"
         viewBox="0 0 24 24"
-        stroke="currentColor"
         style={{
-          strokeDasharray: 20,
-          strokeDashoffset: isInView ? 0 : 20,
-          animation: isInView ? `checkmarkDraw 0.5s ease-out ${index * 0.1}s forwards` : 'none',
+          opacity: isInView ? 1 : 0,
+          transform: isInView ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-180deg)',
+          transition: `all 0.5s ease-out ${index * 0.1}s`,
         }}
       >
-        <path d="M5 13l4 4L19 7" />
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
     </div>
   );
@@ -121,7 +117,7 @@ export default function ServicesPage() {
                 in{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_30px_rgb(139_92_246_/_50%)]"
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_10px_rgb(139_92_246_/_80%),_0_0_20px_rgb(139_92_246_/_60%),_0_0_40px_rgb(139_92_246_/_40%),_0_0_80px_rgb(139_92_246_/_20%)]"
                 style={{ display: "inline-block", animationDelay: "1.7s" }}
               >
                 Atlanta
@@ -187,17 +183,13 @@ export default function ServicesPage() {
                 >
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 mt-1">
-                      <div className="w-12 h-12 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400/20 to-amber-500/20 rounded-xl flex items-center justify-center">
                         <svg
-                          className="w-6 h-6 text-accent"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
+                          className="w-6 h-6 text-yellow-500"
+                          fill="currentColor"
                           viewBox="0 0 24 24"
-                          stroke="currentColor"
                         >
-                          <path d="M5 13l4 4L19 7" />
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                       </div>
                     </div>
@@ -255,7 +247,7 @@ export default function ServicesPage() {
                 "Maintaining professionalism, adaptability, & a stress-free experience",
               ].map((item, index) => (
                 <li key={index} className="flex items-start">
-                  <AnimatedCheckmark index={index} />
+                  <AnimatedStar index={index} />
                   <span className="ml-4 text-lg text-secondary leading-relaxed">
                     {item}
                   </span>
