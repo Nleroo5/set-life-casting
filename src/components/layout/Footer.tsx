@@ -60,7 +60,7 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-lg font-bold">Set Life Casting</span>
+              <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
             <p className="text-white text-sm">
               Atlanta&apos;s premier extras casting company for film, TV,

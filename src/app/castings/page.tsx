@@ -2,10 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
 
 export default function CastingsPage() {
-  const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
 
   return (
     <div className="pt-20">
@@ -62,63 +60,20 @@ export default function CastingsPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
-        {/* Tabs */}
-        <section className="pt-12 pb-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center gap-4 mb-8">
-              <button
-                onClick={() => setActiveTab("open")}
-                className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
-                  activeTab === "open"
-                    ? "bg-gradient-to-br from-white to-purple-50/30 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.3)] text-accent"
-                    : "bg-white/50 border-2 border-gray-300 text-secondary hover:border-accent"
-                }`}
-                style={{ fontFamily: 'var(--font-outfit)' }}
-              >
-                Now Casting
-              </button>
-              <button
-                onClick={() => setActiveTab("closed")}
-                className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
-                  activeTab === "closed"
-                    ? "bg-gradient-to-br from-white to-purple-50/30 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.3)] text-accent"
-                    : "bg-white/50 border-2 border-gray-300 text-secondary hover:border-accent"
-                }`}
-                style={{ fontFamily: 'var(--font-outfit)' }}
-              >
-                Booked / Closed
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Airtable Embeds */}
-        <section className="pb-20">
+        {/* Airtable Embed */}
+        <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] transition-all duration-300">
-              {activeTab === "open" ? (
-                <div className="w-full" style={{ minHeight: '600px' }}>
-                  <iframe
-                    className="airtable-embed w-full rounded-lg"
-                    src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrUa4WthkQMnESNR?viewControls=on"
-                    frameBorder="0"
-                    width="100%"
-                    height="600"
-                    style={{ background: 'transparent' }}
-                  ></iframe>
-                </div>
-              ) : (
-                <div className="w-full" style={{ minHeight: '600px' }}>
-                  <iframe
-                    className="airtable-embed w-full rounded-lg"
-                    src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrViWqKrUJ1xm5Rc?viewControls=on"
-                    frameBorder="0"
-                    width="100%"
-                    height="600"
-                    style={{ background: 'transparent' }}
-                  ></iframe>
-                </div>
-              )}
+              <div className="w-full" style={{ minHeight: '533px' }}>
+                <iframe
+                  className="airtable-embed w-full rounded-lg"
+                  src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrIBpJC0yOjMLtPe?layout=card&viewControls=on"
+                  frameBorder="0"
+                  width="100%"
+                  height="533"
+                  style={{ background: 'transparent', border: '1px solid #ccc' }}
+                ></iframe>
+              </div>
             </div>
           </div>
         </section>
