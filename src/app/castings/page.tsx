@@ -67,7 +67,7 @@ export default function CastingsPage() {
               <div className="w-full" style={{ minHeight: '533px' }}>
                 <iframe
                   className="airtable-embed w-full rounded-lg"
-                  src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrIBpJC0yOjMLtPe?layout=card&viewControls=on"
+                  src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrHPuDBpoEHbIRPN?viewControls=on"
                   frameBorder="0"
                   width="100%"
                   height="533"
