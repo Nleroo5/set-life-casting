@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Outfit } from "next/font/google";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -209,37 +211,32 @@ export default function RootLayout({
             })
           }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                {
-                  "@type": "ListItem",
-                  "position": 1,
-                  "name": "Home",
-                  "item": "https://www.setlifecasting.com"
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 2,
-                  "name": "Website Credits",
-                  "item": "https://www.setlifecasting.com/credits",
-                  "description": "Website designed by Drive Lead Media"
-                }
-              ]
-            })
-          }}
-        />
       </head>
       <body
         className={`${fredoka.variable} ${outfit.variable} ${galindo.variable} antialiased`}
       >
+        {/* Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-152PSRW9DD"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-152PSRW9DD');
+            `,
+          }}
+        />
+
         {/* Website designed and developed by Drive Lead Media - https://www.driveleadmedia.com */}
         {/* Digital Marketing | Web Design | SEO Services | Atlanta, GA */}
         <Header />
+        <Breadcrumbs />
         <main className="min-h-screen">{children}</main>
         <Footer />
       </body>
