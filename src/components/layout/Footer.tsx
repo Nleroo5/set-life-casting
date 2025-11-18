@@ -41,13 +41,19 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-secondary text-white">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+      {/* Glass Morphism Background Layer */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-sm"></div>
+
+      {/* Top Glowing Border */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent shadow-[0_0_10px_rgba(168,85,247,0.4)]"></div>
+
       {/*
         Website Design & Development by Drive Lead Media
         Atlanta Web Design | Digital Marketing | SEO Services
         https://www.driveleadmedia.com
       */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1">
@@ -62,7 +68,7 @@ export default function Footer() {
               </div>
               <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
-            <p className="text-white text-sm">
+            <p className="text-white/90 text-sm">
               Atlanta&apos;s premier extras casting company for film, TV,
               commercials, and music videos.
             </p>
@@ -70,13 +76,13 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-bold mb-4">Company</h3>
+            <h3 className="font-bold mb-4 text-white">Company</h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white hover:text-accent transition-colors duration-200 text-sm"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
                   >
                     {link.name}
                   </Link>
@@ -87,13 +93,13 @@ export default function Footer() {
 
           {/* Resources Links */}
           <div>
-            <h3 className="font-bold mb-4">Resources</h3>
+            <h3 className="font-bold mb-4 text-white">Resources</h3>
             <ul className="space-y-2">
               {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white hover:text-accent transition-colors duration-200 text-sm"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
                   >
                     {link.name}
                   </Link>
@@ -104,17 +110,17 @@ export default function Footer() {
 
           {/* Contact & Social */}
           <div>
-            <h3 className="font-bold mb-4">Connect</h3>
+            <h3 className="font-bold mb-4 text-white">Connect</h3>
             <div className="space-y-3 mb-6">
               <a
                 href="mailto:SetLifeCasting@gmail.com"
-                className="text-white hover:text-accent transition-colors duration-200 text-sm block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
               >
                 SetLifeCasting@gmail.com
               </a>
               <a
                 href="tel:+14706938314"
-                className="text-white hover:text-accent transition-colors duration-200 text-sm block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
               >
                 (470) 693-8314
               </a>
@@ -126,7 +132,7 @@ export default function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white hover:text-accent transition-colors duration-200"
+                  className="text-white/80 hover:text-accent transition-all duration-200 hover:scale-110"
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -137,14 +143,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-secondary-light/20">
+        <div className="mt-12 pt-8 border-t border-white/10 shadow-[0_-1px_10px_rgba(168,85,247,0.1)]">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col sm:flex-row items-center gap-4 text-sm">
-              <p className="text-white">
+              <p className="text-white/90">
                 © {currentYear} Set Life Casting LLC. All rights reserved.
               </p>
               <span className="hidden sm:inline text-white/40">•</span>
-              <p className="text-white/80" itemScope itemType="https://schema.org/WebSite">
+              <p className="text-white/70" itemScope itemType="https://schema.org/WebSite">
                 Website by{" "}
                 <a
                   href="https://www.driveleadmedia.com/"
@@ -162,13 +168,13 @@ export default function Footer() {
             <div className="flex space-x-6">
               <Link
                 href="/privacy"
-                className="text-white hover:text-accent transition-colors duration-200 text-sm"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-white hover:text-accent transition-colors duration-200 text-sm"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
               >
                 Terms of Service
               </Link>
