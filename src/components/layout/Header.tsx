@@ -12,7 +12,6 @@ const navigation = [
   { name: "Services", href: "/services" },
   { name: "Talent Resources", href: "/resources" },
   { name: "FAQ", href: "/faq" },
-  { name: "Contact", href: "/contact" },
 ];
 
 export default function Header() {
