@@ -97,7 +97,7 @@ export default function FAQPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image

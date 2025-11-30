@@ -11,7 +11,7 @@ export default function ResourcesPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -100,10 +100,10 @@ export default function ResourcesPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
       {/* START HERE */}
-      <section className="py-20">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="text-5xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
               START HERE
             </div>
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>

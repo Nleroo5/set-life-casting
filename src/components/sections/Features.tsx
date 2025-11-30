@@ -71,26 +71,26 @@ export default function Features() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+        <div className="text-center mb-12 sm:mb-14 md:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
             What We Offer
           </h2>
-          <p className="text-xl text-secondary-light max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg sm:text-xl text-secondary-light max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
             Professional casting services for film, TV, and commercial productions
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
           {mainServices.map((service, index) => (
             <div
               key={service.title}
-              className="relative bg-gradient-to-br from-white to-purple-50/30 rounded-3xl p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
+              className="relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
             >
               {/* Content */}
-              <h3 className="text-2xl font-bold text-accent mb-4 transition-colors duration-300">
+              <h3 className="text-xl sm:text-2xl font-bold text-accent mb-3 sm:mb-4 transition-colors duration-300">
                 {service.title}
               </h3>
-              <p className="text-secondary leading-relaxed text-base">
+              <p className="text-secondary leading-relaxed text-sm sm:text-base">
                 {service.description}
               </p>
             </div>

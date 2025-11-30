@@ -164,19 +164,19 @@ export default function Portfolio() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-secondary via-secondary-dark to-secondary text-white overflow-hidden">
+    <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-secondary via-secondary-dark to-secondary text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-14 md:mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
             <span className="text-accent">Productions</span> We&apos;ve Worked On
           </h2>
-          <p className="text-xl text-white max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg sm:text-xl text-white max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
             Proud to have provided talented extras for these amazing projects
           </p>
         </motion.div>
@@ -186,7 +186,7 @@ export default function Portfolio() {
           {/* Carousel Track */}
           <div
             ref={containerRef}
-            className="relative h-[400px] md:h-[500px] cursor-grab active:cursor-grabbing"
+            className="relative h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] cursor-grab active:cursor-grabbing"
             onMouseDown={handleDragStart}
             onMouseUp={handleDragEnd}
             onMouseLeave={() => setIsDragging(false)}

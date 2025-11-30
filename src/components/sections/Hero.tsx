@@ -46,7 +46,7 @@ function AnimatedCounter({
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[600px] md:min-h-[800px] lg:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Video */}
       <div className="absolute inset-0 w-full h-full">
         <video
@@ -74,44 +74,57 @@ export default function Hero() {
               className="animate-word"
               style={{ display: "inline-block", animationDelay: "0.1s" }}
             >
-              Your{" "}
+              Casting{" "}
             </span>
             <span
               className="animate-word"
               style={{ display: "inline-block", animationDelay: "0.3s" }}
             >
-              Next{" "}
+              Made{" "}
             </span>
             <span
-              className="animate-word"
+              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
               style={{ display: "inline-block", animationDelay: "0.5s" }}
             >
-              Opportunity
+              Simple
+            </span>
+            {" "}
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "0.7s" }}
+            >
+              —
             </span>
             <br />
             <span
-              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
-              style={{ display: "inline-block", animationDelay: "0.7s" }}
-            >
-              Starts{" "}
-            </span>
-            <span
-              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
+              className="animate-word"
               style={{ display: "inline-block", animationDelay: "0.9s" }}
             >
-              Here
+              For{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "1.1s" }}
+            >
+              Talent{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "1.3s" }}
+            >
+              &{" "}
+            </span>
+            <span
+              className="animate-word"
+              style={{ display: "inline-block", animationDelay: "1.5s" }}
+            >
+              Productions
             </span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
-            <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
-              Atlanta&apos;s Premier Extras Casting Agency
-            </span>
-            {" "}
-            <span className="text-white/90">
-              for film, television, commercials & music videos across Georgia and the Southeast.
-            </span>
+          <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed px-4 text-white/90" style={{ fontFamily: 'var(--font-outfit)' }}>
+            Seamless extras casting for film, television, commercials, and music videos across Georgia and the Southeast
           </p>
 
           {/* CTA Buttons */}

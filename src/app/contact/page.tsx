@@ -7,7 +7,7 @@ export default function ContactPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -65,7 +65,7 @@ export default function ContactPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
       {/* Contact Content */}
-      <section className="py-20">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Production Inquiries */}

@@ -50,7 +50,7 @@ export default function AboutPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-light to-white py-20">
+      <section className="bg-gradient-to-br from-primary-light to-white py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-5xl font-bold text-secondary mb-6">
@@ -65,7 +65,7 @@ export default function AboutPage() {
       </section>
 
       {/* Story Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -108,7 +108,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Services Section */}
-      <section className="py-20 bg-gradient-to-br from-secondary to-secondary-dark text-white">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-secondary to-secondary-dark text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Our Services</h2>
@@ -246,7 +246,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 bg-primary-light">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-primary-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-secondary mb-4">
@@ -294,7 +294,7 @@ export default function AboutPage() {
       </section>
 
       {/* Coverage Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-secondary mb-6">

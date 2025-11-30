@@ -10,7 +10,7 @@ export default function TermsPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -65,7 +65,7 @@ export default function TermsPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
-        <section className="py-20 relative z-10">
+        <section className="py-12 md:py-16 lg:py-20 xl:py-24 relative z-10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

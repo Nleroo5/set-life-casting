@@ -56,21 +56,24 @@ export default function CastingStatus() {
           className="flex justify-center mb-20 px-2"
         >
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-[500px]">
-            <iframe
-              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FSetLifeCastingATL%2F&tabs=timeline&width=500&height=600&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId"
-              width="500"
-              height="600"
-              style={{
-                border: "none",
-                overflow: "hidden",
-                maxWidth: "100%",
-              }}
-              scrolling="no"
-              frameBorder="0"
-              allowFullScreen={true}
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              className="w-full min-w-0"
-            />
+            <div className="relative w-full" style={{ paddingBottom: '120%' }}>
+              <iframe
+                src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FSetLifeCastingATL%2F&tabs=timeline&width=500&height=600&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: "none",
+                  overflow: "hidden",
+                }}
+                scrolling="no"
+                frameBorder="0"
+                allowFullScreen={true}
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              />
+            </div>
           </div>
         </motion.div>
 

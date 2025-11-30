@@ -52,7 +52,7 @@ export default function ServicesPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -141,7 +141,7 @@ export default function ServicesPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
         {/* Production Types */}
-        <section className="py-20">
+        <section className="py-12 md:py-16 lg:py-20 xl:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
@@ -209,7 +209,7 @@ export default function ServicesPage() {
         </section>
 
         {/* How We Work Section */}
-        <section className="py-20">
+        <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
@@ -259,7 +259,7 @@ export default function ServicesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
             <span

@@ -8,7 +8,7 @@ export default function CastingsPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -61,17 +61,15 @@ export default function CastingsPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
 
         {/* Airtable Embed */}
-        <section className="py-20">
+        <section className="py-12 md:py-16 lg:py-20 xl:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] transition-all duration-300">
-              <div className="w-full" style={{ minHeight: '533px' }}>
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] transition-all duration-300">
+              <div className="relative w-full overflow-hidden rounded-lg" style={{ paddingBottom: 'min(90%, 600px)' }}>
                 <iframe
-                  className="airtable-embed w-full rounded-lg"
+                  className="airtable-embed absolute top-0 left-0 w-full h-full"
                   src="https://airtable.com/embed/apps1Tdw1Y4FHkiv3/shrHPuDBpoEHbIRPN?viewControls=on"
                   frameBorder="0"
-                  width="100%"
-                  height="533"
-                  style={{ background: 'transparent', border: '1px solid #ccc' }}
+                  style={{ background: 'transparent', border: '1px solid #ccc', minHeight: '400px' }}
                 ></iframe>
               </div>
             </div>
@@ -79,7 +77,7 @@ export default function CastingsPage() {
         </section>
 
         {/* How to Apply Section */}
-        <section className="pb-20">
+        <section className="pb-12 md:pb-16 lg:pb-20 xl:pb-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] text-center">
               <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
