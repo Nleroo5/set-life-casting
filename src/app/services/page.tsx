@@ -32,20 +32,24 @@ function AnimatedStar({ index }: { index: number }) {
 export default function ServicesPage() {
   const productionTypes = [
     {
-      title: "Feature Films & Television Series",
-      description: "From major studio productions to independent films and streaming series.",
+      icon: "🎬",
+      title: "Film & Television",
+      description: "Background casting for feature films, TV series, streaming content, and pilots.",
     },
     {
-      title: "Commercials & Brand Content",
-      description: "National and regional commercials, social media content, and brand campaigns.",
+      icon: "📣",
+      title: "Commercial & Brand Work",
+      description: "Casting for commercials, digital campaigns, social media content, and print advertising.",
     },
     {
+      icon: "🎵",
       title: "Music Videos",
-      description: "Background talent for music videos across all genres and production scales.",
+      description: "Talent for music videos across all genres and production scales.",
     },
     {
-      title: "Special Events & Live Productions",
-      description: "Awards shows, sporting events, and live broadcasts.",
+      icon: "🎤",
+      title: "Live & Special Events",
+      description: "Crowd, audience, and specialty talent for award shows, game shows, events, and live broadcasts.",
     },
   ];
 
@@ -68,67 +72,10 @@ export default function ServicesPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Full-Service{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Casting{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                for{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.7s" }}
-              >
-                Film,{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.9s" }}
-              >
-                Television{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "1.1s" }}
-              >
-                &{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "1.3s" }}
-              >
-                Commercials{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "1.5s" }}
-              >
-                in{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_10px_rgb(139_92_246_/_80%),_0_0_20px_rgb(139_92_246_/_60%),_0_0_40px_rgb(139_92_246_/_40%),_0_0_80px_rgb(139_92_246_/_20%)]"
-                style={{ display: "inline-block", animationDelay: "1.7s" }}
-              >
-                Atlanta
-              </span>
+              Trusted Background Casting for Productions in Georgia & the Southeast
             </h1>
             <p className="text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
-              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
-                Set Life Casting provides professional background casting services
-              </span>
-              {" "}
-              for productions filming throughout Georgia and the Southeast. With years of hands-on experience in Atlanta&apos;s booming film industry, we understand what it takes to deliver the right talent on time, every time.
+              With years of hands-on experience across film, television, commercials, and streaming, Set Life Casting is known for fast turnaround, clear communication, and dependable talent for every production.
             </p>
           </div>
         </div>
@@ -145,33 +92,10 @@ export default function ServicesPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
-                <span
-                  className="animate-word"
-                  style={{ display: "inline-block", animationDelay: "0.1s" }}
-                >
-                  Productions{" "}
-                </span>
-                <span
-                  className="animate-word"
-                  style={{ display: "inline-block", animationDelay: "0.3s" }}
-                >
-                  We{" "}
-                </span>
-                <span
-                  className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                  style={{ display: "inline-block", animationDelay: "0.5s" }}
-                >
-                  Work{" "}
-                </span>
-                <span
-                  className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                  style={{ display: "inline-block", animationDelay: "0.7s" }}
-                >
-                  With
-                </span>
+                Who We Work With
               </h2>
               <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-                We provide professional background talent for all types of productions, from major studio films to independent projects.
+                We partner with productions of all sizes — from small independent teams to major network shows
               </p>
             </div>
 
@@ -183,14 +107,8 @@ export default function ServicesPage() {
                 >
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0 mt-1">
-                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400/20 to-amber-500/20 rounded-xl flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-yellow-500"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
+                      <div className="text-4xl">
+                        {type.icon}
                       </div>
                     </div>
                     <div className="flex-1">
