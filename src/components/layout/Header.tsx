@@ -45,7 +45,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="text-base sm:text-lg md:text-xl font-bold text-secondary truncate" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <span className="text-base sm:text-lg md:text-xl lg:text-xl xl:text-2xl font-bold text-secondary truncate" style={{ fontFamily: 'var(--font-galindo)' }}>
               Set Life Casting
             </span>
           </Link>
@@ -56,7 +56,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="px-4 py-2 text-base md:text-lg text-secondary hover:text-accent transition-colors duration-200 font-medium"
+                className="px-4 py-2 text-base md:text-lg lg:text-lg xl:text-xl text-secondary hover:text-accent transition-colors duration-200 font-medium"
                 style={{ fontFamily: 'var(--font-outfit)' }}
               >
                 {item.name}
@@ -113,7 +113,7 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="block px-4 py-2 text-secondary hover:text-accent hover:bg-primary-light rounded-lg transition-all duration-200 font-medium"
+                  className="block px-4 py-2 text-base md:text-lg text-secondary hover:text-accent hover:bg-primary-light rounded-lg transition-all duration-200 font-medium"
                   style={{ fontFamily: 'var(--font-outfit)' }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
