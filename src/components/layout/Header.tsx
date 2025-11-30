@@ -56,7 +56,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="px-4 py-2 text-secondary hover:text-accent transition-colors duration-200 font-medium"
+                className="px-4 py-2 text-base md:text-lg text-secondary hover:text-accent transition-colors duration-200 font-medium"
                 style={{ fontFamily: 'var(--font-outfit)' }}
               >
                 {item.name}

@@ -35,24 +35,20 @@ export default function ContactPage() {
                 Let&apos;s{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_10px_rgb(139_92_246_/_80%),_0_0_20px_rgb(139_92_246_/_60%),_0_0_40px_rgb(139_92_246_/_40%),_0_0_80px_rgb(139_92_246_/_20%)]"
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent"
                 style={{ display: "inline-block", animationDelay: "0.3s" }}
               >
                 Work{" "}
               </span>
               <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_10px_rgb(139_92_246_/_80%),_0_0_20px_rgb(139_92_246_/_60%),_0_0_40px_rgb(139_92_246_/_40%),_0_0_80px_rgb(139_92_246_/_20%)]"
+                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent"
                 style={{ display: "inline-block", animationDelay: "0.5s" }}
               >
                 Together!
               </span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
-              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
-                Whether you&apos;re a production looking for talent or an actor ready to work,
-              </span>
-              {" "}
-              we&apos;d love to hear from you!
+              Whether you&apos;re hiring background talent or hoping to be booked, here&apos;s the best way to reach us.
             </p>
           </motion.div>
         </div>
@@ -97,7 +93,7 @@ export default function ContactPage() {
                 <h2 className="text-3xl font-bold text-secondary mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   Production Inquiries
                 </h2>
-                <p className="text-accent font-medium text-sm">No talent please</p>
+                <p className="text-accent font-medium text-sm">For production inquiries only</p>
               </div>
 
               <div className="space-y-6">
@@ -196,7 +192,7 @@ export default function ContactPage() {
                 <h2 className="text-3xl font-bold text-secondary mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   Talent Inquiries
                 </h2>
-                <p className="text-secondary-light text-sm">Background actors & extras</p>
+                <p className="text-secondary-light text-sm">For booking questions, submissions, and general talent inquiries</p>
               </div>
 
               <div className="space-y-6">
@@ -292,7 +288,7 @@ export default function ContactPage() {
                   <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <p className="text-lg" style={{ fontFamily: 'var(--font-outfit)' }}>Atlanta, Georgia — Serving the Southeast</p>
+                <p className="text-lg" style={{ fontFamily: 'var(--font-outfit)' }}>Atlanta-based. Serving productions across Georgia and the Southeast.</p>
               </div>
             </div>
           </motion.div>
@@ -306,7 +302,7 @@ export default function ContactPage() {
             className="mt-12 text-center"
           >
             <h3 className="text-xl font-semibold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Follow Us for Casting Updates
+              Stay Updated on Casting Calls
             </h3>
             <div className="flex justify-center space-x-4">
               <motion.a

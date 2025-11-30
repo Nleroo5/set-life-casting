@@ -69,7 +69,7 @@ export default function Footer() {
               </div>
               <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
-            <p className="text-white/90 text-sm">
+            <p className="text-white/90 text-base">
               Atlanta&apos;s premier extras casting company for film, TV,
               commercials, and music videos.
             </p>
@@ -83,7 +83,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
                   >
                     {link.name}
                   </Link>
@@ -100,7 +100,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
                   >
                     {link.name}
                   </Link>
@@ -115,13 +115,13 @@ export default function Footer() {
             <div className="space-y-3 mb-6">
               <a
                 href="mailto:SetLifeCasting@gmail.com"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
               >
                 SetLifeCasting@gmail.com
               </a>
               <a
                 href="tel:+14706938314"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
               >
                 (470) 693-8314
               </a>
@@ -158,7 +158,7 @@ export default function Footer() {
               </div>
               <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
-            <p className="text-white/90 text-sm max-w-sm mx-auto">
+            <p className="text-white/90 text-base max-w-sm mx-auto">
               Atlanta&apos;s premier extras casting company for film, TV,
               commercials, and music videos.
             </p>
@@ -189,7 +189,7 @@ export default function Footer() {
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+                      className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
                     >
                       {link.name}
                     </Link>
@@ -204,7 +204,7 @@ export default function Footer() {
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+                      className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
                     >
                       {link.name}
                     </Link>
@@ -218,13 +218,13 @@ export default function Footer() {
           <div className="space-y-3">
             <a
               href="mailto:SetLifeCasting@gmail.com"
-              className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+              className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
             >
               SetLifeCasting@gmail.com
             </a>
             <a
               href="tel:+14706938314"
-              className="text-white/80 hover:text-accent transition-colors duration-200 text-sm block"
+              className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
             >
               (470) 693-8314
             </a>
@@ -234,7 +234,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 shadow-[0_-1px_10px_rgba(168,85,247,0.1)]">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-base">
               <p className="text-white/90">
                 © {currentYear} Set Life Casting LLC. All rights reserved.
               </p>
@@ -257,13 +257,13 @@ export default function Footer() {
             <div className="flex space-x-6">
               <Link
                 href="/privacy"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
               >
                 Terms of Service
               </Link>

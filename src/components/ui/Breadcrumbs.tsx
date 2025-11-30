@@ -63,7 +63,7 @@ export default function Breadcrumbs() {
       {/* Breadcrumb UI */}
       <nav aria-label="Breadcrumb" className="bg-primary-light py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ol className="flex items-center space-x-2 text-sm" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <ol className="flex items-center space-x-2 text-base" style={{ fontFamily: 'var(--font-outfit)' }}>
             {breadcrumbs.map((breadcrumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
 

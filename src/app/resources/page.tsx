@@ -107,36 +107,10 @@ export default function ResourcesPage() {
               START HERE
             </div>
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                New{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.7s" }}
-              >
-                to{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.9s" }}
-              >
-                Background{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.1s" }}
-              >
-                Work?
-              </span>
+              New to Extra Work? Start Here.
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Never been an extra before? No worries! Here&apos;s the deal: background actors (also called extras) are the people you see in the background of films, TV shows, and commercials. You know, the ones sitting in the restaurant, walking down the street, or filling the courtroom. It&apos;s a fun way to be part of the magic of filmmaking, & you get paid for it!
-            </p>
-            <p className="text-xl text-secondary-light leading-relaxed mt-4 text-center max-w-3xl mx-auto">
-              Follow us on Facebook to see casting calls, submit your photos when you find a role that fits, and show up ready to work. It&apos;s that simple.
+              Background actors (also called "extras") appear in the world of a film, TV show, or commercial—walking down the street, sitting in a restaurant, working in an office, and more. It's fun, fast-paced, and an easy way to step into the film industry.
             </p>
 
             {/* Down Arrow */}
@@ -153,6 +127,69 @@ export default function ResourcesPage() {
                 <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How Casting Works - Simple Breakdown */}
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+              How Casting Works (Simple Breakdown)
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+              <div className="text-5xl mb-4 text-center">1️⃣</div>
+              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+                See a Casting Call
+              </h3>
+              <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Follow our Facebook for all current casting needs. When you see a role that fits, submit following the instructions on the casting call
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+              <div className="text-5xl mb-4 text-center">2️⃣</div>
+              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+                Submit Your Photos & Info
+              </h3>
+              <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Give us clear, current photos and accurate details so we know you match what production needs.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+              <div className="text-5xl mb-4 text-center">3️⃣</div>
+              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+                Bookings Are Sent by Text
+              </h3>
+              <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
+                If selected, you'll hear directly from us with instructions, wardrobe notes, and call time details.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How to Know If You're Right for a Role */}
+      <section className="py-12 md:py-16 lg:py-20 xl:py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+            <h2 className="text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              How to Know If You're Right for a Role
+            </h2>
+            <p className="text-lg text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
+              Before submitting, make sure you meet the listed requirements — such as age, height, sizes, availability, or any specialty skills. If a post says "must fit wardrobe size ___," "must be available all day," or "must be okay with smoke," those are non-negotiable.
+            </p>
+            <p className="text-lg text-secondary leading-relaxed mt-4 text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
+              This helps us book you correctly and keeps production running smoothly.
+            </p>
           </div>
         </div>
       </section>
@@ -228,11 +265,10 @@ export default function ResourcesPage() {
                 {[
                   "Use natural lighting—outdoors or near a window works great!",
                   "Choose a plain, neutral background (nothing distracting)",
-                  "Show your face clearly with a friendly expression (we need to see your beautiful face!)",
-                  "Include a full-body shot in neutral clothing",
+                  "Show your face clearly (we need to see your beautiful face!)",
+                  "Include a full-body shot",
                   "Make sure photos are recent (within 6 months—we want the real you!)",
                   "Use high-resolution images that aren't blurry",
-                  "Show your natural look with minimal makeup",
                   "Read the casting call carefully & give us exactly what we ask for",
                 ].map((item, index) => (
                   <li key={item} className="flex items-start">
@@ -273,7 +309,7 @@ export default function ResourcesPage() {
               </div>
               <ul className="space-y-4">
                 {[
-                  "Use heavily filtered or edited photos (no Instagram filters!)",
+                  "No filters",
                   "Include group photos or photos with other people",
                   "Wear sunglasses or hats that hide your face",
                   "Submit blurry or low-quality images",
@@ -301,18 +337,21 @@ export default function ResourcesPage() {
             </div>
           </div>
 
-          {/* Example Submission Photos */}
+          {/* Real Example Photos */}
           <div className="max-w-5xl mx-auto">
             <motion.h3
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-2xl font-bold text-secondary mb-6 text-center"
+              className="text-2xl font-bold text-secondary mb-4 text-center"
               style={{ fontFamily: 'var(--font-outfit)' }}
             >
-              Example Submission Photos
+              Real Example Photos
             </motion.h3>
+            <p className="text-lg text-secondary-light text-center mb-8 max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+              These are real submissions from talent—use them as a guide for the type of clear, natural photos we love to see!
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
                 {
@@ -384,82 +423,38 @@ export default function ResourcesPage() {
         </div>
       </section>
 
-      {/* Set Etiquette */}
+      {/* Your First Day on Set: What to Expect */}
       <section id="etiquette" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                On{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Set:{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                How{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.7s" }}
-              >
-                to{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.9s" }}
-              >
-                Be{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.1s" }}
-              >
-                a{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.3s" }}
-              >
-                Pro
-              </span>
+              Your First Day on Set: What to Expect
             </h2>
-            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Professional behavior on set ensures you&apos;ll be called back for future projects. Follow these tips & you&apos;ll do great!
-            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {[
               {
-                title: "Your First Day",
+                title: "Before You Arrive",
                 tips: [
-                  "Confirm your call time & location the night before",
-                  "Show up on time (or better yet, a few minutes early!)",
-                  "Bring valid ID & work documentation (required!)",
-                  "Pack the requested wardrobe (read the details carefully)",
-                  "Bring snacks, water & a phone charger",
-                  "Get a good night's sleep—you'll need your energy!",
+                  "Confirm call time & location",
+                  "Bring ID (if required)",
+                  "Pack your wardrobe",
+                  "Bring snacks/water/phone charger",
+                  "Arrive early",
+                  "Get good sleep",
                 ],
               },
               {
                 title: "On Set",
                 tips: [
-                  "Follow all directions from ADs & crew—they're running the show",
-                  "Stay quiet during filming (nothing kills a take faster than background noise)",
-                  "Keep your phone on silent at all times",
-                  "Be patient during long setups—filmmaking takes time",
-                  "Don't approach principal actors (they're working, not socializing)",
-                  "Don't post on social media without permission (seriously, don't)",
+                  "Follow directions from ADs",
+                  "Stay quiet during filming",
+                  "Phone on silent",
+                  "Don't approach actors",
+                  "Be patient—film days move slowly",
+                  "No social media without permission",
                 ],
               },
             ].map((section) => (
@@ -514,23 +509,23 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Getting{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Paid
-              </span>
+            <h2 className="text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Getting Paid
             </h2>
-            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Your hard work earns you a voucher at the end of your shoot day. Hang onto that voucher, it's your proof of work! Payment typically processes within 2-4 weeks. If it's been over 4 weeks, no worries! Just reach out to the payroll company using the contact info on your voucher. Your booking contact is your go-to person for any payment questions.
-            </p>
+            <div className="text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto space-y-4" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p>
+                On your shoot day, you'll fill out a voucher — either on paper or digitally. This voucher is your proof of work, so be sure to keep a copy for your records.
+              </p>
+              <p>
+                Payments are issued by the production's payroll company, not Set Life Casting. Most payments arrive within 2–4 weeks, though some may take a little longer.
+              </p>
+              <p>
+                If it's been more than a few weeks, reach out to the payroll company using the contact info on your voucher.
+              </p>
+              <p>
+                Still stuck? You can also contact the person who booked you, and we'll help point you in the right direction.
+              </p>
+            </div>
 
             {/* Down Arrow */}
             <div className="flex justify-center mt-8">

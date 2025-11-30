@@ -90,7 +90,7 @@ export default function Features() {
               <h3 className="text-xl sm:text-2xl font-bold text-accent mb-3 sm:mb-4 transition-colors duration-300">
                 {service.title}
               </h3>
-              <p className="text-secondary leading-relaxed text-sm sm:text-base">
+              <p className="text-secondary leading-relaxed text-base sm:text-lg">
                 {service.description}
               </p>
             </div>

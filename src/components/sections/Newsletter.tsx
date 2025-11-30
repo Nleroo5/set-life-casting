@@ -188,7 +188,7 @@ export default function Newsletter() {
             )}
           </form>
 
-          <p className="text-sm text-secondary/70 mt-6">
+          <p className="text-base text-secondary/70 mt-6">
             We respect your privacy. Unsubscribe at any time.
           </p>
         </motion.div>

@@ -166,7 +166,7 @@ export default function Hero() {
               <div className="text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={150} duration={4} suffix="+" />
               </div>
-              <div className="text-sm text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium">
                 Productions Served
               </div>
             </motion.div>
@@ -180,7 +180,7 @@ export default function Hero() {
               <div className="text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
-              <div className="text-sm text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium">
                 Talent Cast
               </div>
             </motion.div>
