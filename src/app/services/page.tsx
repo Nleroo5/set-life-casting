@@ -262,31 +262,8 @@ export default function ServicesPage() {
       {/* CTA */}
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.1s" }}
-            >
-              Ready{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.3s" }}
-            >
-              to{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.5s" }}
-            >
-              Get{" "}
-            </span>
-            <span
-              className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-              style={{ display: "inline-block", animationDelay: "0.7s" }}
-            >
-              Started?
-            </span>
+          <h2 className="text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            Ready to Get <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Started?</span>
           </h2>
           <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             Contact us today to discuss your casting needs

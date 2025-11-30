@@ -27,25 +27,8 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Let&apos;s{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Work{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                Together!
-              </span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Let&apos;s <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Work Together!</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               Whether you&apos;re hiring background talent or hoping to be booked, here&apos;s the best way to reach us.

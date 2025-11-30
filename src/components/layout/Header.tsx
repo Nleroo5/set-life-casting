@@ -66,9 +66,9 @@ export default function Header() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Link href="/castings">
+            <Link href="/contact">
               <Button variant="primary" size="md">
-                Check Castings
+                Contact
               </Button>
             </Link>
           </div>
@@ -121,9 +121,9 @@ export default function Header() {
                 </Link>
               ))}
               <div className="pt-4">
-                <Link href="/castings" className="block">
+                <Link href="/contact" className="block">
                   <Button variant="primary" size="md" className="w-full">
-                    Check Castings
+                    Contact
                   </Button>
                 </Link>
               </div>

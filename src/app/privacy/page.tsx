@@ -29,19 +29,8 @@ export default function PrivacyPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Privacy{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent [text-shadow:_0_0_10px_rgb(139_92_246_/_80%),_0_0_20px_rgb(139_92_246_/_60%),_0_0_40px_rgb(139_92_246_/_40%),_0_0_80px_rgb(139_92_246_/_20%)]"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Policy
-              </span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Privacy <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Policy</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">

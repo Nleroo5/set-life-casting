@@ -26,61 +26,8 @@ export default function ResourcesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)', lineHeight: '1.3' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Everything{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                You{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                Need{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.7s" }}
-              >
-                to{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.9s" }}
-              >
-                Know{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "1.1s" }}
-              >
-                About{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.3s" }}
-              >
-                Being{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.5s" }}
-              >
-                An{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.7s" }}
-              >
-                Extra
-              </span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)', lineHeight: '1.3' }}>
+              Everything You Need to Know About <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Being An Extra</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
@@ -199,43 +146,8 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                How{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                to{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                Submit{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.7s" }}
-              >
-                Like{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.9s" }}
-              >
-                a{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "1.1s" }}
-              >
-                Pro
-              </span>
+            <h2 className="text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              How to <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Submit Like a Pro</span>
             </h2>
             <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
@@ -549,25 +461,8 @@ export default function ResourcesPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-          <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.1s" }}
-            >
-              Still{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.3s" }}
-            >
-              Have{" "}
-            </span>
-            <span
-              className="animate-word bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent"
-              style={{ display: "inline-block", animationDelay: "0.5s" }}
-            >
-              Questions?
-            </span>
+          <h2 className="text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            Still Have <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Questions?</span>
           </h2>
           <p className="text-xl text-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.

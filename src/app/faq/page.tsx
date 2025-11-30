@@ -143,25 +143,8 @@ export default function FAQPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.1s" }}
-              >
-                Frequently{" "}
-              </span>
-              <span
-                className="animate-word"
-                style={{ display: "inline-block", animationDelay: "0.3s" }}
-              >
-                Asked{" "}
-              </span>
-              <span
-                className="animate-word bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent"
-                style={{ display: "inline-block", animationDelay: "0.5s" }}
-              >
-                Questions
-              </span>
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Frequently Asked <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Questions</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               We've gathered the most common questions from talent and productions so you can find answers fast.

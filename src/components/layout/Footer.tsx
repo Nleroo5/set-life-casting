@@ -13,7 +13,6 @@ const footerLinks = {
   resources: [
     { name: "Talent Resources", href: "/resources" },
     { name: "Photo Guidelines", href: "/resources#photos" },
-    { name: "Current Castings", href: "/#castings" },
   ],
   social: [
     {

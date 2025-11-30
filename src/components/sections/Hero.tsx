@@ -69,57 +69,8 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight px-2" style={{ fontFamily: 'var(--font-galindo)' }}>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.1s" }}
-            >
-              Casting{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.3s" }}
-            >
-              Made{" "}
-            </span>
-            <span
-              className="animate-word bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent"
-              style={{ display: "inline-block", animationDelay: "0.5s" }}
-            >
-              Simple
-            </span>
-            {" "}
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.7s" }}
-            >
-              —
-            </span>
-            <br />
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "0.9s" }}
-            >
-              For{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "1.1s" }}
-            >
-              Talent{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "1.3s" }}
-            >
-              &{" "}
-            </span>
-            <span
-              className="animate-word"
-              style={{ display: "inline-block", animationDelay: "1.5s" }}
-            >
-              Productions
-            </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            Casting Made <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Simple</span> — For Talent & Productions
           </h1>
 
           {/* Subheading */}
@@ -134,9 +85,9 @@ export default function Hero() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="#castings">
+            <Link href="/contact">
               <Button variant="primary" size="lg">
-                View Current Castings
+                Contact Us
               </Button>
             </Link>
             <Link href="/resources">

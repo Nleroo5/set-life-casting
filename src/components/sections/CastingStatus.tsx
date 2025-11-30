@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function CastingStatus() {
   return (
-    <section id="castings" className="pt-12 pb-24 relative">
+    <section id="follow" className="pt-12 pb-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
