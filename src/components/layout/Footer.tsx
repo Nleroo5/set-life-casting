@@ -66,9 +66,9 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
+              <span className="text-lg md:text-xl lg:text-2xl font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
-            <p className="text-white/90 text-base">
+            <p className="text-white/90 text-base md:text-lg lg:text-xl">
               Atlanta&apos;s premier extras casting company for film, TV,
               commercials, and music videos.
             </p>
@@ -76,13 +76,13 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-bold mb-4 text-white">Company</h3>
+            <h3 className="font-bold mb-4 text-white text-base md:text-lg lg:text-xl">Company</h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
                   >
                     {link.name}
                   </Link>
@@ -93,13 +93,13 @@ export default function Footer() {
 
           {/* Resources Links */}
           <div>
-            <h3 className="font-bold mb-4 text-white">Resources</h3>
+            <h3 className="font-bold mb-4 text-white text-base md:text-lg lg:text-xl">Resources</h3>
             <ul className="space-y-2">
               {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
+                    className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
                   >
                     {link.name}
                   </Link>
@@ -110,17 +110,17 @@ export default function Footer() {
 
           {/* Contact & Social */}
           <div>
-            <h3 className="font-bold mb-4 text-white">Connect</h3>
+            <h3 className="font-bold mb-4 text-white text-base md:text-lg lg:text-xl">Connect</h3>
             <div className="space-y-3 mb-6">
               <a
                 href="mailto:SetLifeCasting@gmail.com"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl block"
               >
                 SetLifeCasting@gmail.com
               </a>
               <a
                 href="tel:+14706938314"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl block"
               >
                 (470) 693-8314
               </a>
@@ -233,7 +233,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 shadow-[0_-1px_10px_rgba(168,85,247,0.1)]">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-base">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-base md:text-lg lg:text-xl">
               <p className="text-white/90">
                 © {currentYear} Set Life Casting LLC. All rights reserved.
               </p>
@@ -256,13 +256,13 @@ export default function Footer() {
             <div className="flex space-x-6">
               <Link
                 href="/privacy"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
               >
                 Terms of Service
               </Link>

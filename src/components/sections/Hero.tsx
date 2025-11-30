@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, useInView, MotionConfig } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 
@@ -114,10 +114,10 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl font-bold text-white mb-2">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                 <AnimatedCounter target={150} duration={4} suffix="+" />
               </div>
-              <div className="text-base md:text-lg text-white/80 font-medium">
+              <div className="text-base md:text-lg lg:text-xl text-white/80 font-medium">
                 Productions Served
               </div>
             </motion.div>
@@ -128,10 +128,10 @@ export default function Hero() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl font-bold text-white mb-2">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
-              <div className="text-base md:text-lg text-white/80 font-medium">
+              <div className="text-base md:text-lg lg:text-xl text-white/80 font-medium">
                 Talent Cast
               </div>
             </motion.div>

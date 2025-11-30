@@ -90,7 +90,7 @@ export default function WhyChooseUs() {
               }}
               transition={{ duration: 0.3 }}
             >
-              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 With over a decade of experience in Atlanta&apos;s film and television industry,
                 Set Life Casting has become the go-to extras casting company for productions
                 across Georgia and the Southeast. From independent films to major studio projects,
@@ -98,14 +98,14 @@ export default function WhyChooseUs() {
                 completely hands-on throughout the casting process.
               </p>
 
-              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 We specialize in connecting productions with the right background actors and
                 talent, whether you need featured extras, UGC talent, or specialized roles.
                 Our team brings industry knowledge and attention to detail that ensures every
                 project gets exactly what it needs, no matter how unique the requirements.
               </p>
 
-              <p className="text-base sm:text-lg leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed sm:leading-[1.9] text-gray-700 font-normal" style={{ fontFamily: 'var(--font-outfit)' }}>
                 For productions and talent alike, we make the casting process seamless from
                 start to finish.
               </p>
