@@ -69,12 +69,12 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Casting Made <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Simple</span> — For Talent & Productions
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-3xl mx-auto mb-12 leading-relaxed px-4 text-white/90" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg sm:text-xl md:text-xl max-w-3xl mx-auto mb-12 leading-relaxed px-4 text-white/90" style={{ fontFamily: 'var(--font-outfit)' }}>
             Seamless extras casting for film, television, commercials, and music videos across Georgia and the Southeast
           </p>
 
@@ -114,10 +114,10 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-white mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={150} duration={4} suffix="+" />
               </div>
-              <div className="text-base md:text-lg lg:text-lg xl:text-xl text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium">
                 Productions Served
               </div>
             </motion.div>
@@ -128,10 +128,10 @@ export default function Hero() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-white mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
-              <div className="text-base md:text-lg lg:text-lg xl:text-xl text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium">
                 Talent Cast
               </div>
             </motion.div>

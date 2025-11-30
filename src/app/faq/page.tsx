@@ -143,10 +143,10 @@ export default function FAQPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               Frequently Asked <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Questions</span>
             </h1>
-            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               We've gathered the most common questions from talent and productions so you can find answers fast.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function FAQPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {faqs.map((section, sectionIndex) => (
             <div key={section.category} className="mb-12">
-              <h2 className="text-2xl font-bold text-secondary mb-6 pb-2 border-b-2 border-accent">
+              <h2 className="text-xl md:text-2xl font-bold text-secondary mb-6 pb-2 border-b-2 border-accent">
                 {section.category}
               </h2>
               <div className="space-y-4">
@@ -181,7 +181,7 @@ export default function FAQPage() {
                         onClick={() => toggleAccordion(id)}
                         className="w-full px-6 py-4 text-left flex items-center justify-between transition-colors"
                       >
-                        <span className="font-semibold text-accent pr-8">
+                        <span className="text-base md:text-base font-semibold text-accent pr-8">
                           {faq.q}
                         </span>
                         <motion.svg
@@ -207,7 +207,7 @@ export default function FAQPage() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-6 pb-4 text-secondary">
+                            <div className="px-6 pb-4 text-base md:text-base text-secondary">
                               {faq.a}
                             </div>
                           </motion.div>
@@ -225,16 +225,16 @@ export default function FAQPage() {
       {/* CTA */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have Questions?
           </h2>
-          <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lg text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We&apos;re here to help! Reach out and we&apos;ll get back to you as
             soon as possible.
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center justify-center px-8 py-4 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors duration-200 font-semibold text-lg"
+            className="inline-flex items-center justify-center px-8 py-4 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors duration-200 font-semibold text-base md:text-base"
           >
             Contact Us
           </a>

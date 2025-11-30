@@ -47,10 +47,10 @@ export default function ServicesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg" style={{ fontFamily: 'var(--font-galindo)' }}>
               Trusted Background Casting for Productions in Georgia & the Southeast
             </h1>
-            <p className="text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               With years of hands-on experience across film, television, commercials, and streaming, Set Life Casting is known for fast turnaround, clear communication, and dependable talent for every production.
             </p>
           </div>
@@ -67,10 +67,10 @@ export default function ServicesPage() {
         <section className="py-12 md:py-16 lg:py-20 xl:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Who We Work With
               </h2>
-              <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <p className="text-lg md:text-lg text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
                 We partner with productions of all sizes — from small independent teams to major network shows
               </p>
             </div>
@@ -88,10 +88,10 @@ export default function ServicesPage() {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-accent mb-2">
+                      <h3 className="text-lg md:text-xl font-bold text-accent mb-2">
                         {type.title}
                       </h3>
-                      <p className="text-secondary leading-relaxed">
+                      <p className="text-base md:text-base text-secondary leading-relaxed">
                         {type.description}
                       </p>
                     </div>
@@ -106,10 +106,10 @@ export default function ServicesPage() {
         <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
               What We Do
             </h2>
-            <p className="text-xl text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lg text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Set Life Casting handles every step of the background casting process so your production runs smoothly from start to finish.
             </p>
           </div>
@@ -193,7 +193,7 @@ export default function ServicesPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-accent text-center leading-tight">
+                  <h3 className="text-base md:text-lg font-bold text-accent text-center leading-tight">
                     {step.title}
                   </h3>
 
@@ -222,7 +222,7 @@ export default function ServicesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
               Why Productions Choose{" "}
               <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">
                 Set Life Casting
@@ -249,7 +249,7 @@ export default function ServicesPage() {
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   </div>
-                  <span className="ml-4 text-lg text-secondary leading-relaxed">
+                  <span className="ml-4 text-base md:text-base text-secondary leading-relaxed">
                     {item}
                   </span>
                 </li>
@@ -262,10 +262,10 @@ export default function ServicesPage() {
       {/* CTA */}
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Started?</span>
           </h2>
-          <p className="text-xl text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lg text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             Contact us today to discuss your casting needs
           </p>
           <Link href="/contact">

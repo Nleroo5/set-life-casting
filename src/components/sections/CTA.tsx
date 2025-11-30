@@ -16,10 +16,10 @@ export default function CTA() {
           transition={{ duration: 0.6 }}
           className="bg-white rounded-3xl shadow-xl p-12 text-center"
         >
-          <h2 className="text-4xl font-bold text-secondary mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4">
             Ready to Be an Extra?
           </h2>
-          <p className="text-xl text-secondary-light mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-lg text-secondary-light mb-8 max-w-2xl mx-auto">
             Join our talent network and start your journey in the entertainment
             industry. We&apos;re always looking for enthusiastic, reliable
             background actors!
@@ -41,38 +41,38 @@ export default function CTA() {
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div className="text-center">
               <div className="text-3xl mb-2">📧</div>
-              <h3 className="font-semibold text-secondary mb-1">
+              <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Email Us
               </h3>
               <a
                 href="mailto:contact@setlifecasting.com"
-                className="text-accent hover:text-accent-dark text-sm"
+                className="text-accent hover:text-accent-dark text-sm md:text-sm"
               >
                 contact@setlifecasting.com
               </a>
             </div>
             <div className="text-center">
               <div className="text-3xl mb-2">📱</div>
-              <h3 className="font-semibold text-secondary mb-1">
+              <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Call Us
               </h3>
               <a
                 href="tel:+1234567890"
-                className="text-accent hover:text-accent-dark text-sm"
+                className="text-accent hover:text-accent-dark text-sm md:text-sm"
               >
                 (123) 456-7890
               </a>
             </div>
             <div className="text-center">
               <div className="text-3xl mb-2">💬</div>
-              <h3 className="font-semibold text-secondary mb-1">
+              <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Follow Us
               </h3>
               <a
                 href="https://www.facebook.com/SetLifeCastingATL/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent hover:text-accent-dark text-sm"
+                className="text-accent hover:text-accent-dark text-sm md:text-sm"
               >
                 @SetLifeCastingATL
               </a>

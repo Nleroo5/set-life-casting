@@ -72,10 +72,10 @@ export default function Features() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12 sm:mb-14 md:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-6xl xl:text-7xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
             What We Offer
           </h2>
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl text-secondary-light max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-xl text-secondary-light max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-outfit)' }}>
             Professional casting services for film, TV, and commercial productions
           </p>
         </div>
@@ -87,10 +87,10 @@ export default function Features() {
               className="relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
             >
               {/* Content */}
-              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl font-bold text-accent mb-3 sm:mb-4 transition-colors duration-300">
+              <h3 className="text-xl md:text-2xl font-bold text-accent mb-3 sm:mb-4 transition-colors duration-300">
                 {service.title}
               </h3>
-              <p className="text-secondary leading-relaxed text-base sm:text-lg md:text-xl lg:text-xl xl:text-2xl">
+              <p className="text-secondary leading-relaxed text-base md:text-lg">
                 {service.description}
               </p>
             </div>

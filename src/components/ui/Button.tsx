@@ -36,9 +36,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "px-4 py-2 text-sm md:text-base",
-      md: "px-5 py-2.5 md:px-6 md:py-3 text-base md:text-lg",
-      lg: "px-6 py-3 md:px-8 md:py-4 text-lg md:text-xl",
+      sm: "px-4 py-2 text-sm md:text-sm",
+      md: "px-5 py-2.5 md:px-6 md:py-3 text-base md:text-base",
+      lg: "px-6 py-3 md:px-8 md:py-4 text-base md:text-lg",
     };
 
     const MotionButton = motion.button;

@@ -26,10 +26,10 @@ export default function ResourcesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)', lineHeight: '1.3' }}>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)', lineHeight: '1.3' }}>
               Everything You Need to Know About <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Being An Extra</span>
             </h1>
-            <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lgtext-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
                 New to being an extra? Perfect!
               </span>
@@ -50,13 +50,13 @@ export default function ResourcesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
               START HERE
             </div>
-            <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
               New to Extra Work? Start Here.
             </h2>
-            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lgtext-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Background actors (also called "extras") appear in the world of a film, TV show, or commercial—walking down the street, sitting in a restaurant, working in an office, and more. It's fun, fast-paced, and an easy way to step into the film industry.
             </p>
 
@@ -82,7 +82,7 @@ export default function ResourcesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
               How Casting Works (Simple Breakdown)
             </h2>
           </div>
@@ -91,7 +91,7 @@ export default function ResourcesPage() {
             {/* Step 1 */}
             <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="text-5xl mb-4 text-center">1️⃣</div>
-              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 See a Casting Call
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -102,7 +102,7 @@ export default function ResourcesPage() {
             {/* Step 2 */}
             <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="text-5xl mb-4 text-center">2️⃣</div>
-              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Submit Your Photos & Info
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -113,7 +113,7 @@ export default function ResourcesPage() {
             {/* Step 3 */}
             <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="text-5xl mb-4 text-center">3️⃣</div>
-              <h3 className="text-xl font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Bookings Are Sent by Text
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -128,7 +128,7 @@ export default function ResourcesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
-            <h2 className="text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to Know If You're Right for a Role
             </h2>
             <p className="text-lg text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -146,10 +146,10 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Submit Like a Pro</span>
             </h2>
-            <p className="text-xl text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lgtext-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
             </p>
           </div>
@@ -340,7 +340,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
               Your First Day on Set: What to Expect
             </h2>
           </div>
@@ -421,7 +421,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
               Getting Paid
             </h2>
             <div className="text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto space-y-4" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -461,10 +461,10 @@ export default function ResourcesPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-          <h2 className="text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Questions?</span>
           </h2>
-          <p className="text-xl text-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lgtext-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.
           </p>
           <Link href="/contact">
@@ -479,10 +479,10 @@ export default function ResourcesPage() {
       {/* CTA */}
       <section className="py-20 bg-gradient-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6 text-white" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?
           </h2>
-          <p className="text-xl mb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lgmb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
             Follow us on Facebook to see current casting calls & start your journey in the film industry today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
