@@ -164,7 +164,7 @@ export default function Hero() {
               className="text-center"
             >
               <div className="text-4xl font-bold text-white mb-2">
-                <AnimatedCounter target={100} duration={4} suffix="+" />
+                <AnimatedCounter target={150} duration={4} suffix="+" />
               </div>
               <div className="text-sm text-white/80 font-medium">
                 Productions Served

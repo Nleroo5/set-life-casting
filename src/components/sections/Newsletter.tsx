@@ -84,11 +84,10 @@ export default function Newsletter() {
           className="text-center"
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-secondary px-2" style={{ fontFamily: 'var(--font-galindo)' }}>
-            Never Miss a <span className="text-accent">Casting Call</span>
+            Stay Connected With <span className="text-accent">Set Life Casting</span>
           </h2>
           <p className="text-lg sm:text-xl text-secondary-light mb-8 max-w-2xl mx-auto px-2" style={{ fontFamily: 'var(--font-outfit)' }}>
-            Subscribe to our newsletter and be the first to know about new
-            casting opportunities, industry tips, and exclusive updates.
+            Join our mailing list for exclusive updates, important announcements, and helpful resources you won't find anywhere else.
           </p>
 
           <form

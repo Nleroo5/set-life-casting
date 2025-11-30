@@ -253,7 +253,7 @@ export default function Portfolio() {
           className="text-center mt-12"
         >
           <p className="text-white text-lg">
-            ...and many more productions across film, TV, commercials, and music videos
+            ...and many more productions across film, TV, commercials, and music videos!
           </p>
         </motion.div>
       </div>

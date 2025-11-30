@@ -20,7 +20,7 @@ const mainServices = [
     ),
     title: "Film & TV Productions",
     description:
-      "Background talent for movies, TV series, and streaming content. We provide vetted professionals for every production need.",
+      "Background actors, photo doubles, stand-ins, and specialty day players for film, television, and streaming. Fast, reliable casting with clear communication and consistent results — no matter the size of the production.",
   },
   {
     number: "02",
@@ -39,7 +39,7 @@ const mainServices = [
     ),
     title: "Commercial & Brand Casting",
     description:
-      "Models, influencers, and real people for ads, print, and digital campaigns. Perfect faces for your brand message.",
+      "Models, influencers, and real-people casting for commercials, social media, digital advertising, and print campaigns. Perfect faces, fast turnarounds, and seamless coordination for your brand's message.",
   },
   {
     number: "03",
@@ -58,7 +58,7 @@ const mainServices = [
     ),
     title: "Specialized Casting",
     description:
-      "AI doubles, motion capture, and emerging media productions. Cutting-edge talent for next-generation content.",
+      "Unique, hard-to-find, or highly specific talent requests — from unusual skills to hyper-specific looks. If your production needs something rare, niche, or out-of-the-box, we'll find the perfect match.",
   },
 ];
 

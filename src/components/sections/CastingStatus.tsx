@@ -15,10 +15,10 @@ export default function CastingStatus() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
-            <span className="text-accent">Latest</span> Casting Opportunities
+            Be the First to <span className="text-accent">Know</span>
           </h2>
           <p className="text-xl text-secondary-light max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-            Follow us on Facebook for real-time casting updates and opportunities
+            Casting calls go fast — follow our Facebook page for immediate notifications and updates!
           </p>
         </motion.div>
 
@@ -76,60 +76,6 @@ export default function CastingStatus() {
             </div>
           </div>
         </motion.div>
-
-        {/* What We Offer Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
-            What <span className="text-accent">We Offer</span>
-          </h2>
-          <p className="text-xl text-secondary-light max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
-            Professional casting services for film, TV, and commercial productions
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Film & TV Productions",
-              description:
-                "Background talent for movies, TV series, and streaming content. We provide vetted professionals for every production need.",
-            },
-            {
-              title: "Commercial & Brand Casting",
-              description:
-                "Models, influencers, and real people for ads, print, and digital campaigns. Perfect faces for your brand message.",
-            },
-            {
-              title: "Specialized Casting",
-              description:
-                "AI doubles, motion capture, and emerging media productions. Cutting-edge talent for next-generation content.",
-            },
-          ].map((service, index) => (
-            <motion.div
-              key={service.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.15 }}
-            >
-              <div className="group relative bg-white rounded-3xl p-10 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full text-center border-2 border-transparent hover:border-accent/20">
-                <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-accent transition-colors duration-300">
-                  {service.title}
-                </h3>
-                <p className="text-secondary-light leading-relaxed text-base">
-                  {service.description}
-                </p>
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-accent/20 to-purple-500/20 group-hover:from-accent group-hover:to-purple-500 transition-all duration-500 rounded-full" />
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );
