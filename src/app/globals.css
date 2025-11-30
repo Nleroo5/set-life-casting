@@ -131,27 +131,23 @@
   }
 }
 
-/* Word animation for hero titles */
+/* Word animation for hero titles - Playful rotation wiggle */
 .animate-word {
-  background: linear-gradient(90deg,
-    currentColor 0%,
-    currentColor 40%,
-    rgba(147, 51, 234, 0.8) 50%,
-    currentColor 60%,
-    currentColor 100%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  animation: shimmer 4s ease-in-out infinite;
+  animation: wiggle 0.7s ease-in-out 2s infinite;
 }
 
-@keyframes shimmer {
+@keyframes wiggle {
   0% {
-    background-position: -200% 0;
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
   }
   100% {
-    background-position: 200% 0;
+    transform: rotate(0deg);
   }
 }
 
