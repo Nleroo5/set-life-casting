@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Atlanta Casting Services | Film, TV & Commercial Extras | Set Life Casting",
   description:
-    "Professional background casting services for film, television, commercials, and music videos in Atlanta, Georgia. Full-service extras casting with 10+ years experience serving productions across the Southeast.",
+    "Professional background casting for film, TV, commercials & music videos in Atlanta. 10+ years experience serving productions across Georgia and the Southeast.",
   keywords: [
     "atlanta casting services",
     "film casting atlanta",

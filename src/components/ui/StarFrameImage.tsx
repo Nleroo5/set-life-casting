@@ -20,8 +20,8 @@ export default function StarFrameImage({
 }: StarFrameImageProps) {
   return (
     <div className={`relative aspect-square ${className}`}>
-      {/* Container with circular shape */}
-      <div className="relative w-full h-full rounded-full overflow-hidden">
+      {/* Container with circular shape, yellow border, glow, and breathing animation */}
+      <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.6)] animate-[imageBreathe_3s_ease-in-out_infinite]">
         <Image
           src={src}
           alt={alt}
@@ -29,28 +29,6 @@ export default function StarFrameImage({
           className="object-cover"
         />
       </div>
-
-      {/* Golden circle border overlay */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox="0 0 100 100"
-      >
-        <circle
-          cx="50"
-          cy="50"
-          r="49"
-          fill="none"
-          stroke="url(#goldGradient)"
-          strokeWidth="2"
-        />
-        <defs>
-          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#d97706" stopOpacity="0.8" />
-          </linearGradient>
-        </defs>
-      </svg>
     </div>
   );
 }

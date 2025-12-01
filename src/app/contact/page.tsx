@@ -5,9 +5,9 @@ import Image from "next/image";
 
 export default function ContactPage() {
   return (
-    <div className="pt-20">
+    <div>
       {/* Hero */}
-      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
+      <section className="relative pt-32 pb-12 md:pb-16 lg:pb-20 xl:pb-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -27,10 +27,10 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Let&apos;s <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Work Together!</span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Let&apos;s <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Work Together!</span>
             </h1>
-            <p className="text-lg md:text-lgtext-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lg text-white leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               Whether you&apos;re hiring background talent or hoping to be booked, here&apos;s the best way to reach us.
             </p>
           </motion.div>
@@ -255,7 +255,7 @@ export default function ContactPage() {
             className="mt-12 text-center"
           >
             <div className="p-8 max-w-3xl mx-auto">
-              <h3 className="text-2xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-2xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Location
               </h3>
               <div className="flex items-center justify-center text-secondary-light">
@@ -284,7 +284,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-12 text-center"
           >
-            <h3 className="text-lg md:text-lgfont-semibold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h3 className="text-lg md:text-lg font-semibold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               Stay Updated on Casting Calls
             </h3>
             <div className="flex justify-center space-x-4">

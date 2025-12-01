@@ -137,7 +137,7 @@ export default function Portfolio() {
     }
     // Debug: Log the center card on initial load
     if (currentIndex === projects.length && cards[1]) {
-      console.log('🎬 Center poster on load:', cards[1].image.split('/').pop());
+      console.log('Center poster on load:', cards[1].image.split('/').pop());
     }
     return cards;
   };
@@ -173,7 +173,7 @@ export default function Portfolio() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12 sm:mb-14 md:mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             <span className="text-accent">Productions</span> We&apos;ve Worked On
           </h2>
           <p className="text-lg sm:text-xl text-white max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-outfit)' }}>

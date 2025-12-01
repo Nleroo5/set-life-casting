@@ -83,7 +83,7 @@ export default function Newsletter() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-secondary px-2" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 px-2 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Stay Connected With <span className="text-accent">Set Life Casting</span>
           </h2>
           <p className="text-lg sm:text-xl text-secondary-light mb-8 max-w-2xl mx-auto px-2" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -167,7 +167,7 @@ export default function Newsletter() {
 
             <Button
               type="submit"
-              variant="secondary"
+              variant="primary"
               size="md"
               disabled={status === "loading"}
               className="w-full"

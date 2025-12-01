@@ -141,10 +141,10 @@
     transform: rotate(0deg);
   }
   25% {
-    transform: rotate(-3deg);
+    transform: rotate(-1deg);
   }
   75% {
-    transform: rotate(3deg);
+    transform: rotate(1deg);
   }
   100% {
     transform: rotate(0deg);
@@ -216,6 +216,254 @@
   50% {
     opacity: 0.7;
   }
+}
+
+/* Gradient shimmer for section headers */
+@keyframes gradientShimmer {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 100% center;
+  }
+}
+
+@keyframes headingPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes imageBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes starBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.10);
+  }
+}
+
+/* Sequential checkmark reveal animation with loop */
+/* Total: 20s (12.5s reveals + 7s pause + 0.5s fadeout) */
+/* Item 1: appears at 0s */
+@keyframes checkmarkReveal1 {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  2.5% {
+    /* Visible at 0.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    /* Stay visible until 19.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 2: appears at 2s */
+@keyframes checkmarkReveal2 {
+  0%, 10% {
+    /* Hidden until 2s (10% of 20s) */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  12.5% {
+    /* Visible at 2.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 3: appears at 4s */
+@keyframes checkmarkReveal3 {
+  0%, 20% {
+    /* Hidden until 4s */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  22.5% {
+    /* Visible at 4.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 4: appears at 6s */
+@keyframes checkmarkReveal4 {
+  0%, 30% {
+    /* Hidden until 6s */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  32.5% {
+    /* Visible at 6.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 5: appears at 8s */
+@keyframes checkmarkReveal5 {
+  0%, 40% {
+    /* Hidden until 8s */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  42.5% {
+    /* Visible at 8.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 6: appears at 10s */
+@keyframes checkmarkReveal6 {
+  0%, 50% {
+    /* Hidden until 10s */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  52.5% {
+    /* Visible at 10.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Item 7: appears at 12s */
+@keyframes checkmarkReveal7 {
+  0%, 60% {
+    /* Hidden until 12s */
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  62.5% {
+    /* Visible at 12.5s */
+    opacity: 1;
+    transform: scale(1);
+  }
+  97.5% {
+    /* Stay visible until 19.5s (7 second pause) */
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Apply animations - all 20s duration, loops infinitely */
+.checkmark-item-1 {
+  animation: checkmarkReveal1 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-2 {
+  animation: checkmarkReveal2 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-3 {
+  animation: checkmarkReveal3 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-4 {
+  animation: checkmarkReveal4 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-5 {
+  animation: checkmarkReveal5 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-6 {
+  animation: checkmarkReveal6 20s ease-out infinite;
+  opacity: 0;
+}
+
+.checkmark-item-7 {
+  animation: checkmarkReveal7 20s ease-out infinite;
+  opacity: 0;
+}
+
+.heading-shimmer {
+  background: linear-gradient(
+    90deg,
+    #484955 0%,
+    #484955 30%,
+    #5f65c4 45%,
+    #a855f7 50%,
+    #ec4899 55%,
+    #484955 70%,
+    #484955 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShimmer 3.5s ease-in-out infinite, headingPulse 3s ease-in-out infinite;
 }
 
 body {

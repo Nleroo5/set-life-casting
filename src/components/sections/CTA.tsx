@@ -40,7 +40,6 @@ export default function CTA() {
 
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl mb-2">📧</div>
               <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Email Us
               </h3>
@@ -52,7 +51,6 @@ export default function CTA() {
               </a>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-2">📱</div>
               <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Call Us
               </h3>
@@ -64,7 +62,6 @@ export default function CTA() {
               </a>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-2">💬</div>
               <h3 className="text-base md:text-base font-semibold text-secondary mb-1">
                 Follow Us
               </h3>

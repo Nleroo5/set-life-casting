@@ -126,9 +126,9 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="pt-20">
+    <div>
       {/* Hero */}
-      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
+      <section className="relative pt-32 pb-12 md:pb-16 lg:pb-20 xl:pb-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -143,8 +143,8 @@ export default function FAQPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Frequently Asked <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Questions</span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Frequently Asked <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Questions</span>
             </h1>
             <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               We've gathered the most common questions from talent and productions so you can find answers fast.
@@ -225,7 +225,7 @@ export default function FAQPage() {
       {/* CTA */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have Questions?
           </h2>
           <p className="text-lg md:text-lg text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>

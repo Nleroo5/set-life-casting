@@ -54,9 +54,12 @@ export default function Hero() {
           loop
           muted
           playsInline
+          preload="metadata"
+          poster="/images/set-life-casting-atlanta-film-production-1.jpg"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/videos/atlanta-casting-video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
         </video>
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/70 via-secondary/60 to-secondary/70" />

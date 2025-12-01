@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "About Set Life Casting | Atlanta's Premier Extras Casting Agency Since 2015",
   description:
-    "Learn about Set Life Casting, Atlanta's premier extras casting company with 10+ years experience connecting background talent with film, TV, and commercial productions across Georgia and the Southeast.",
+    "Atlanta's premier extras casting company. 10+ years connecting background talent with film, TV & commercial productions across Georgia and the Southeast.",
   keywords: [
     "about set life casting",
     "atlanta casting agency",
@@ -96,8 +96,7 @@ export default function AboutPage() {
               {/* Placeholder for team photo */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-8">
-                  <div className="text-6xl mb-4">🎬</div>
-                  <p className="text-secondary font-semibold">
+                  <p className="text-secondary font-semibold text-lg">
                     Team Photo Coming Soon
                   </p>
                 </div>

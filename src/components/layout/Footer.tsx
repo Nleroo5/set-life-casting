@@ -233,7 +233,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 shadow-[0_-1px_10px_rgba(168,85,247,0.1)]">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-base md:text-base">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm">
               <p className="text-white/90">
                 © {currentYear} Set Life Casting LLC. All rights reserved.
               </p>
@@ -256,13 +256,13 @@ export default function Footer() {
             <div className="flex space-x-6">
               <Link
                 href="/privacy"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-lg lg:text-xl"
+                className="text-white/80 hover:text-accent transition-colors duration-200 text-sm"
               >
                 Terms of Service
               </Link>

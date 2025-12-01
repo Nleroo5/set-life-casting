@@ -28,7 +28,7 @@ const galindo = localFont({
 export const metadata: Metadata = {
   title: "Set Life Casting | Atlanta Extras Casting Company | Background Actors Georgia",
   description:
-    "Atlanta's premier extras casting company specializing in background talent for film, TV, commercials, and music videos across Georgia and the Southeast. 10+ years experience, 100,000+ talent cast.",
+    "Atlanta's premier extras casting company for film, TV, commercials & music videos. 10+ years experience casting background actors across Georgia.",
   keywords: [
     "extras casting atlanta",
     "casting companies atlanta",

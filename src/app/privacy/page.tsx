@@ -7,9 +7,9 @@ export default function PrivacyPage() {
   const lastUpdated = "January 16, 2025";
 
   return (
-    <div className="pt-20">
+    <div>
       {/* Hero */}
-      <section className="relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden">
+      <section className="relative pt-32 pb-12 md:pb-16 lg:pb-20 xl:pb-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -29,8 +29,8 @@ export default function PrivacyPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Privacy <span className="bg-gradient-to-r from-accent-light via-purple-400 to-purple-500 bg-clip-text text-transparent">Policy</span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+              Privacy <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Policy</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">

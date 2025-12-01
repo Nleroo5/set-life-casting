@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contact Set Life Casting | Atlanta Extras Casting Agency | Book Talent",
   description:
-    "Contact Set Life Casting for professional background talent in Atlanta, GA. Production inquiries: 770-502-5460. Talent inquiries: 470-693-8314. Serving Georgia and the Southeast.",
+    "Contact Set Life Casting for background talent in Atlanta. Production: 770-502-5460. Talent: 470-693-8314. Serving Georgia and the Southeast region.",
   keywords: [
     "contact set life casting",
     "atlanta casting agency contact",
