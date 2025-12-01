@@ -47,7 +47,9 @@ export default function Newsletter() {
               /* Hide MailerLite branding and unnecessary elements */
               .ml-embedded .ml-form-embedWrapper,
               .ml-embedded .ml-form-embedHeader,
-              .ml-embedded .ml-form-embedFooter {
+              .ml-embedded .ml-form-embedFooter,
+              .ml-embedded h4,
+              .ml-embedded p:not(.ml-error) {
                 display: none !important;
               }
 
@@ -69,25 +71,29 @@ export default function Newsletter() {
                 max-width: 100% !important;
               }
 
-              /* 2-column grid layout for fields */
-              .newsletter-form-wrapper .ml-form-fieldRow {
+              /* Force all form content into grid layout */
+              .newsletter-form-wrapper .ml-form-embedBody,
+              .newsletter-form-wrapper .ml-form-formContent {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 1rem !important;
-                margin-bottom: 1rem !important;
+                padding: 0 !important;
+                margin: 0 !important;
               }
 
               /* Mobile: 1 column */
               @media (max-width: 640px) {
-                .newsletter-form-wrapper .ml-form-fieldRow {
+                .newsletter-form-wrapper .ml-form-embedBody,
+                .newsletter-form-wrapper .ml-form-formContent {
                   grid-template-columns: 1fr !important;
                 }
               }
 
-              /* Individual field styling */
+              /* Individual field styling - each takes 1 grid cell */
               .newsletter-form-wrapper .ml-field-group {
                 margin: 0 !important;
                 width: 100% !important;
+                display: block !important;
               }
 
               /* Input fields - matching your original design */
@@ -133,9 +139,17 @@ export default function Newsletter() {
                 font-family: var(--font-outfit) !important;
               }
 
+              /* Submit button container - span full width */
+              .newsletter-form-wrapper .ml-form-embedSubmit,
+              .newsletter-form-wrapper .ml-form-embedSubmitContainer {
+                grid-column: 1 / -1 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+
               /* Submit button - matching your primary button style */
               .newsletter-form-wrapper button[type="submit"] {
-                grid-column: 1 / -1 !important;
                 width: 100% !important;
                 padding: 0.75rem 1.5rem !important;
                 background-color: #5f65c4 !important;
@@ -147,7 +161,7 @@ export default function Newsletter() {
                 font-weight: 600 !important;
                 cursor: pointer !important;
                 transition: all 0.2s ease !important;
-                margin-top: 0 !important;
+                margin: 0 !important;
                 box-shadow: none !important;
               }
 
