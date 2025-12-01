@@ -37,10 +37,153 @@ export default function Newsletter() {
               Join our mailing list for exclusive updates, important announcements, and helpful resources you won't find anywhere else.
             </p>
 
-            {/* MailerLite Embedded Form */}
-            <div className="max-w-2xl mx-auto">
+            {/* MailerLite Embedded Form with Custom Styling */}
+            <div className="max-w-2xl mx-auto newsletter-form-wrapper">
               <div className="ml-embedded" data-form="T0rQSC"></div>
             </div>
+
+            {/* Custom CSS to match your original design exactly */}
+            <style jsx global>{`
+              /* Hide MailerLite branding and unnecessary elements */
+              .ml-embedded .ml-form-embedWrapper,
+              .ml-embedded .ml-form-embedHeader,
+              .ml-embedded .ml-form-embedFooter {
+                display: none !important;
+              }
+
+              /* Container styling */
+              .newsletter-form-wrapper .ml-embedded {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+              }
+
+              .newsletter-form-wrapper .ml-form-embedContent {
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+
+              .newsletter-form-wrapper form {
+                background: transparent !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+              }
+
+              /* 2-column grid layout for fields */
+              .newsletter-form-wrapper .ml-form-fieldRow {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem !important;
+                margin-bottom: 1rem !important;
+              }
+
+              /* Mobile: 1 column */
+              @media (max-width: 640px) {
+                .newsletter-form-wrapper .ml-form-fieldRow {
+                  grid-template-columns: 1fr !important;
+                }
+              }
+
+              /* Individual field styling */
+              .newsletter-form-wrapper .ml-field-group {
+                margin: 0 !important;
+                width: 100% !important;
+              }
+
+              /* Input fields - matching your original design */
+              .newsletter-form-wrapper input[type="text"],
+              .newsletter-form-wrapper input[type="email"],
+              .newsletter-form-wrapper input[type="tel"] {
+                width: 100% !important;
+                padding: 0.75rem 1rem !important;
+                border: 1px solid rgba(95, 101, 196, 0.3) !important;
+                border-radius: 0.5rem !important;
+                background-color: white !important;
+                color: #484955 !important;
+                font-family: var(--font-outfit) !important;
+                font-size: 1rem !important;
+                line-height: 1.5 !important;
+                transition: all 0.2s ease !important;
+                box-shadow: none !important;
+              }
+
+              /* Input placeholder styling */
+              .newsletter-form-wrapper input::placeholder {
+                color: rgba(72, 73, 85, 0.6) !important;
+                font-family: var(--font-outfit) !important;
+              }
+
+              /* Input focus state */
+              .newsletter-form-wrapper input:focus {
+                outline: none !important;
+                border-color: #5f65c4 !important;
+                box-shadow: 0 0 0 3px rgba(95, 101, 196, 0.1) !important;
+              }
+
+              /* Hide labels (using placeholders instead) */
+              .newsletter-form-wrapper label {
+                display: none !important;
+              }
+
+              /* Error messages */
+              .newsletter-form-wrapper .ml-error {
+                color: #ef4444 !important;
+                font-size: 0.875rem !important;
+                margin-top: 0.25rem !important;
+                font-family: var(--font-outfit) !important;
+              }
+
+              /* Submit button - matching your primary button style */
+              .newsletter-form-wrapper button[type="submit"] {
+                grid-column: 1 / -1 !important;
+                width: 100% !important;
+                padding: 0.75rem 1.5rem !important;
+                background-color: #5f65c4 !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 0.5rem !important;
+                font-family: var(--font-outfit) !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                margin-top: 0 !important;
+                box-shadow: none !important;
+              }
+
+              /* Button hover state */
+              .newsletter-form-wrapper button[type="submit"]:hover {
+                background-color: #4a4f9f !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+              }
+
+              /* Button disabled state */
+              .newsletter-form-wrapper button[type="submit"]:disabled {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+                transform: none !important;
+              }
+
+              /* Success message styling */
+              .newsletter-form-wrapper .ml-form-successBody,
+              .newsletter-form-wrapper .ml-form-successContent {
+                background-color: rgba(34, 197, 94, 0.1) !important;
+                color: #16a34a !important;
+                padding: 1rem !important;
+                border-radius: 0.5rem !important;
+                font-family: var(--font-outfit) !important;
+                margin-top: 1rem !important;
+              }
+
+              /* Remove any extra spacing */
+              .newsletter-form-wrapper .ml-form-embedBody,
+              .newsletter-form-wrapper .ml-form-embedContent,
+              .newsletter-form-wrapper .ml-form-formContent {
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+            `}</style>
 
             <p className="text-base text-secondary/70 mt-6">
               We respect your privacy. Unsubscribe at any time.
