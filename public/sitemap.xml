@@ -7,7 +7,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://www.setlifecasting.com/</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -16,7 +16,7 @@
   <!-- About -->
   <url>
     <loc>https://www.setlifecasting.com/about</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -25,17 +25,8 @@
   <!-- Services -->
   <url>
     <loc>https://www.setlifecasting.com/services</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-    <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
-  </url>
-
-  <!-- Castings - High Priority for Talent -->
-  <url>
-    <loc>https://www.setlifecasting.com/castings</loc>
-    <lastmod>2025-01-17</lastmod>
-    <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
   </url>
@@ -43,7 +34,7 @@
   <!-- Resources -->
   <url>
     <loc>https://www.setlifecasting.com/resources</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -72,7 +63,7 @@
   <!-- FAQ -->
   <url>
     <loc>https://www.setlifecasting.com/faq</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -81,7 +72,7 @@
   <!-- Contact -->
   <url>
     <loc>https://www.setlifecasting.com/contact</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -90,7 +81,7 @@
   <!-- Website Credits - High Priority for Drive Lead Media SEO -->
   <url>
     <loc>https://www.setlifecasting.com/credits</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
@@ -99,7 +90,7 @@
   <!-- Privacy Policy -->
   <url>
     <loc>https://www.setlifecasting.com/privacy</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -107,7 +98,7 @@
   <!-- Terms of Service -->
   <url>
     <loc>https://www.setlifecasting.com/terms</loc>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
