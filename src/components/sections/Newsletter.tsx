@@ -49,49 +49,60 @@ export default function Newsletter() {
               .ml-embedded .ml-form-embedHeader,
               .ml-embedded .ml-form-embedFooter,
               .ml-embedded h4,
-              .ml-embedded p:not(.ml-error) {
+              .ml-embedded p:not(.ml-error),
+              .ml-embedded div[style*="text-align"] {
                 display: none !important;
               }
 
-              /* Container styling */
-              .newsletter-form-wrapper .ml-embedded {
+              /* Container styling - remove all MailerLite defaults */
+              .newsletter-form-wrapper .ml-embedded,
+              .newsletter-form-wrapper .ml-embedded * {
                 background: transparent !important;
-                border: none !important;
                 box-shadow: none !important;
               }
 
-              .newsletter-form-wrapper .ml-form-embedContent {
-                padding: 0 !important;
-                margin: 0 !important;
-              }
-
-              .newsletter-form-wrapper form {
-                background: transparent !important;
-                padding: 0 !important;
-                max-width: 100% !important;
-              }
-
-              /* Force all form content into grid layout */
+              .newsletter-form-wrapper .ml-form-embedContent,
               .newsletter-form-wrapper .ml-form-embedBody,
               .newsletter-form-wrapper .ml-form-formContent {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+              }
+
+              /* CRITICAL: Flatten DOM hierarchy with display: contents */
+              .newsletter-form-wrapper .ml-embedded > div,
+              .newsletter-form-wrapper .ml-form-embedContent,
+              .newsletter-form-wrapper .ml-form-embedBody,
+              .newsletter-form-wrapper .ml-form-embedBody > div,
+              .newsletter-form-wrapper .ml-form-formContent,
+              .newsletter-form-wrapper .ml-form-formContent > div:not([class*="Submit"]):not([class*="button"]),
+              .newsletter-form-wrapper .ml-form-fieldRow {
+                display: contents !important;
+              }
+
+              /* Apply grid directly to the form element */
+              .newsletter-form-wrapper form {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 1rem !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
               }
 
               /* Mobile: 1 column */
               @media (max-width: 640px) {
-                .newsletter-form-wrapper .ml-form-embedBody,
-                .newsletter-form-wrapper .ml-form-formContent {
+                .newsletter-form-wrapper form {
                   grid-template-columns: 1fr !important;
                 }
               }
 
-              /* Individual field styling - each takes 1 grid cell */
+              /* Individual field containers - ensure they take grid cell */
               .newsletter-form-wrapper .ml-field-group {
                 margin: 0 !important;
+                padding: 0 !important;
                 width: 100% !important;
                 display: block !important;
               }
@@ -111,6 +122,7 @@ export default function Newsletter() {
                 line-height: 1.5 !important;
                 transition: all 0.2s ease !important;
                 box-shadow: none !important;
+                margin: 0 !important;
               }
 
               /* Input placeholder styling */
@@ -137,21 +149,21 @@ export default function Newsletter() {
                 font-size: 0.875rem !important;
                 margin-top: 0.25rem !important;
                 font-family: var(--font-outfit) !important;
+                grid-column: 1 / -1 !important;
               }
 
               /* Submit button container - span full width */
               .newsletter-form-wrapper .ml-form-embedSubmit,
-              .newsletter-form-wrapper .ml-form-embedSubmitContainer {
+              .newsletter-form-wrapper button[type="submit"] {
                 grid-column: 1 / -1 !important;
                 width: 100% !important;
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 0.75rem 1.5rem !important;
+                display: block !important;
               }
 
               /* Submit button - matching your primary button style */
               .newsletter-form-wrapper button[type="submit"] {
-                width: 100% !important;
-                padding: 0.75rem 1.5rem !important;
                 background-color: #5f65c4 !important;
                 color: white !important;
                 border: none !important;
@@ -161,7 +173,6 @@ export default function Newsletter() {
                 font-weight: 600 !important;
                 cursor: pointer !important;
                 transition: all 0.2s ease !important;
-                margin: 0 !important;
                 box-shadow: none !important;
               }
 
@@ -188,14 +199,7 @@ export default function Newsletter() {
                 border-radius: 0.5rem !important;
                 font-family: var(--font-outfit) !important;
                 margin-top: 1rem !important;
-              }
-
-              /* Remove any extra spacing */
-              .newsletter-form-wrapper .ml-form-embedBody,
-              .newsletter-form-wrapper .ml-form-embedContent,
-              .newsletter-form-wrapper .ml-form-formContent {
-                padding: 0 !important;
-                margin: 0 !important;
+                grid-column: 1 / -1 !important;
               }
             `}</style>
 
