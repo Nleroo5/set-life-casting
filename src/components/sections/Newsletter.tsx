@@ -84,12 +84,13 @@ export default function Newsletter() {
               /* Apply grid directly to the form element */
               .newsletter-form-wrapper form {
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-columns: 1fr 1fr !important;
                 gap: 1rem !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
+                box-sizing: border-box !important;
               }
 
               /* Mobile: 1 column */
@@ -104,7 +105,9 @@ export default function Newsletter() {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                min-width: 0 !important;
                 display: block !important;
+                box-sizing: border-box !important;
               }
 
               /* Input fields - matching your original design */
@@ -112,6 +115,7 @@ export default function Newsletter() {
               .newsletter-form-wrapper input[type="email"],
               .newsletter-form-wrapper input[type="tel"] {
                 width: 100% !important;
+                min-width: 0 !important;
                 padding: 0.75rem 1rem !important;
                 border: 1px solid rgba(95, 101, 196, 0.3) !important;
                 border-radius: 0.5rem !important;
@@ -123,6 +127,7 @@ export default function Newsletter() {
                 transition: all 0.2s ease !important;
                 box-shadow: none !important;
                 margin: 0 !important;
+                box-sizing: border-box !important;
               }
 
               /* Input placeholder styling */
