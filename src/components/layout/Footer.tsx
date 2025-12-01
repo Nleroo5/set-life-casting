@@ -60,7 +60,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center space-x-3 mb-4">
               <div className="relative w-10 h-10">
                 <Image
-                  src="https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d"
+                  src="/images/logo.png"
                   alt="Set Life Casting Logo"
                   fill
                   className="object-contain"
@@ -149,7 +149,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center space-x-3 mb-4">
               <div className="relative w-10 h-10">
                 <Image
-                  src="https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d"
+                  src="/images/logo.png"
                   alt="Set Life Casting Logo"
                   fill
                   className="object-contain"

@@ -59,7 +59,7 @@ export default function ContactPage() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
-                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-accent/10"
+                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
                 >
                   <svg
                     className="w-8 h-8 text-accent"
@@ -158,7 +158,7 @@ export default function ContactPage() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
-                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-accent/10"
+                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
                 >
                   <svg
                     className="w-8 h-8 text-accent"
@@ -175,7 +175,7 @@ export default function ContactPage() {
                 <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   Talent Inquiries
                 </h2>
-                <p className="text-secondary-light text-sm">For booking questions, submissions, and general talent inquiries</p>
+                <p className="text-accent text-sm font-medium">For booking questions, submissions, and general talent inquiries</p>
               </div>
 
               <div className="space-y-6">
