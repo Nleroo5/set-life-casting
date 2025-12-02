@@ -63,6 +63,14 @@ export const metadata: Metadata = {
     siteName: "Set Life Casting",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "https://www.setlifecasting.com/images/set-life-casting-atlanta-production-set.jpg",
+        width: 2400,
+        height: 1600,
+        alt: "Set Life Casting - Atlanta's Premier Extras Casting Agency",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -70,7 +78,20 @@ export const metadata: Metadata = {
     description:
       "Atlanta's premier extras casting company specializing in background talent.",
     creator: "@driveleadmedia",
+    images: ["https://www.setlifecasting.com/images/set-life-casting-atlanta-production-set.jpg"],
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/manifest.json",
   alternates: {
     canonical: "https://www.setlifecasting.com",
   },
