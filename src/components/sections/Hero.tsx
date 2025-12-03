@@ -54,8 +54,7 @@ export default function Hero() {
           loop
           muted
           playsInline
-          preload="metadata"
-          poster="/images/set-life-casting-atlanta-film-production-1.jpg"
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/videos/atlanta-casting-video.mp4" type="video/mp4" />

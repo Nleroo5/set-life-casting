@@ -1,27 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Script from "next/script";
 
 export default function Newsletter() {
   return (
-    <>
-      {/* MailerLite Universal Script */}
-      <Script
-        id="mailerlite-universal"
-        strategy="lazyOnload"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
-            .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
-            n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
-            (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
-            ml('account', '1420435');
-          `,
-        }}
-      />
-
-      <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
+    <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -214,6 +197,5 @@ export default function Newsletter() {
           </motion.div>
         </div>
       </section>
-    </>
   );
 }

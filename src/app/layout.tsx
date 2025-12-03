@@ -254,6 +254,21 @@ export default function RootLayout({
           }}
         />
 
+        {/* MailerLite Universal Script */}
+        <Script
+          id="mailerlite-universal"
+          strategy="lazyOnload"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+              .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+              n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+              (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+              ml('account', '1420435');
+            `,
+          }}
+        />
+
         {/* Website designed and developed by Drive Lead Media - https://www.driveleadmedia.com */}
         {/* Digital Marketing | Web Design | SEO Services | Atlanta, GA */}
         <Header />
