@@ -1,20 +1,42 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Newsletter() {
+  const formContainerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+
   useEffect(() => {
-    // Re-initialize MailerLite forms when component mounts
+    if (!formContainerRef.current) return;
+
+    // Clear existing form content
+    formContainerRef.current.innerHTML = '';
+
+    // Recreate the MailerLite form div
+    const formDiv = document.createElement('div');
+    formDiv.className = 'ml-embedded';
+    formDiv.setAttribute('data-form', 'T0rQSC');
+    formContainerRef.current.appendChild(formDiv);
+
+    // Check if MailerLite script is already loaded
     if (typeof window !== 'undefined' && (window as any).ml) {
-      // Trigger MailerLite to re-scan for embedded forms
-      const formElement = document.querySelector('[data-form="T0rQSC"]');
-      if (formElement && !formElement.querySelector('form')) {
-        // Form not yet initialized, trigger ML initialization
-        (window as any).ml('forms', 'load');
-      }
+      // Reinitialize MailerLite with the correct API method
+      (window as any).ml('account', '1420435');
+    } else {
+      // Script not loaded yet, wait for it
+      const checkML = setInterval(() => {
+        if ((window as any).ml) {
+          (window as any).ml('account', '1420435');
+          clearInterval(checkML);
+        }
+      }, 100);
+
+      // Clear interval after 5 seconds to prevent infinite checking
+      setTimeout(() => clearInterval(checkML), 5000);
     }
-  }, []);
+  }, [pathname]); // Re-run when route changes
 
   return (
     <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
@@ -35,7 +57,7 @@ export default function Newsletter() {
 
             {/* MailerLite Embedded Form with Custom Styling */}
             <div className="max-w-2xl mx-auto newsletter-form-wrapper">
-              <div className="ml-embedded" data-form="T0rQSC"></div>
+              <div ref={formContainerRef}></div>
             </div>
 
             {/* Custom CSS to match your original design exactly */}
