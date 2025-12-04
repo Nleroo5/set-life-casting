@@ -86,6 +86,18 @@ export default function Features() {
               key={service.title}
               className="relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
             >
+              {/* Purple Star */}
+              <div className="flex justify-center mb-4">
+                <svg
+                  className="w-8 h-8 text-purple-600 animate-[starBreathe_3s_ease-in-out_infinite]"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  style={{ filter: 'drop-shadow(0 0 1px rgba(234, 179, 8, 0.8))' }}
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#eab308" strokeWidth="0.5" />
+                </svg>
+              </div>
+
               {/* Content */}
               <h3 className="text-xl md:text-2xl font-bold text-accent mb-3 sm:mb-4 transition-colors duration-300">
                 {service.title}

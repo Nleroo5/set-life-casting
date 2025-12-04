@@ -77,6 +77,19 @@ export default function ServicesPage() {
                   key={type.title}
                   className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300 text-center"
                 >
+                  {/* Purple Star */}
+                  <div className="flex justify-center mb-4">
+                    <svg
+                      className="w-8 h-8 text-purple-600 animate-[starBreathe_3s_ease-in-out_infinite]"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      style={{ filter: 'drop-shadow(0 0 1px rgba(234, 179, 8, 0.8))' }}
+                    >
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#eab308" strokeWidth="0.5" />
+                    </svg>
+                  </div>
+
+                  {/* Content */}
                   <h3 className="text-lg md:text-xl font-bold text-accent mb-2">
                     {type.title}
                   </h3>
