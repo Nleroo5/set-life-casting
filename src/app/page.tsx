@@ -20,7 +20,7 @@ export default function Home() {
         <Features />
         <CastingStatus />
       </div>
-      <Newsletter />
+      <Newsletter key="homepage-newsletter" />
     </>
   );
 }

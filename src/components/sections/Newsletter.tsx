@@ -1,8 +1,37 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 export default function Newsletter() {
+  const formRef = useRef<HTMLDivElement>(null);
+  const formInitialized = useRef(false);
+
+  useEffect(() => {
+    // Only initialize once, don't re-initialize on remount
+    if (formInitialized.current || !formRef.current) return;
+
+    // Check if form has already been rendered by MailerLite
+    const hasForm = formRef.current.querySelector('form');
+    if (hasForm) {
+      formInitialized.current = true;
+      return;
+    }
+
+    // Wait for MailerLite script to load and render the form
+    const checkForForm = setInterval(() => {
+      if (formRef.current?.querySelector('form')) {
+        formInitialized.current = true;
+        clearInterval(checkForForm);
+      }
+    }, 100);
+
+    // Cleanup after 10 seconds
+    setTimeout(() => clearInterval(checkForForm), 10000);
+
+    return () => clearInterval(checkForForm);
+  }, []);
+
   return (
     <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,7 +51,12 @@ export default function Newsletter() {
 
             {/* MailerLite Embedded Form with Custom Styling */}
             <div className="max-w-2xl mx-auto newsletter-form-wrapper">
-              <div className="ml-embedded" data-form="T0rQSC"></div>
+              <div
+                ref={formRef}
+                className="ml-embedded"
+                data-form="T0rQSC"
+                suppressHydrationWarning
+              ></div>
             </div>
 
             {/* Custom CSS to match your original design exactly */}
