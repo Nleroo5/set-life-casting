@@ -281,7 +281,7 @@ export default function ResourcesPage() {
                   alt: "Atlanta extras casting headshot side profile example"
                 },
                 {
-                  src: "/images/atlanta-background-actor-full-body-front.jpeg?v=2",
+                  src: "/images/atlanta-background-actor-full-body-front-v2.jpeg",
                   alt: "Atlanta background actor full body front view casting photo"
                 },
                 {

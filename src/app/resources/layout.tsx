@@ -127,7 +127,7 @@ export default function ResourcesLayout({
       },
       {
         "@type": "ImageObject",
-        "contentUrl": "https://www.setlifecasting.com/images/atlanta-background-actor-full-body-front.jpeg?v=2",
+        "contentUrl": "https://www.setlifecasting.com/images/atlanta-background-actor-full-body-front-v2.jpeg",
         "caption": "Atlanta background actor full body front view casting photo",
         "description": "Full body photo example showing proper stance and lighting for background actor submissions",
         "creator": {
