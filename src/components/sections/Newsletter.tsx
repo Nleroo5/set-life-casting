@@ -2,34 +2,60 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+
+// Store the form HTML globally outside component to persist across remounts
+let savedFormHTML: string | null = null;
 
 export default function Newsletter() {
-  const formRef = useRef<HTMLDivElement>(null);
-  const formInitialized = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only initialize once, don't re-initialize on remount
-    if (formInitialized.current || !formRef.current) return;
+    console.log('[Newsletter] Component mounted');
 
-    // Check if form has already been rendered by MailerLite
-    const hasForm = formRef.current.querySelector('form');
-    if (hasForm) {
-      formInitialized.current = true;
+    if (!containerRef.current) {
+      console.log('[Newsletter] No container ref');
       return;
     }
 
-    // Wait for MailerLite script to load and render the form
-    const checkForForm = setInterval(() => {
-      if (formRef.current?.querySelector('form')) {
-        formInitialized.current = true;
-        clearInterval(checkForForm);
+    // If we already saved the form HTML, restore it
+    if (savedFormHTML) {
+      console.log('[Newsletter] Restoring saved form HTML');
+      containerRef.current.innerHTML = savedFormHTML;
+      return;
+    }
+
+    console.log('[Newsletter] Checking for form...');
+    const hasForm = containerRef.current.querySelector('form');
+    console.log('[Newsletter] Has form:', !!hasForm);
+
+    if (hasForm) {
+      console.log('[Newsletter] Form already exists, saving it');
+      // Save the form HTML for future re-mounts
+      savedFormHTML = containerRef.current.innerHTML;
+      return;
+    }
+
+    // Wait for MailerLite to inject the form
+    const checkInterval = setInterval(() => {
+      if (containerRef.current?.querySelector('form')) {
+        console.log('[Newsletter] Form detected! Saving it');
+        // Save the form HTML immediately after MailerLite injects it
+        savedFormHTML = containerRef.current!.innerHTML;
+        clearInterval(checkInterval);
       }
-    }, 100);
+    }, 200);
 
-    // Cleanup after 10 seconds
-    setTimeout(() => clearInterval(checkForForm), 10000);
+    // Stop checking after 10 seconds
+    setTimeout(() => {
+      console.log('[Newsletter] Timeout reached, stopping checks');
+      clearInterval(checkInterval);
+    }, 10000);
 
-    return () => clearInterval(checkForForm);
+    return () => {
+      console.log('[Newsletter] Cleanup');
+      clearInterval(checkInterval);
+    };
   }, []);
 
   return (
@@ -52,7 +78,7 @@ export default function Newsletter() {
             {/* MailerLite Embedded Form with Custom Styling */}
             <div className="max-w-2xl mx-auto newsletter-form-wrapper">
               <div
-                ref={formRef}
+                ref={containerRef}
                 className="ml-embedded"
                 data-form="T0rQSC"
                 suppressHydrationWarning
@@ -87,19 +113,24 @@ export default function Newsletter() {
                 width: 100% !important;
               }
 
-              /* CRITICAL: Flatten DOM hierarchy with display: contents */
+              /* Keep DOM hierarchy but make containers flexible */
               .newsletter-form-wrapper .ml-embedded > div,
               .newsletter-form-wrapper .ml-form-embedContent,
               .newsletter-form-wrapper .ml-form-embedBody,
               .newsletter-form-wrapper .ml-form-embedBody > div,
               .newsletter-form-wrapper .ml-form-formContent,
-              .newsletter-form-wrapper .ml-form-formContent > div:not([class*="Submit"]):not([class*="button"]),
-              .newsletter-form-wrapper .ml-form-fieldRow {
-                display: contents !important;
+              .newsletter-form-wrapper .ml-form-formContent > div:not([class*="Submit"]):not([class*="button"]) {
+                display: block !important;
+                width: 100% !important;
               }
 
-              /* Apply grid directly to the form element */
-              .newsletter-form-wrapper form {
+              .newsletter-form-wrapper .ml-form-fieldRow {
+                display: block !important;
+                width: 100% !important;
+              }
+
+              /* Apply grid to form content wrapper */
+              .newsletter-form-wrapper .ml-form-formContent {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
                 gap: 1rem !important;
@@ -112,13 +143,14 @@ export default function Newsletter() {
 
               /* Mobile: 1 column */
               @media (max-width: 640px) {
-                .newsletter-form-wrapper form {
+                .newsletter-form-wrapper .ml-form-formContent {
                   grid-template-columns: 1fr !important;
                 }
               }
 
               /* Individual field containers - ensure they take grid cell */
-              .newsletter-form-wrapper .ml-field-group {
+              .newsletter-form-wrapper .ml-field-group,
+              .newsletter-form-wrapper .ml-form-fieldRow {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;

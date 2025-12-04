@@ -82,13 +82,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "https://www.setlifecasting.com/favicon.ico", sizes: "any" },
+      { url: "https://www.setlifecasting.com/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "https://www.setlifecasting.com/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "https://www.setlifecasting.com/favicon.ico",
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "https://www.setlifecasting.com/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
   manifest: "/manifest.json",
