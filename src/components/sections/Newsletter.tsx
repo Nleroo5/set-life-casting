@@ -1,8 +1,21 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 export default function Newsletter() {
+  useEffect(() => {
+    // Re-initialize MailerLite forms when component mounts
+    if (typeof window !== 'undefined' && (window as any).ml) {
+      // Trigger MailerLite to re-scan for embedded forms
+      const formElement = document.querySelector('[data-form="T0rQSC"]');
+      if (formElement && !formElement.querySelector('form')) {
+        // Form not yet initialized, trigger ML initialization
+        (window as any).ml('forms', 'load');
+      }
+    }
+  }, []);
+
   return (
     <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
