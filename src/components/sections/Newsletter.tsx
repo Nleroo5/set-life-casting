@@ -1,43 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 
 export default function Newsletter() {
-  const formContainerRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!formContainerRef.current) return;
-
-    // Clear existing form content
-    formContainerRef.current.innerHTML = '';
-
-    // Recreate the MailerLite form div
-    const formDiv = document.createElement('div');
-    formDiv.className = 'ml-embedded';
-    formDiv.setAttribute('data-form', 'T0rQSC');
-    formContainerRef.current.appendChild(formDiv);
-
-    // Check if MailerLite script is already loaded
-    if (typeof window !== 'undefined' && (window as any).ml) {
-      // Reinitialize MailerLite with the correct API method
-      (window as any).ml('account', '1420435');
-    } else {
-      // Script not loaded yet, wait for it
-      const checkML = setInterval(() => {
-        if ((window as any).ml) {
-          (window as any).ml('account', '1420435');
-          clearInterval(checkML);
-        }
-      }, 100);
-
-      // Clear interval after 5 seconds to prevent infinite checking
-      setTimeout(() => clearInterval(checkML), 5000);
-    }
-  }, [pathname]); // Re-run when route changes
-
   return (
     <section className="py-12 md:py-16 lg:py-20 xl:py-24 bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 text-secondary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,7 +22,7 @@ export default function Newsletter() {
 
             {/* MailerLite Embedded Form with Custom Styling */}
             <div className="max-w-2xl mx-auto newsletter-form-wrapper">
-              <div ref={formContainerRef}></div>
+              <div className="ml-embedded" data-form="T0rQSC"></div>
             </div>
 
             {/* Custom CSS to match your original design exactly */}
