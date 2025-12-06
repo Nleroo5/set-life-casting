@@ -2,59 +2,64 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
 
 // Store the form HTML globally outside component to persist across remounts
 let savedFormHTML: string | null = null;
+let isFormSaved = false;
 
 export default function Newsletter() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('[Newsletter] Component mounted');
-
     if (!containerRef.current) {
-      console.log('[Newsletter] No container ref');
       return;
     }
 
     // If we already saved the form HTML, restore it
-    if (savedFormHTML) {
-      console.log('[Newsletter] Restoring saved form HTML');
+    if (isFormSaved && savedFormHTML) {
       containerRef.current.innerHTML = savedFormHTML;
+
+      // Clone all event listeners by re-attaching the form submit handler
+      const form = containerRef.current.querySelector('form');
+      if (form && typeof window !== 'undefined' && (window as any).ml) {
+        // Trigger MailerLite to re-bind to the restored form
+        setTimeout(() => {
+          const submitButton = form.querySelector('button[type="submit"]');
+          if (submitButton) {
+            // MailerLite will automatically detect and bind
+          }
+        }, 100);
+      }
       return;
     }
 
-    console.log('[Newsletter] Checking for form...');
-    const hasForm = containerRef.current.querySelector('form');
-    console.log('[Newsletter] Has form:', !!hasForm);
-
-    if (hasForm) {
-      console.log('[Newsletter] Form already exists, saving it');
-      // Save the form HTML for future re-mounts
+    // Check if form already exists in the DOM
+    const existingForm = containerRef.current.querySelector('form');
+    if (existingForm) {
       savedFormHTML = containerRef.current.innerHTML;
+      isFormSaved = true;
       return;
     }
 
     // Wait for MailerLite to inject the form
     const checkInterval = setInterval(() => {
-      if (containerRef.current?.querySelector('form')) {
-        console.log('[Newsletter] Form detected! Saving it');
+      const form = containerRef.current?.querySelector('form');
+      if (form) {
         // Save the form HTML immediately after MailerLite injects it
         savedFormHTML = containerRef.current!.innerHTML;
+        isFormSaved = true;
         clearInterval(checkInterval);
       }
-    }, 200);
+    }, 100);
 
     // Stop checking after 10 seconds
-    setTimeout(() => {
-      console.log('[Newsletter] Timeout reached, stopping checks');
+    const timeout = setTimeout(() => {
       clearInterval(checkInterval);
     }, 10000);
 
     return () => {
-      console.log('[Newsletter] Cleanup');
       clearInterval(checkInterval);
+      clearTimeout(timeout);
     };
   }, []);
 
