@@ -41,12 +41,14 @@ export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepPro
     resolver: zodResolver(detailsSchema),
     defaultValues: {
       visibleTattoos: false,
+      piercings: false,
       facialHair: "",
       ...data,
     },
   });
 
   const visibleTattoos = watch("visibleTattoos");
+  const piercings = watch("piercings");
 
   const onSubmit = (formData: DetailsFormData) => {
     onNext(formData);
@@ -91,6 +93,32 @@ export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepPro
               {...register("tattoosDescription")}
               error={errors.tattoosDescription?.message}
               placeholder="E.g., Small rose on left forearm, tribal band on right bicep"
+              rows={3}
+            />
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <Controller
+            name="piercings"
+            control={control}
+            render={({ field }) => (
+              <RadioGroup
+                label="Do you have piercings (other than ears)?"
+                options={YES_NO_OPTIONS}
+                value={field.value === true ? "true" : "false"}
+                onChange={(val) => field.onChange(val === "true")}
+                error={errors.piercings?.message}
+              />
+            )}
+          />
+
+          {piercings && (
+            <Textarea
+              label="Please describe your piercings (location, type)"
+              {...register("piercingsDescription")}
+              error={errors.piercingsDescription?.message}
+              placeholder="E.g., Nose ring, eyebrow piercing"
               rows={3}
             />
           )}

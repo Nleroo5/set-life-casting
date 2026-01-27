@@ -37,6 +37,8 @@ export const sizesSchema = z.object({
 export const detailsSchema = z.object({
   visibleTattoos: z.boolean(),
   tattoosDescription: z.string().optional(),
+  piercings: z.boolean(),
+  piercingsDescription: z.string().optional(),
   facialHair: z.string().min(1, "Facial hair option is required"),
 });
 
