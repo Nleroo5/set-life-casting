@@ -1,0 +1,735 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import Image from "next/image";
+
+interface TalentProfile {
+  id: string;
+  basicInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    city: string;
+    state: string;
+  };
+  appearance: {
+    gender: string;
+    dateOfBirth: string;
+    ethnicity: string[];
+    height: string;
+    weight: number;
+    hairColor: string;
+    hairLength: string;
+    eyeColor: string;
+  };
+  sizes: {
+    shirtSize: string;
+    pantsWaist: number;
+    pantsInseam: number;
+    dressSize?: string;
+    suitSize?: string;
+    shoeSize: string;
+    shoeSizeGender: string;
+  };
+  details: {
+    visibleTattoos: boolean;
+    tattoosDescription?: string;
+    piercings?: boolean;
+    piercingsDescription?: string;
+    facialHair: string;
+  };
+  photos: Array<{ url: string; type: string }>;
+  status?: "active" | "archived";
+  adminTag?: "green" | "yellow" | "red" | null;
+  adminNotes?: string;
+  createdAt: Date;
+}
+
+interface Submission {
+  id: string;
+  roleName: string;
+  projectTitle: string;
+  status: "pending" | "reviewed" | "selected" | "rejected";
+  submittedAt: Date;
+}
+
+export default function TalentDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const userId = params.userId as string;
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const [talent, setTalent] = useState<TalentProfile | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isSavingTag, setIsSavingTag] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [tempNotes, setTempNotes] = useState("");
+
+  useEffect(() => {
+    if (!authLoading && (!user || !isAdmin)) {
+      router.push("/admin");
+    } else if (user && isAdmin && !authLoading) {
+      fetchTalentData();
+    }
+  }, [authLoading, user, isAdmin, userId]);
+
+  async function fetchTalentData() {
+    try {
+      setLoading(true);
+
+      // Fetch talent profile
+      const profileDoc = await getDoc(doc(db, "profiles", userId));
+      if (profileDoc.exists()) {
+        const data = profileDoc.data();
+        setTalent({
+          id: profileDoc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          status: data.status || "active",
+        } as TalentProfile);
+      }
+
+      // Fetch submissions
+      const submissionsRef = collection(db, "submissions");
+      const q = query(submissionsRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      const submissionsData: Submission[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        submissionsData.push({
+          id: doc.id,
+          roleName: data.roleName,
+          projectTitle: data.projectTitle,
+          status: data.status,
+          submittedAt: data.submittedAt.toDate(),
+        });
+      });
+
+      setSubmissions(submissionsData);
+    } catch (error) {
+      console.error("Error fetching talent data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleArchiveToggle() {
+    if (!talent) return;
+
+    const newStatus = talent.status === "active" ? "archived" : "active";
+    const confirmMessage =
+      newStatus === "archived"
+        ? "Are you sure you want to archive this profile? It will be hidden from the active talent list."
+        : "Are you sure you want to unarchive this profile? It will be visible in the active talent list.";
+
+    if (!confirm(confirmMessage)) return;
+
+    setIsArchiving(true);
+    try {
+      await updateDoc(doc(db, "profiles", userId), {
+        status: newStatus,
+      });
+
+      setTalent({
+        ...talent,
+        status: newStatus,
+      });
+
+      alert(
+        newStatus === "archived"
+          ? "Profile archived successfully"
+          : "Profile unarchived successfully"
+      );
+    } catch (error) {
+      console.error("Error updating profile status:", error);
+      alert("Failed to update profile status. Please try again.");
+    } finally {
+      setIsArchiving(false);
+    }
+  }
+
+  async function handleTagUpdate(tag: "green" | "yellow" | "red" | null) {
+    if (!talent) return;
+
+    setIsSavingTag(true);
+    try {
+      await updateDoc(doc(db, "profiles", userId), {
+        adminTag: tag,
+      });
+
+      setTalent({
+        ...talent,
+        adminTag: tag,
+      });
+    } catch (error) {
+      console.error("Error updating tag:", error);
+      alert("Failed to update tag. Please try again.");
+    } finally {
+      setIsSavingTag(false);
+    }
+  }
+
+  async function handleNotesUpdate() {
+    if (!talent) return;
+
+    setIsSavingTag(true);
+    try {
+      await updateDoc(doc(db, "profiles", userId), {
+        adminNotes: tempNotes,
+      });
+
+      setTalent({
+        ...talent,
+        adminNotes: tempNotes,
+      });
+
+      setEditingNotes(false);
+    } catch (error) {
+      console.error("Error updating notes:", error);
+      alert("Failed to update notes. Please try again.");
+    } finally {
+      setIsSavingTag(false);
+    }
+  }
+
+  function startEditingNotes() {
+    setTempNotes(talent?.adminNotes || "");
+    setEditingNotes(true);
+  }
+
+  function cancelEditingNotes() {
+    setTempNotes("");
+    setEditingNotes(false);
+  }
+
+  function calculateAge(dateOfBirth: string): number {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  const getStatusBadgeVariant = (
+    status: string
+  ): "default" | "success" | "warning" | "danger" => {
+    switch (status) {
+      case "selected":
+        return "success";
+      case "reviewed":
+        return "warning";
+      case "rejected":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
+
+  const getStatusLabel = (status: string): string => {
+    switch (status) {
+      case "pending":
+        return "Pending Review";
+      case "reviewed":
+        return "Under Review";
+      case "selected":
+        return "Selected";
+      case "rejected":
+        return "Not Selected";
+      default:
+        return status;
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
+          <p
+            className="mt-4 text-lg text-secondary"
+            style={{ fontFamily: "var(--font-outfit)" }}
+          >
+            Loading talent profile...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin || !talent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p
+            className="text-lg text-secondary-light"
+            style={{ fontFamily: "var(--font-outfit)" }}
+          >
+            Talent profile not found
+          </p>
+          <Link href="/admin/talent" className="mt-4 inline-block">
+            <Button variant="primary">Back to Talent Database</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const age = calculateAge(talent.appearance.dateOfBirth);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1
+              className="text-3xl md:text-4xl font-bold text-secondary mb-2"
+              style={{ fontFamily: "var(--font-galindo)" }}
+            >
+              {talent.basicInfo.firstName}{" "}
+              <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                {talent.basicInfo.lastName}
+              </span>
+            </h1>
+            <p
+              className="text-base text-secondary-light"
+              style={{ fontFamily: "var(--font-outfit)" }}
+            >
+              {talent.appearance.gender} • {age} years old •{" "}
+              {talent.basicInfo.city}, {talent.basicInfo.state}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant={talent.status === "active" ? "outline" : "primary"}
+              onClick={handleArchiveToggle}
+              disabled={isArchiving}
+            >
+              {isArchiving
+                ? "Processing..."
+                : talent.status === "active"
+                ? "Archive Profile"
+                : "Unarchive Profile"}
+            </Button>
+            <Link href="/admin/talent">
+              <Button variant="outline">Back to Database</Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Status Badge */}
+        {talent.status === "archived" && (
+          <div className="mb-6">
+            <Badge variant="danger">Archived Profile</Badge>
+          </div>
+        )}
+
+        {/* Admin Tags & Notes */}
+        <div className="mb-6 bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+          <h2
+            className="text-xl font-bold text-secondary mb-4"
+            style={{ fontFamily: "var(--font-galindo)" }}
+          >
+            Admin Tags & Notes
+            <span className="text-sm font-normal text-secondary-light ml-2">
+              (Only visible to admins)
+            </span>
+          </h2>
+
+          {/* Tag Buttons */}
+          <div className="mb-4">
+            <p
+              className="text-sm font-medium text-secondary-light mb-2"
+              style={{ fontFamily: "var(--font-outfit)" }}
+            >
+              Profile Tag:
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleTagUpdate("green")}
+                disabled={isSavingTag}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  talent.adminTag === "green"
+                    ? "bg-green-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                }`}
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Green
+              </button>
+              <button
+                onClick={() => handleTagUpdate("yellow")}
+                disabled={isSavingTag}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  talent.adminTag === "yellow"
+                    ? "bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                }`}
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Yellow
+              </button>
+              <button
+                onClick={() => handleTagUpdate("red")}
+                disabled={isSavingTag}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  talent.adminTag === "red"
+                    ? "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
+                }`}
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Red
+              </button>
+              {talent.adminTag && (
+                <button
+                  onClick={() => handleTagUpdate(null)}
+                  disabled={isSavingTag}
+                  className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  Clear Tag
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p
+                className="text-sm font-medium text-secondary-light"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Admin Notes:
+              </p>
+              {!editingNotes && (
+                <button
+                  onClick={startEditingNotes}
+                  className="text-sm text-accent hover:text-accent/80 font-medium"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  {talent.adminNotes ? "Edit Notes" : "Add Notes"}
+                </button>
+              )}
+            </div>
+
+            {editingNotes ? (
+              <div className="space-y-3">
+                <textarea
+                  value={tempNotes}
+                  onChange={(e) => setTempNotes(e.target.value)}
+                  placeholder="Add notes about this talent profile (e.g., preferred for action roles, great communication, etc.)"
+                  rows={4}
+                  className="w-full px-4 py-2 border-2 border-accent/30 rounded-lg focus:outline-none focus:border-accent transition-colors resize-none"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                />
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={handleNotesUpdate}
+                    disabled={isSavingTag}
+                  >
+                    {isSavingTag ? "Saving..." : "Save Notes"}
+                  </Button>
+                  <Button variant="outline" onClick={cancelEditingNotes}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-purple-50/50 rounded-lg p-4 min-h-[60px]">
+                {talent.adminNotes ? (
+                  <p
+                    className="text-sm text-secondary whitespace-pre-wrap"
+                    style={{ fontFamily: "var(--font-outfit)" }}
+                  >
+                    {talent.adminNotes}
+                  </p>
+                ) : (
+                  <p
+                    className="text-sm text-secondary-light italic"
+                    style={{ fontFamily: "var(--font-outfit)" }}
+                  >
+                    No notes added yet
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Photos */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Photos */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Photos
+              </h2>
+              <div className="space-y-4">
+                {(() => {
+                  // Handle both nested and direct array structure
+                  const photoArray = Array.isArray(talent.photos)
+                    ? talent.photos
+                    : (talent.photos as any)?.photos;
+
+                  return photoArray && photoArray.length > 0 ? (
+                    photoArray.map((photo: any, index: number) => (
+                    <div
+                      key={index}
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-accent/30"
+                    >
+                      <Image
+                        src={photo.url}
+                        alt={`${photo.type} photo`}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-accent/90 px-2 py-1">
+                        <p
+                          className="text-xs text-white text-center capitalize"
+                          style={{ fontFamily: "var(--font-outfit)" }}
+                        >
+                          {photo.type === "fullbody" ? "Full Body" : photo.type}
+                        </p>
+                      </div>
+                    </div>
+                    ))
+                  ) : (
+                    <p
+                      className="text-secondary-light text-sm"
+                      style={{ fontFamily: "var(--font-outfit)" }}
+                    >
+                      No photos available
+                    </p>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Contact Information */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Contact Information
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <DetailItem label="Email" value={talent.basicInfo.email} />
+                <DetailItem label="Phone" value={talent.basicInfo.phone} />
+                <DetailItem
+                  label="Location"
+                  value={`${talent.basicInfo.city}, ${talent.basicInfo.state}`}
+                />
+                <DetailItem
+                  label="Profile Created"
+                  value={talent.createdAt.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                />
+              </div>
+            </div>
+
+            {/* Appearance */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Appearance
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <DetailItem label="Gender" value={talent.appearance.gender} />
+                <DetailItem label="Age" value={`${age} years`} />
+                <DetailItem
+                  label="Date of Birth"
+                  value={new Date(talent.appearance.dateOfBirth).toLocaleDateString()}
+                />
+                <DetailItem
+                  label="Ethnicity"
+                  value={talent.appearance.ethnicity.join(", ")}
+                />
+                <DetailItem label="Height" value={talent.appearance.height} />
+                <DetailItem label="Weight" value={`${talent.appearance.weight} lbs`} />
+                <DetailItem
+                  label="Hair"
+                  value={`${talent.appearance.hairColor} (${talent.appearance.hairLength})`}
+                />
+                <DetailItem label="Eyes" value={talent.appearance.eyeColor} />
+              </div>
+            </div>
+
+            {/* Sizes */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Sizes
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <DetailItem label="Shirt Size" value={talent.sizes.shirtSize} />
+                <DetailItem
+                  label="Pants"
+                  value={`Waist: ${talent.sizes.pantsWaist}" / Inseam: ${talent.sizes.pantsInseam}"`}
+                />
+                {talent.sizes.dressSize && (
+                  <DetailItem label="Dress Size" value={talent.sizes.dressSize} />
+                )}
+                {talent.sizes.suitSize && (
+                  <DetailItem label="Suit Size" value={talent.sizes.suitSize} />
+                )}
+                <DetailItem
+                  label="Shoe Size"
+                  value={`${talent.sizes.shoeSize} (${talent.sizes.shoeSizeGender})`}
+                />
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Additional Details
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <DetailItem
+                  label="Visible Tattoos"
+                  value={talent.details.visibleTattoos ? "Yes" : "No"}
+                />
+                {talent.details.visibleTattoos &&
+                  talent.details.tattoosDescription && (
+                    <DetailItem
+                      label="Tattoos Description"
+                      value={talent.details.tattoosDescription}
+                    />
+                  )}
+                <DetailItem
+                  label="Piercings (other than ears)"
+                  value={talent.details.piercings ? "Yes" : "No"}
+                />
+                {talent.details.piercings && talent.details.piercingsDescription && (
+                  <DetailItem
+                    label="Piercings Description"
+                    value={talent.details.piercingsDescription}
+                  />
+                )}
+                <DetailItem label="Facial Hair" value={talent.details.facialHair} />
+              </div>
+            </div>
+
+            {/* Submission History */}
+            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+              <h2
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Submission History ({submissions.length})
+              </h2>
+
+              {submissions.length === 0 ? (
+                <p
+                  className="text-secondary-light"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  No submissions yet
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {submissions.map((submission) => (
+                    <div
+                      key={submission.id}
+                      className="bg-white border-2 border-accent/20 rounded-xl p-4 hover:border-accent/40 transition-all"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <h3
+                            className="text-lg font-semibold text-secondary mb-1"
+                            style={{ fontFamily: "var(--font-galindo)" }}
+                          >
+                            {submission.roleName}
+                          </h3>
+                          <p
+                            className="text-sm text-secondary-light mb-2"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
+                            {submission.projectTitle}
+                          </p>
+                          <p
+                            className="text-xs text-secondary-light"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
+                            Submitted:{" "}
+                            {submission.submittedAt.toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                        </div>
+                        <div>
+                          <Badge variant={getStatusBadgeVariant(submission.status)}>
+                            {getStatusLabel(submission.status)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface DetailItemProps {
+  label: string;
+  value: string;
+}
+
+function DetailItem({ label, value }: DetailItemProps) {
+  return (
+    <div>
+      <dt
+        className="text-sm font-medium text-secondary-light mb-1"
+        style={{ fontFamily: "var(--font-outfit)" }}
+      >
+        {label}:
+      </dt>
+      <dd
+        className="text-base text-secondary"
+        style={{ fontFamily: "var(--font-outfit)" }}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}

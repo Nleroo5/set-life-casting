@@ -6,10 +6,12 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Services", href: "/services" },
+  { name: "Current Castings", href: "/casting" },
   { name: "Talent Resources", href: "/resources" },
   { name: "FAQ", href: "/faq" },
 ];
@@ -17,6 +19,7 @@ const navigation = [
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +43,7 @@ export default function Header() {
                 src="/images/logo.png"
                 alt="Set Life Casting Logo"
                 fill
+                sizes="(max-width: 640px) 40px, 48px"
                 className="object-contain"
                 priority
               />
@@ -63,13 +67,31 @@ export default function Header() {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Link href="/contact">
-              <Button variant="primary" size="md">
-                Contact
-              </Button>
-            </Link>
+          {/* Auth Buttons / User Menu */}
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <>
+                {isAdmin ? (
+                  <Link href="/admin">
+                    <Button variant="primary" size="md">
+                      Admin Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/dashboard">
+                    <Button variant="primary" size="md">
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
+              </>
+            ) : (
+              <Link href="/login">
+                <Button variant="primary" size="md">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -119,12 +141,30 @@ export default function Header() {
                   {item.name}
                 </Link>
               ))}
-              <div className="pt-4">
-                <Link href="/contact" className="block">
-                  <Button variant="primary" size="md" className="w-full">
-                    Contact
-                  </Button>
-                </Link>
+              <div className="pt-4 space-y-3">
+                {user ? (
+                  <>
+                    {isAdmin ? (
+                      <Link href="/admin" className="block" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="primary" size="md" className="w-full">
+                          Admin Dashboard
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href="/dashboard" className="block" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="primary" size="md" className="w-full">
+                          Dashboard
+                        </Button>
+                      </Link>
+                    )}
+                  </>
+                ) : (
+                  <Link href="/login" className="block" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="primary" size="md" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

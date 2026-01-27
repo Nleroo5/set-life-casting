@@ -63,6 +63,7 @@ export default function Footer() {
                   src="/images/logo.png"
                   alt="Set Life Casting Logo"
                   fill
+                  sizes="40px"
                   className="object-contain"
                 />
               </div>
