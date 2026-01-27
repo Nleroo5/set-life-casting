@@ -26,6 +26,10 @@ export async function signUpWithEmail(
   password: string,
   displayName: string
 ): Promise<User> {
+  if (!auth || !db) {
+    throw new Error("Firebase is not initialized");
+  }
+
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -55,6 +59,10 @@ export async function signInWithEmail(
   email: string,
   password: string
 ): Promise<User> {
+  if (!auth) {
+    throw new Error("Firebase is not initialized");
+  }
+
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   return userCredential.user;
 }
@@ -63,6 +71,10 @@ export async function signInWithEmail(
  * Sign in anonymously (guest mode)
  */
 export async function signInAsGuest(): Promise<User> {
+  if (!auth || !db) {
+    throw new Error("Firebase is not initialized");
+  }
+
   const userCredential = await signInAnonymously(auth);
   const user = userCredential.user;
 
@@ -82,6 +94,10 @@ export async function signInAsGuest(): Promise<User> {
  * Sign out current user
  */
 export async function signOut(): Promise<void> {
+  if (!auth) {
+    throw new Error("Firebase is not initialized");
+  }
+
   await firebaseSignOut(auth);
 }
 
@@ -89,6 +105,10 @@ export async function signOut(): Promise<void> {
  * Get user data from Firestore
  */
 export async function getUserData(uid: string): Promise<UserData | null> {
+  if (!db) {
+    return null;
+  }
+
   const userDoc = await getDoc(doc(db, "users", uid));
   if (!userDoc.exists()) {
     return null;
@@ -116,5 +136,9 @@ export async function isAdmin(uid: string): Promise<boolean> {
  * Send password reset email
  */
 export async function resetPassword(email: string): Promise<void> {
+  if (!auth) {
+    throw new Error("Firebase is not initialized");
+  }
+
   await sendPasswordResetEmail(auth, email);
 }
