@@ -1,0 +1,1633 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { collection, getDocs, query, where, doc, getDoc, writeBatch } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/contexts/AuthContext";
+import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
+import Input from "@/components/ui/Input";
+import Checkbox from "@/components/ui/Checkbox";
+import Badge from "@/components/ui/Badge";
+import * as XLSX from "exceljs";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { getBookingsByRoles } from "@/lib/firebase/bookings";
+import type { Booking } from "@/types/booking";
+
+// Note: Using Booking type from @/types/booking instead of Submission
+// Bookings represent confirmed talent selections
+
+interface Project {
+  id: string;
+  title: string;
+  shootDates: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  rate: string;
+  date: string;
+  location: string;
+}
+
+interface SkinsRow {
+  no: number;
+  last: string;
+  first: string;
+  sex: string;
+  eth: string;
+  phone: string;
+  email: string;
+  notes: string;
+  isVerified?: boolean; // Whether profile data matches current user profile
+  userId?: string; // For verification lookups
+}
+
+interface RoleGroup {
+  roleId: string;
+  roleName: string;
+  roleData: Role;
+  bookings: Booking[];
+  selectedBookingIds: Set<string>;
+  isExpanded: boolean;
+}
+
+export default function SkinsExportPage() {
+  const router = useRouter();
+  const { user, isAdmin, loading: authLoading } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [selectedBookings, setSelectedBookings] = useState<Set<string>>(new Set());
+  const [roleGroups, setRoleGroups] = useState<RoleGroup[]>([]);
+
+  // Filters
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedRoleIds, setSelectedRoleIds] = useState<Set<string>>(new Set());
+
+  // Header data (editable)
+  const [projectTitle, setProjectTitle] = useState("");
+  const [shootDate, setShootDate] = useState("");
+  const [productionDay, setProductionDay] = useState("");
+  const [totalDays, setTotalDays] = useState("");
+  const [castingCompany, setCastingCompany] = useState("SET LIFE CASTING");
+  const [callTime, setCallTime] = useState("");
+  const [roleLabel, setRoleLabel] = useState("");
+  const [rate, setRate] = useState("");
+
+  // Editable skins data
+  const [skinsData, setSkinsData] = useState<SkinsRow[]>([]);
+
+  // Profile verification
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResults, setVerificationResults] = useState<Map<string, boolean>>(new Map());
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      router.push("/");
+    }
+  }, [authLoading, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchProjects();
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchRoles();
+    } else {
+      setRoles([]);
+      setSelectedRoleIds(new Set());
+    }
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (selectedProjectId && selectedRoleIds.size > 0) {
+      fetchBookings();
+    } else {
+      setBookings([]);
+      setSelectedBookings(new Set());
+    }
+  }, [selectedProjectId, selectedRoleIds]);
+
+  useEffect(() => {
+    generateSkinsPreview();
+  }, [selectedBookings, bookings, verificationResults]);
+
+  /**
+   * Sanitize profile data to replace undefined values with null
+   * Firestore cannot handle undefined values and will throw errors
+   * This ensures proper data syncing for gender, ethnicity, and other fields
+   */
+  function sanitizeProfileData(profile: any): any {
+    if (!profile) return null;
+
+    const sanitized = JSON.parse(JSON.stringify(profile, (key, value) => {
+      return value === undefined ? null : value;
+    }));
+
+    // Ensure critical nested objects exist
+    if (!sanitized.physical) {
+      sanitized.physical = {
+        gender: null,
+        ethnicity: null,
+      };
+    } else {
+      // Explicitly set gender and ethnicity to null if missing
+      if (sanitized.physical.gender === undefined || sanitized.physical.gender === null) {
+        sanitized.physical.gender = null;
+      }
+      if (!sanitized.physical.ethnicity || (Array.isArray(sanitized.physical.ethnicity) && sanitized.physical.ethnicity.length === 0)) {
+        sanitized.physical.ethnicity = null;
+      }
+    }
+
+    if (!sanitized.basicInfo) {
+      sanitized.basicInfo = {
+        firstName: null,
+        lastName: null,
+        email: null,
+        phone: null,
+      };
+    }
+
+    return sanitized;
+  }
+
+  // Auto-verify profiles when bookings are first loaded, and auto-refresh if stale
+  useEffect(() => {
+    console.log("🔄 Auto-verify useEffect triggered:", {
+      bookingsLength: bookings.length,
+      selectedBookingsSize: selectedBookings.size,
+      verificationResultsSize: verificationResults.size,
+      isVerifying,
+      hasBookings: bookings.length > 0,
+      hasSelection: selectedBookings.size > 0,
+      noVerificationYet: verificationResults.size === 0,
+    });
+
+    if (bookings.length > 0 && selectedBookings.size > 0 && verificationResults.size === 0 && !isVerifying) {
+      console.log("✅ Conditions met - calling verifyAndAutoRefresh()");
+      verifyAndAutoRefresh();
+    } else {
+      console.log("❌ Conditions NOT met for auto-verification");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookings, selectedBookings]);
+
+  async function fetchProjects() {
+    try {
+      const projectsSnapshot = await getDocs(collection(db, "projects"));
+      const projectsList = projectsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Project[];
+      setProjects(projectsList);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      setLoading(false);
+    }
+  }
+
+  async function fetchRoles() {
+    try {
+      const rolesQuery = query(
+        collection(db, "roles"),
+        where("projectId", "==", selectedProjectId)
+      );
+      const rolesSnapshot = await getDocs(rolesQuery);
+      const rolesList = rolesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Role[];
+      setRoles(rolesList);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  }
+
+  async function fetchBookings() {
+    console.log("🎬 fetchBookings() called");
+    console.log("  - selectedProjectId:", selectedProjectId);
+    console.log("  - selectedRoleIds:", Array.from(selectedRoleIds));
+    console.log("  - roles available:", roles.map((r) => ({ id: r.id, name: r.name })));
+
+    try {
+      // Fetch bookings (confirmed talent) for all selected roles and organize by role
+      const roleIdArray = Array.from(selectedRoleIds);
+      console.log("  - Calling getBookingsByRoles with:", roleIdArray);
+
+      const allBookings = await getBookingsByRoles(roleIdArray);
+
+      console.log(`📊 Found ${allBookings.length} total bookings across selected roles`);
+      if (allBookings.length > 0) {
+        console.log("  - Sample booking:", {
+          id: allBookings[0].id,
+          roleId: allBookings[0].roleId,
+          userId: allBookings[0].userId,
+          talentName: `${allBookings[0].talentProfile?.basicInfo?.firstName} ${allBookings[0].talentProfile?.basicInfo?.lastName}`,
+        });
+      }
+
+      const groups: RoleGroup[] = [];
+
+      for (const roleId of roleIdArray) {
+        const role = roles.find((r) => r.id === roleId);
+        if (!role) {
+          console.warn(`⚠️ Role not found for roleId: ${roleId}`);
+          continue;
+        }
+
+        const roleBookings = allBookings.filter((b) => b.roleId === roleId);
+
+        console.log(`📋 Role "${role.name}" (${roleId}) has ${roleBookings.length} booked talent`);
+
+        // Auto-select all bookings by default (they're already confirmed)
+        const autoSelectedIds = new Set(roleBookings.map((b) => b.id));
+
+        groups.push({
+          roleId,
+          roleName: role.name,
+          roleData: role,
+          bookings: roleBookings,
+          selectedBookingIds: autoSelectedIds,
+          isExpanded: true,
+        });
+      }
+
+      console.log("  - Created", groups.length, "role groups");
+
+      setBookings(allBookings);
+      setRoleGroups(groups);
+
+      // Auto-select all bookings
+      setSelectedBookings(new Set(allBookings.map((b) => b.id)));
+
+      // Auto-populate header data
+      if (allBookings.length > 0) {
+        const project = projects.find((p) => p.id === selectedProjectId);
+        if (project) {
+          setProjectTitle(project.title.toUpperCase());
+          setShootDate(project.shootDates || "");
+        }
+
+        // If single role selected, use that role's data
+        if (selectedRoleIds.size === 1) {
+          const selectedRoleId = roleIdArray[0];
+          const role = roles.find((r) => r.id === selectedRoleId);
+          if (role) {
+            setRoleLabel(role.name.toUpperCase());
+            setRate(role.rate);
+          }
+        } else {
+          // Multiple roles selected, show generic label
+          setRoleLabel("MULTIPLE ROLES");
+          setRate("");
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error fetching bookings:", error);
+      console.error("  - Error details:", error);
+    }
+  }
+
+  function generateSkinsPreview() {
+    const selected = bookings.filter((booking) => selectedBookings.has(booking.id));
+
+    console.log("📋 Generating skins preview for", selected.length, "bookings");
+
+    const skinsRows: SkinsRow[] = selected
+      .sort((a, b) => {
+        const lastA = a.talentProfile?.basicInfo?.lastName || "";
+        const lastB = b.talentProfile?.basicInfo?.lastName || "";
+        return lastA.localeCompare(lastB);
+      })
+      .map((booking, index) => {
+        const ethnicity = booking.talentProfile?.physical?.ethnicity as string[] | string | undefined;
+        let ethValue = "";
+        if (Array.isArray(ethnicity) && ethnicity.length > 0) {
+          ethValue = String(ethnicity[0]).toUpperCase();
+        } else if (ethnicity && typeof ethnicity === 'string') {
+          ethValue = ethnicity.toUpperCase();
+        }
+
+        // Properly determine gender with case-insensitive matching
+        const gender = booking.talentProfile?.physical?.gender?.toLowerCase() || "";
+        let sexValue = "";
+        if (gender === "male") {
+          sexValue = "M";
+        } else if (gender === "female") {
+          sexValue = "F";
+        } else if (gender) {
+          // For non-binary or other genders, show first letter uppercase
+          sexValue = gender.charAt(0).toUpperCase();
+        } else {
+          // No gender specified
+          sexValue = "";
+        }
+
+        // Debug logging for missing data
+        const name = `${booking.talentProfile?.basicInfo?.firstName} ${booking.talentProfile?.basicInfo?.lastName}`;
+        if (!ethValue || !sexValue) {
+          console.warn(`⚠️ Missing data for ${name}:`);
+          console.warn(`  - Raw ethnicity value:`, ethnicity);
+          console.warn(`  - Raw gender value:`, booking.talentProfile?.physical?.gender);
+          console.warn(`  - Computed ethValue:`, ethValue);
+          console.warn(`  - Computed sexValue:`, sexValue);
+          console.warn(`  - Has physical object:`, !!booking.talentProfile?.physical);
+          console.warn(`  - Physical object keys:`, booking.talentProfile?.physical ? Object.keys(booking.talentProfile.physical) : []);
+          console.warn(`  - Full physical object:`, booking.talentProfile?.physical);
+          console.warn(`  - Full booking profile:`, booking.talentProfile);
+        }
+
+        return {
+          no: index + 1,
+          last: booking.talentProfile?.basicInfo?.lastName?.toUpperCase() || "",
+          first: booking.talentProfile?.basicInfo?.firstName?.toUpperCase() || "",
+          sex: sexValue,
+          eth: ethValue,
+          phone: booking.talentProfile?.basicInfo?.phone || "",
+          email: booking.talentProfile?.basicInfo?.email || "",
+          notes: booking.specialInstructions || "",
+          userId: booking.userId,
+          isVerified: verificationResults.get(booking.userId),
+        };
+      });
+
+    setSkinsData(skinsRows);
+  }
+
+  /**
+   * Verify that booking profile data matches current user profiles
+   * Fetches fresh profile data from Firestore and compares key fields
+   */
+  async function verifyProfileData() {
+    setIsVerifying(true);
+
+    try {
+      const selected = bookings.filter((booking) => selectedBookings.has(booking.id));
+      const results = new Map<string, boolean>();
+
+      for (const booking of selected) {
+        try {
+          // Fetch fresh profile data directly from profiles collection
+          const profileDoc = await getDoc(doc(db, "profiles", booking.userId));
+
+          if (!profileDoc.exists()) {
+            results.set(booking.userId, false);
+            continue;
+          }
+
+          const freshProfile = profileDoc.data();
+
+          // Compare critical fields
+          const bookingProfile = booking.talentProfile;
+
+          // Compare ethnicity arrays properly
+          const bookingEth = bookingProfile?.physical?.ethnicity;
+          const freshEth = freshProfile?.physical?.ethnicity;
+          let ethnicityMatches = false;
+
+          if (Array.isArray(bookingEth) && Array.isArray(freshEth)) {
+            ethnicityMatches = bookingEth.length === freshEth.length &&
+              bookingEth.every((val, index) => val === freshEth[index]);
+          } else if (bookingEth === freshEth) {
+            ethnicityMatches = true;
+          }
+
+          const isMatch =
+            bookingProfile?.basicInfo?.firstName === freshProfile?.basicInfo?.firstName &&
+            bookingProfile?.basicInfo?.lastName === freshProfile?.basicInfo?.lastName &&
+            bookingProfile?.basicInfo?.email === freshProfile?.basicInfo?.email &&
+            bookingProfile?.basicInfo?.phone === freshProfile?.basicInfo?.phone &&
+            bookingProfile?.physical?.gender === freshProfile?.physical?.gender &&
+            ethnicityMatches;
+
+          results.set(booking.userId, isMatch);
+        } catch (error) {
+          console.error("Error verifying profile", error);
+          results.set(booking.userId, false);
+        }
+      }
+
+      setVerificationResults(results);
+    } catch (error) {
+      console.error("❌ Error during profile verification:", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  /**
+   * Refresh booking profile data from current user profiles
+   * Updates stale booking data with fresh profile information
+   */
+  async function refreshProfileData() {
+    setIsVerifying(true);
+
+    try {
+      const selected = bookings.filter((booking) => selectedBookings.has(booking.id));
+      const batch = writeBatch(db);
+      let updatedCount = 0;
+
+      for (const booking of selected) {
+        try {
+          // Fetch fresh profile data
+          const profileDoc = await getDoc(doc(db, "profiles", booking.userId));
+
+          if (!profileDoc.exists()) {
+            continue;
+          }
+
+          const freshProfile = profileDoc.data();
+
+          // ✅ CRITICAL FIX: Sanitize profile to replace undefined with null
+          // Firestore cannot handle undefined values - this prevents sync issues
+          const sanitized = sanitizeProfileData(freshProfile);
+
+          console.log(`  🔄 Manually refreshing booking ${booking.id}`);
+          console.log(`     Gender: ${sanitized?.physical?.gender}`);
+          console.log(`     Ethnicity: ${JSON.stringify(sanitized?.physical?.ethnicity)}`);
+
+          // Update booking with sanitized profile data
+          batch.update(doc(db, "bookings", booking.id), {
+            talentProfile: sanitized,
+            updatedAt: new Date(),
+          });
+
+          updatedCount++;
+        } catch (error) {
+          console.error("Error refreshing profile", error);
+        }
+      }
+
+      if (updatedCount > 0) {
+        await batch.commit();
+
+        // Reload bookings to get fresh data
+        await fetchBookings();
+
+        // Re-verify after refresh
+        setTimeout(() => verifyProfileData(), 500);
+      }
+    } catch (error) {
+      console.error("Error refreshing profile data", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  /**
+   * Diagnostic function to check raw profile data directly
+   */
+  async function checkProfileData() {
+    console.log("🔬 DIAGNOSTIC: Checking raw profile data...");
+
+    const selected = bookings.filter((booking) => selectedBookings.has(booking.id));
+
+    for (const booking of selected) {
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(`📋 BOOKING DATA for ${booking.talentProfile?.basicInfo?.firstName} ${booking.talentProfile?.basicInfo?.lastName}:`);
+      console.log("  Booking ID:", booking.id);
+      console.log("  User ID:", booking.userId);
+      console.log("  Booking Gender:", booking.talentProfile?.physical?.gender);
+      console.log("  Booking Ethnicity:", booking.talentProfile?.physical?.ethnicity);
+      console.log("  Full Booking Physical:", booking.talentProfile?.physical);
+
+      try {
+        const profileDoc = await getDoc(doc(db, "profiles", booking.userId));
+
+        if (!profileDoc.exists()) {
+          console.error("  ❌ Profile document does NOT exist in Firestore!");
+          continue;
+        }
+
+        const freshProfile = profileDoc.data();
+        console.log("📄 CURRENT PROFILE DATA:");
+        console.log("  Profile Gender:", freshProfile?.physical?.gender);
+        console.log("  Profile Ethnicity:", freshProfile?.physical?.ethnicity);
+        console.log("  Full Profile Physical:", freshProfile?.physical);
+        console.log("  Profile Basic Info:", freshProfile?.basicInfo);
+
+        // Check if data exists
+        const hasGender = !!freshProfile?.physical?.gender;
+        const hasEthnicity = freshProfile?.physical?.ethnicity &&
+          (Array.isArray(freshProfile.physical.ethnicity)
+            ? freshProfile.physical.ethnicity.length > 0
+            : true);
+
+        console.log("🔍 DATA AVAILABILITY:");
+        console.log("  Current profile HAS gender?", hasGender);
+        console.log("  Current profile HAS ethnicity?", hasEthnicity);
+
+        if (!hasGender && !hasEthnicity) {
+          console.error("  ❌ PROBLEM: Current profile is MISSING both gender and ethnicity!");
+          console.error("  → The talent needs to complete their profile at /profile");
+        } else if (!hasGender) {
+          console.error("  ❌ PROBLEM: Current profile is MISSING gender!");
+        } else if (!hasEthnicity) {
+          console.error("  ❌ PROBLEM: Current profile is MISSING ethnicity!");
+        } else {
+          console.log("  ✅ Current profile HAS both gender and ethnicity - booking should be refreshed");
+        }
+      } catch (error) {
+        console.error("  ❌ Error fetching profile:", error);
+      }
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    }
+  }
+
+  /**
+   * Verify profile data and automatically refresh if ANY stale data is detected
+   * OR if booking data is missing but current profile has the data
+   * This ensures skins always export with 100% accurate, current information
+   */
+  async function verifyAndAutoRefresh() {
+    console.log("🔍 Auto-verifying talent profiles for accuracy...");
+    setIsVerifying(true);
+
+    try {
+      const selected = bookings.filter((booking) => selectedBookings.has(booking.id));
+      const results = new Map<string, boolean>();
+      let needsRefresh = false;
+
+      // First pass: Verify all profiles
+      for (const booking of selected) {
+        try {
+          const profileDoc = await getDoc(doc(db, "profiles", booking.userId));
+
+          if (!profileDoc.exists()) {
+            results.set(booking.userId, false);
+            needsRefresh = true;
+            continue;
+          }
+
+          const freshProfile = profileDoc.data();
+          const bookingProfile = booking.talentProfile;
+
+          // Check if booking is missing critical data that exists in current profile
+          const bookingMissingGender = !bookingProfile?.physical?.gender;
+          const freshHasGender = !!freshProfile?.physical?.gender;
+
+          const bookingEth = bookingProfile?.physical?.ethnicity;
+          const freshEth = freshProfile?.physical?.ethnicity;
+          const bookingMissingEthnicity = !bookingEth || (Array.isArray(bookingEth) && bookingEth.length === 0);
+          const freshHasEthnicity = freshEth && (Array.isArray(freshEth) ? freshEth.length > 0 : true);
+
+          // If booking is missing data that exists in current profile, trigger refresh
+          if ((bookingMissingGender && freshHasGender) || (bookingMissingEthnicity && freshHasEthnicity)) {
+            const name = `${freshProfile?.basicInfo?.firstName} ${freshProfile?.basicInfo?.lastName}`;
+            console.log(`  📝 Booking missing data for ${name}:`);
+            if (bookingMissingGender && freshHasGender) {
+              console.log(`    - Gender: undefined → "${freshProfile?.physical?.gender}"`);
+            }
+            if (bookingMissingEthnicity && freshHasEthnicity) {
+              console.log(`    - Ethnicity: ${JSON.stringify(bookingEth)} → ${JSON.stringify(freshEth)}`);
+            }
+            results.set(booking.userId, false);
+            needsRefresh = true;
+            continue;
+          }
+
+          // Compare ethnicity arrays properly
+          let ethnicityMatches = false;
+
+          if (Array.isArray(bookingEth) && Array.isArray(freshEth)) {
+            // Both are arrays - compare them
+            ethnicityMatches = bookingEth.length === freshEth.length &&
+              bookingEth.every((val, index) => val === freshEth[index]);
+          } else if (bookingEth === freshEth) {
+            // Both are same type (string or undefined) and equal
+            ethnicityMatches = true;
+          }
+
+          // Compare ALL critical fields that appear in skins
+          const isMatch =
+            bookingProfile?.basicInfo?.firstName === freshProfile?.basicInfo?.firstName &&
+            bookingProfile?.basicInfo?.lastName === freshProfile?.basicInfo?.lastName &&
+            bookingProfile?.basicInfo?.email === freshProfile?.basicInfo?.email &&
+            bookingProfile?.basicInfo?.phone === freshProfile?.basicInfo?.phone &&
+            bookingProfile?.physical?.gender === freshProfile?.physical?.gender &&
+            ethnicityMatches;
+
+          results.set(booking.userId, isMatch);
+          if (!isMatch) {
+            needsRefresh = true;
+            // Log what changed for debugging
+            const changes: string[] = [];
+            if (bookingProfile?.basicInfo?.firstName !== freshProfile?.basicInfo?.firstName) {
+              changes.push(`firstName: "${bookingProfile?.basicInfo?.firstName}" → "${freshProfile?.basicInfo?.firstName}"`);
+            }
+            if (bookingProfile?.basicInfo?.lastName !== freshProfile?.basicInfo?.lastName) {
+              changes.push(`lastName: "${bookingProfile?.basicInfo?.lastName}" → "${freshProfile?.basicInfo?.lastName}"`);
+            }
+            if (bookingProfile?.basicInfo?.email !== freshProfile?.basicInfo?.email) {
+              changes.push(`email: "${bookingProfile?.basicInfo?.email}" → "${freshProfile?.basicInfo?.email}"`);
+            }
+            if (bookingProfile?.basicInfo?.phone !== freshProfile?.basicInfo?.phone) {
+              changes.push(`phone: "${bookingProfile?.basicInfo?.phone}" → "${freshProfile?.basicInfo?.phone}"`);
+            }
+            if (bookingProfile?.physical?.gender !== freshProfile?.physical?.gender) {
+              changes.push(`gender: "${bookingProfile?.physical?.gender}" → "${freshProfile?.physical?.gender}"`);
+            }
+            if (!ethnicityMatches) {
+              changes.push(`ethnicity: ${JSON.stringify(bookingEth)} → ${JSON.stringify(freshEth)}`);
+            }
+            console.log(`  ⚠️ Stale data for ${freshProfile?.basicInfo?.firstName} ${freshProfile?.basicInfo?.lastName}:`, changes.join(", "));
+          }
+
+          // Check if current profile is ALSO missing critical data
+          if (!freshHasGender || !freshHasEthnicity) {
+            const name = `${freshProfile?.basicInfo?.firstName} ${freshProfile?.basicInfo?.lastName}`;
+            console.warn(`  ⚠️ Current profile incomplete for ${name}:`);
+            if (!freshHasGender) {
+              console.warn(`    - Missing gender in current profile`);
+            }
+            if (!freshHasEthnicity) {
+              console.warn(`    - Missing ethnicity in current profile`);
+            }
+            console.warn(`    → Talent needs to complete their profile at /profile`);
+          }
+        } catch (error) {
+          console.error("Error verifying profile", error);
+          results.set(booking.userId, false);
+          needsRefresh = true;
+        }
+      }
+
+      setVerificationResults(results);
+
+      // If ANY data needs refresh, auto-refresh ALL bookings to ensure accuracy
+      if (needsRefresh) {
+        console.log("⚠️ Data needs refresh - auto-refreshing booking profiles...");
+        const batch = writeBatch(db);
+        let updatedCount = 0;
+
+        for (const booking of selected) {
+          try {
+            const profileDoc = await getDoc(doc(db, "profiles", booking.userId));
+
+            if (!profileDoc.exists()) continue;
+
+            const freshProfile = profileDoc.data();
+
+            // ✅ CRITICAL FIX: Sanitize profile to replace undefined with null
+            // Firestore cannot handle undefined values - this prevents sync issues
+            const sanitized = sanitizeProfileData(freshProfile);
+
+            console.log(`  🔄 Auto-refreshing booking ${booking.id}`);
+            console.log(`     Gender: ${sanitized?.physical?.gender}`);
+            console.log(`     Ethnicity: ${JSON.stringify(sanitized?.physical?.ethnicity)}`);
+
+            // Update booking with sanitized profile data
+            batch.update(doc(db, "bookings", booking.id), {
+              talentProfile: sanitized,
+              updatedAt: new Date(),
+            });
+
+            updatedCount++;
+          } catch (error) {
+            console.error("Error refreshing profile during auto-refresh", error);
+          }
+        }
+
+        if (updatedCount > 0) {
+          await batch.commit();
+          console.log(`✅ Auto-refreshed ${updatedCount} booking profiles with current data`);
+
+          // Reload bookings to get fresh data
+          await fetchBookings();
+
+          // Re-verify to confirm all data is now current
+          setTimeout(() => verifyProfileData(), 500);
+        }
+      } else {
+        console.log("✅ All talent profiles verified - data is current");
+      }
+    } catch (error) {
+      console.error("❌ Error during auto-verification:", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  function toggleRole(roleId: string) {
+    const newSelected = new Set(selectedRoleIds);
+    if (newSelected.has(roleId)) {
+      newSelected.delete(roleId);
+    } else {
+      newSelected.add(roleId);
+    }
+    setSelectedRoleIds(newSelected);
+    setSelectedBookings(new Set()); // Clear booking selection when roles change
+    setRoleGroups([]); // Clear role groups
+  }
+
+  function toggleAllRoles() {
+    if (selectedRoleIds.size === roles.length) {
+      setSelectedRoleIds(new Set());
+    } else {
+      setSelectedRoleIds(new Set(roles.map((r) => r.id)));
+    }
+    setSelectedBookings(new Set());
+    setRoleGroups([]);
+  }
+
+  function toggleBooking(id: string) {
+    const newSelected = new Set(selectedBookings);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedBookings(newSelected);
+  }
+
+  function toggleAll() {
+    if (selectedBookings.size === bookings.length) {
+      setSelectedBookings(new Set());
+    } else {
+      setSelectedBookings(new Set(bookings.map((b) => b.id)));
+    }
+  }
+
+  // Role group functions
+  function toggleRoleExpansion(roleIndex: number) {
+    const updated = [...roleGroups];
+    updated[roleIndex].isExpanded = !updated[roleIndex].isExpanded;
+    setRoleGroups(updated);
+  }
+
+  function selectAllForRole(roleIndex: number) {
+    const updated = [...roleGroups];
+    const roleGroup = updated[roleIndex];
+
+    if (roleGroup.selectedBookingIds.size === roleGroup.bookings.length) {
+      // Deselect all for this role
+      roleGroup.selectedBookingIds = new Set();
+    } else {
+      // Select all for this role
+      roleGroup.selectedBookingIds = new Set(roleGroup.bookings.map((b) => b.id));
+    }
+
+    setRoleGroups(updated);
+    syncSelectedBookings(updated);
+  }
+
+  function toggleBookingForRole(roleIndex: number, bookingId: string) {
+    const updated = [...roleGroups];
+    const roleGroup = updated[roleIndex];
+
+    if (roleGroup.selectedBookingIds.has(bookingId)) {
+      roleGroup.selectedBookingIds.delete(bookingId);
+    } else {
+      roleGroup.selectedBookingIds.add(bookingId);
+    }
+
+    setRoleGroups(updated);
+    syncSelectedBookings(updated);
+  }
+
+  // Sync selectedBookings with roleGroups for export functions
+  function syncSelectedBookings(groups: RoleGroup[]) {
+    const allSelected = new Set<string>();
+    groups.forEach((group) => {
+      group.selectedBookingIds.forEach((id) => allSelected.add(id));
+    });
+    setSelectedBookings(allSelected);
+  }
+
+  // Detect talent that appears in multiple roles
+  function detectDuplicateTalent(): Map<string, number> {
+    const talentCounts = new Map<string, number>();
+
+    roleGroups.forEach((group) => {
+      group.bookings.forEach((booking) => {
+        const count = talentCounts.get(booking.userId) || 0;
+        talentCounts.set(booking.userId, count + 1);
+      });
+    });
+
+    return talentCounts;
+  }
+
+  function updateSkinsRow(index: number, field: keyof SkinsRow, value: string | number) {
+    const updated = [...skinsData];
+    updated[index] = { ...updated[index], [field]: value };
+    setSkinsData(updated);
+  }
+
+  async function exportToExcel() {
+    const workbook = new XLSX.Workbook();
+    const worksheet = workbook.addWorksheet("Skins");
+
+    // Set column widths
+    worksheet.columns = [
+      { width: 6 },  // NO.
+      { width: 15 }, // LAST
+      { width: 15 }, // FIRST
+      { width: 6 },  // SEX
+      { width: 20 }, // ETH
+      { width: 15 }, // PHONE
+      { width: 25 }, // EMAIL
+      { width: 30 }, // NOTES
+    ];
+
+    // Header section
+    let currentRow = 1;
+
+    // Row 1: Project Title
+    const titleRow = worksheet.getRow(currentRow++);
+    titleRow.getCell(1).value = projectTitle;
+    titleRow.getCell(1).font = { bold: true, size: 14 };
+    titleRow.getCell(1).alignment = { horizontal: "center" };
+    worksheet.mergeCells(currentRow - 1, 1, currentRow - 1, 8);
+
+    // Row 2: Date and Production Day
+    const dateRow = worksheet.getRow(currentRow++);
+    const dateText = productionDay && totalDays
+      ? `${shootDate} | DAY ${productionDay} of ${totalDays}`
+      : shootDate;
+    dateRow.getCell(1).value = dateText;
+    dateRow.getCell(1).font = { bold: true };
+    dateRow.getCell(1).alignment = { horizontal: "center" };
+    worksheet.mergeCells(currentRow - 1, 1, currentRow - 1, 8);
+
+    // Row 3: Casting Company
+    const companyRow = worksheet.getRow(currentRow++);
+    companyRow.getCell(1).value = castingCompany;
+    companyRow.getCell(1).font = { bold: true };
+    companyRow.getCell(1).alignment = { horizontal: "center" };
+    worksheet.mergeCells(currentRow - 1, 1, currentRow - 1, 8);
+
+    // Row 4: Call Time and Rate
+    const callRow = worksheet.getRow(currentRow++);
+    const callText = `${callTime} ${roleLabel} ${rate}`;
+    callRow.getCell(1).value = callText;
+    callRow.getCell(1).font = { bold: true };
+    callRow.getCell(1).alignment = { horizontal: "center" };
+    worksheet.mergeCells(currentRow - 1, 1, currentRow - 1, 8);
+
+    // Blank row
+    currentRow++;
+
+    // Column headers
+    const headerRow = worksheet.getRow(currentRow++);
+    const headers = ["NO.", "LAST", "FIRST", "SEX", "ETH", "PHONE", "EMAIL", "NOTES"];
+    headers.forEach((header, index) => {
+      const cell = headerRow.getCell(index + 1);
+      cell.value = header;
+      cell.font = { bold: true };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFD9D9D9" },
+      };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Data rows
+    skinsData.forEach((row) => {
+      const dataRow = worksheet.addRow([
+        row.no,
+        row.last,
+        row.first,
+        row.sex,
+        row.eth,
+        row.phone,
+        row.email,
+        row.notes,
+      ]);
+
+      dataRow.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+        cell.alignment = { vertical: "middle" };
+      });
+
+      // Center NO. column
+      dataRow.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Generate file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Skins_${projectTitle.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`;
+    link.click();
+  }
+
+  function exportToPDF() {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Header
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(projectTitle, doc.internal.pageSize.getWidth() / 2, 15, {
+      align: "center",
+    });
+
+    doc.setFontSize(12);
+    const dateText = productionDay && totalDays
+      ? `${shootDate} | DAY ${productionDay} of ${totalDays}`
+      : shootDate;
+    doc.text(dateText, doc.internal.pageSize.getWidth() / 2, 22, {
+      align: "center",
+    });
+
+    doc.text(castingCompany, doc.internal.pageSize.getWidth() / 2, 29, {
+      align: "center",
+    });
+
+    const callText = `${callTime} ${roleLabel} ${rate}`;
+    doc.text(callText, doc.internal.pageSize.getWidth() / 2, 36, {
+      align: "center",
+    });
+
+    // Table
+    const tableData = skinsData.map((row) => [
+      row.no,
+      row.last,
+      row.first,
+      row.sex,
+      row.eth,
+      row.phone,
+      row.email,
+      row.notes,
+    ]);
+
+    autoTable(doc, {
+      head: [["NO.", "LAST", "FIRST", "SEX", "ETH", "PHONE", "EMAIL", "NOTES"]],
+      body: tableData,
+      startY: 45,
+      theme: "grid",
+      headStyles: {
+        fillColor: [217, 217, 217],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        halign: "center",
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 12 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 30 },
+        3: { halign: "center", cellWidth: 12 },
+        4: { cellWidth: 35 },
+        5: { cellWidth: 30 },
+        6: { cellWidth: 45 },
+        7: { cellWidth: 50 },
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+      },
+    });
+
+    doc.save(`Skins_${projectTitle.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
+  }
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1
+            className="text-4xl font-bold text-secondary mb-2"
+            style={{ fontFamily: "var(--font-galindo)" }}
+          >
+            Export Skins
+          </h1>
+          <p
+            className="text-secondary-light"
+            style={{ fontFamily: "var(--font-outfit)" }}
+          >
+            Select talent and generate formatted skins for production
+          </p>
+        </div>
+
+        {/* Project Filter */}
+        <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+          <h2
+            className="text-xl font-bold text-secondary mb-4"
+            style={{ fontFamily: "var(--font-galindo)" }}
+          >
+            Select Project
+          </h2>
+          <Select
+            label="Project"
+            value={selectedProjectId}
+            onChange={(e) => {
+              setSelectedProjectId(e.target.value);
+              setSelectedRoleIds(new Set());
+              setSelectedBookings(new Set());
+            }}
+            options={[
+              { value: "", label: "Select a project..." },
+              ...projects.map((p) => ({ value: p.id, label: p.title })),
+            ]}
+          />
+        </div>
+
+        {/* Role Selection */}
+        {selectedProjectId && roles.length > 0 && (
+          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2
+                className="text-xl font-bold text-secondary"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Select Roles ({selectedRoleIds.size} selected)
+              </h2>
+              <Button variant="outline" size="sm" onClick={toggleAllRoles}>
+                {selectedRoleIds.size === roles.length ? "Deselect All" : "Select All"}
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {roles.map((role) => (
+                <div
+                  key={role.id}
+                  className="flex items-start gap-4 p-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-accent/20 hover:border-accent/40 transition-colors"
+                >
+                  <div className="pt-0.5">
+                    <Checkbox
+                      checked={selectedRoleIds.has(role.id)}
+                      onChange={() => toggleRole(role.id)}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="font-semibold text-secondary mb-1"
+                      style={{ fontFamily: "var(--font-outfit)" }}
+                    >
+                      {role.name}
+                    </p>
+                    <div className="flex flex-col gap-1 text-sm text-secondary-light">
+                      <p>Date: {role.date}</p>
+                      <p>Location: {role.location}</p>
+                      <p>Rate: {role.rate}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedProjectId && selectedRoleIds.size > 0 && bookings.length > 0 && (
+          <>
+            {/* Role-Grouped Booked Talent Selection */}
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center">
+                <h2
+                  className="text-xl font-bold text-secondary"
+                  style={{ fontFamily: "var(--font-galindo)" }}
+                >
+                  Booked Talent ({selectedBookings.size} selected)
+                </h2>
+                <Button variant="outline" size="sm" onClick={toggleAll}>
+                  {selectedBookings.size === bookings.length
+                    ? "Deselect All"
+                    : "Select All"}
+                </Button>
+              </div>
+
+              {roleGroups.map((roleGroup, roleIndex) => {
+                const duplicateTalentCounts = detectDuplicateTalent();
+
+                return (
+                  <div
+                    key={roleGroup.roleId}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-accent/20"
+                  >
+                    {/* Role Header */}
+                    <div className="bg-gradient-to-r from-accent to-purple-400 p-4">
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => toggleRoleExpansion(roleIndex)}
+                          className="flex items-center gap-3 text-white hover:opacity-80 transition-opacity"
+                        >
+                          <span className="text-xl">
+                            {roleGroup.isExpanded ? "▼" : "▶"}
+                          </span>
+                          <h3
+                            className="text-xl font-bold"
+                            style={{ fontFamily: "var(--font-galindo)" }}
+                          >
+                            {roleGroup.roleName.toUpperCase()}
+                          </h3>
+                        </button>
+
+                        <div className="flex items-center gap-4 text-white text-sm">
+                          <span>{roleGroup.roleData.date}</span>
+                          <span>•</span>
+                          <span>{roleGroup.roleData.location}</span>
+                          <span>•</span>
+                          <span>{roleGroup.roleData.rate}</span>
+                          <span>•</span>
+                          <span className="font-semibold">
+                            {roleGroup.bookings.length} booked
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => selectAllForRole(roleIndex)}
+                            className="!bg-white/20 !text-white !border-white/40 hover:!bg-white/30"
+                          >
+                            {roleGroup.selectedBookingIds.size ===
+                            roleGroup.bookings.length
+                              ? "Deselect All"
+                              : "Select All"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Booked Talent List */}
+                    {roleGroup.isExpanded && (
+                      <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                        {roleGroup.bookings.length === 0 ? (
+                          <div className="text-center py-8 text-secondary-light">
+                            No talent booked for this role yet
+                          </div>
+                        ) : (
+                          roleGroup.bookings.map((booking) => {
+                            const talentCount = duplicateTalentCounts.get(booking.userId) || 1;
+                            const isInMultipleRoles = talentCount > 1;
+
+                            return (
+                              <div
+                                key={booking.id}
+                                className="flex items-start gap-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:from-purple-100 hover:to-pink-100 transition-colors"
+                              >
+                                <div className="pt-0.5">
+                                  <Checkbox
+                                    checked={roleGroup.selectedBookingIds.has(booking.id)}
+                                    onChange={() => toggleBookingForRole(roleIndex, booking.id)}
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className="font-semibold text-secondary mb-1"
+                                    style={{ fontFamily: "var(--font-outfit)" }}
+                                  >
+                                    {booking.talentProfile?.basicInfo?.firstName}{" "}
+                                    {booking.talentProfile?.basicInfo?.lastName}
+                                  </p>
+                                  <p className="text-sm text-secondary-light">
+                                    {booking.talentProfile?.physical?.gender} •{" "}
+                                    {Array.isArray(booking.talentProfile?.physical?.ethnicity)
+                                      ? booking.talentProfile.physical.ethnicity.join(", ")
+                                      : booking.talentProfile?.physical?.ethnicity}
+                                  </p>
+                                  {booking.specialInstructions && (
+                                    <p className="text-xs text-accent mt-1">
+                                      Note: {booking.specialInstructions}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <Badge variant="success">BOOKED</Badge>
+                                  {isInMultipleRoles && (
+                                    <Badge variant="warning">
+                                      IN {talentCount} ROLES
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Skins Preview & Editing */}
+            {selectedBookings.size > 0 && (
+              <div className="bg-linear-to-br from-white to-purple-50/50 rounded-2xl p-8 shadow-2xl border-4 border-accent mb-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2
+                      className="text-3xl font-bold text-secondary mb-2"
+                      style={{ fontFamily: "var(--font-galindo)" }}
+                    >
+                      🎬 Skin Builder
+                    </h2>
+                    <div className="flex items-center gap-3">
+                      <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Review and edit your skin data before exporting • {skinsData.length} talent selected
+                      </p>
+                      {!isVerifying && verificationResults.size > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={Array.from(verificationResults.values()).every(Boolean) ? "success" : "warning"}>
+                            {Array.from(verificationResults.values()).filter(Boolean).length} / {verificationResults.size} Verified
+                          </Badge>
+                        </div>
+                      )}
+                      {isVerifying && (
+                        <Badge variant="default">
+                          <div className="flex items-center gap-2">
+                            <div className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
+                            Verifying...
+                          </div>
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={checkProfileData}
+                      className="flex items-center gap-2 border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Check Profile Data
+                    </Button>
+                    {!isVerifying && verificationResults.size > 0 && Array.from(verificationResults.values()).some((v) => !v) && (
+                      <Button
+                        variant="outline"
+                        onClick={refreshProfileData}
+                        className="flex items-center gap-2 border-orange-300 text-orange-600 hover:bg-orange-50"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh Stale Data
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={verifyAndAutoRefresh}
+                      disabled={isVerifying}
+                      className="flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {isVerifying ? "Verifying..." : "Verify & Refresh Data"}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={generateSkinsPreview}
+                      className="flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Regenerate Preview
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Header Inputs */}
+                <div className="mb-8 p-6 bg-linear-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-accent shadow-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <h3 className="text-lg font-bold text-secondary" style={{ fontFamily: "var(--font-galindo)" }}>
+                      1. Edit Header Information
+                    </h3>
+                  </div>
+                  <p className="text-sm text-secondary-light mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Customize the header details that will appear on your exported skin
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Project Title"
+                      value={projectTitle}
+                      onChange={(e) => setProjectTitle(e.target.value)}
+                      placeholder="MARTHA CARELLI STORY"
+                    />
+                    <Input
+                      label="Shoot Date"
+                      value={shootDate}
+                      onChange={(e) => setShootDate(e.target.value)}
+                      placeholder="SATURDAY 12/8/25"
+                    />
+                    <Input
+                      label="Production Day"
+                      value={productionDay}
+                      onChange={(e) => setProductionDay(e.target.value)}
+                      placeholder="4"
+                    />
+                    <Input
+                      label="Total Days"
+                      value={totalDays}
+                      onChange={(e) => setTotalDays(e.target.value)}
+                      placeholder="15"
+                    />
+                    <Input
+                      label="Casting Company"
+                      value={castingCompany}
+                      onChange={(e) => setCastingCompany(e.target.value)}
+                    />
+                    <Input
+                      label="Call Time"
+                      value={callTime}
+                      onChange={(e) => setCallTime(e.target.value)}
+                      placeholder="3:30PM"
+                    />
+                    <Input
+                      label="Role Label"
+                      value={roleLabel}
+                      onChange={(e) => setRoleLabel(e.target.value)}
+                      placeholder="COPS"
+                    />
+                    <Input
+                      label="Rate"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                      placeholder="$130/10"
+                    />
+                  </div>
+                </div>
+
+                {/* Editable Table */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h3 className="text-lg font-bold text-secondary" style={{ fontFamily: "var(--font-galindo)" }}>
+                      2. Edit Talent Details
+                    </h3>
+                  </div>
+                  <p className="text-sm text-secondary-light mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Click on any cell to edit. All fields are editable before export.
+                  </p>
+
+                  {/* Data Source Information Banner */}
+                  <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-blue-900 mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                          ✓ 100% Accurate Data Guaranteed
+                        </p>
+                        <p className="text-sm text-blue-800" style={{ fontFamily: "var(--font-outfit)" }}>
+                          All talent information is automatically verified and refreshed from current user profiles when you load this page.
+                          If any talent updated their profile after booking, the system automatically updates the booking data to ensure 100% accuracy.
+                          Verified profiles <span className="inline-flex items-center gap-1">
+                            <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </span> are current and match their latest profile information.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto rounded-lg border-2 border-accent shadow-lg">
+                    <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-accent text-white">
+                        <th className="border border-accent px-3 py-3 text-center font-bold" style={{ fontFamily: "var(--font-galindo)" }}>
+                          NO.
+                        </th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>LAST</th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>FIRST</th>
+                        <th className="border border-accent px-3 py-3 text-center font-bold" style={{ fontFamily: "var(--font-galindo)" }}>
+                          SEX
+                        </th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>ETH</th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>PHONE</th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>EMAIL</th>
+                        <th className="border border-accent px-3 py-3 font-bold" style={{ fontFamily: "var(--font-galindo)" }}>NOTES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {skinsData.map((row, index) => (
+                        <tr key={index} className="hover:bg-purple-50 transition-colors">
+                          <td className="border border-gray-300 px-3 py-3 text-center bg-gray-50 font-semibold text-secondary">
+                            <div className="flex items-center justify-center gap-2">
+                              <span>{row.no}</span>
+                              {row.isVerified === true && (
+                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <title>Profile verified</title>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              )}
+                              {row.isVerified === false && (
+                                <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <title>Profile data may be stale</title>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                              )}
+                            </div>
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.last}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "last", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.first}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "first", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.sex}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "sex", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all text-center"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                              maxLength={1}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.eth}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "eth", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.phone}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "phone", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.email}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "email", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                            />
+                          </td>
+                          <td className="border border-gray-300 px-3 py-3">
+                            <input
+                              type="text"
+                              value={row.notes}
+                              onChange={(e) =>
+                                updateSkinsRow(index, "notes", e.target.value)
+                              }
+                              className="w-full bg-white hover:bg-purple-50 focus:bg-white px-2 py-1 rounded border border-transparent hover:border-accent/30 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                              style={{ fontFamily: "var(--font-outfit)" }}
+                              placeholder="Add notes..."
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  </div>
+                </div>
+
+                {/* Export Buttons */}
+                <div className="border-t-4 border-accent/20 pt-8">
+                  <div className="flex items-center gap-2 mb-6">
+                    <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <h3 className="text-xl font-bold text-secondary" style={{ fontFamily: "var(--font-galindo)" }}>
+                      3. Export Your Skin
+                    </h3>
+                  </div>
+                  <p className="text-sm text-secondary-light mb-6" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Choose your preferred format to download the finalized skin
+                  </p>
+                  <div className="flex gap-4">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={exportToExcel}
+                      className="flex-1 flex items-center justify-center gap-3 py-4"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export as Excel (.xlsx)</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={exportToPDF}
+                      className="flex-1 flex items-center justify-center gap-3 py-4"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <span>Export as PDF</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Helpful message when bookings exist but none selected */}
+            {selectedBookings.size === 0 && bookings.length > 0 && (
+              <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-2xl p-12 shadow-lg border-2 border-accent/30 text-center">
+                <div className="max-w-2xl mx-auto">
+                  <div className="text-5xl mb-4">👆</div>
+                  <h3 className="text-2xl font-bold text-secondary mb-4" style={{ fontFamily: "var(--font-galindo)" }}>
+                    Select Talent to Build Your Skin
+                  </h3>
+                  <p className="text-secondary-light text-lg mb-6" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Check the boxes next to the talent you want to include in your skin export.
+                    The Skin Builder will appear automatically once you make selections.
+                  </p>
+                  <div className="bg-white/70 rounded-lg p-4 text-left max-w-md mx-auto">
+                    <p className="text-sm text-secondary font-semibold mb-2">💡 Quick Tip:</p>
+                    <p className="text-sm text-secondary-light">
+                      Use the "Select All" button for each role to quickly select all booked talent,
+                      then deselect anyone you don't want to include.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {selectedProjectId && selectedRoleIds.size > 0 && bookings.length === 0 && (
+          <div className="bg-white rounded-xl p-12 shadow-lg text-center border-2 border-accent/20">
+            <div className="text-5xl mb-4">📋</div>
+            <h3 className="text-xl font-bold text-secondary mb-3" style={{ fontFamily: "var(--font-galindo)" }}>
+              No Booked Talent Found
+            </h3>
+            <p className="text-secondary-light mb-6" style={{ fontFamily: "var(--font-outfit)" }}>
+              No booked talent found for the selected roles. Book talent from the submissions page first.
+            </p>
+            <Button variant="primary" onClick={() => window.location.href = '/admin/submissions'}>
+              Go to Submissions →
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

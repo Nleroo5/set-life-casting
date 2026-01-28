@@ -17,6 +17,13 @@ import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  createBooking,
+  deleteBooking,
+  isSubmissionBooked,
+  getBookingsByProject,
+} from "@/lib/firebase/bookings";
+import type { Booking } from "@/types/booking";
 
 interface Submission {
   id: string;
@@ -29,6 +36,7 @@ interface Submission {
   submittedAt: Date;
   profileData: {
     basicInfo: any;
+    physical: any;
     appearance: any;
     sizes: any;
     details: any;
@@ -69,11 +77,13 @@ export default function AdminSubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [bookingInProgress, setBookingInProgress] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -118,9 +128,24 @@ export default function AdminSubmissionsPage() {
         rolesData.push({ id: doc.id, ...doc.data() } as Role);
       });
 
+      // Fetch all bookings
+      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+      const bookingsData: Booking[] = [];
+      bookingsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        bookingsData.push({
+          id: doc.id,
+          ...data,
+          confirmedAt: data.confirmedAt?.toDate?.() || data.confirmedAt,
+          createdAt: data.createdAt?.toDate?.() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+        } as Booking);
+      });
+
       setSubmissions(submissionsData);
       setProjects(projectsData);
       setRoles(rolesData);
+      setBookings(bookingsData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -162,6 +187,48 @@ export default function AdminSubmissionsPage() {
     }
   };
 
+  const handleBookTalent = async (submission: Submission) => {
+    if (!user) return;
+
+    setBookingInProgress(true);
+    try {
+      await createBooking(submission, user.uid, {
+        status: "confirmed",
+      });
+      await fetchData();
+      alert(`Successfully booked ${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`);
+    } catch (error) {
+      console.error("Error booking talent:", error);
+      alert("Failed to book talent");
+    } finally {
+      setBookingInProgress(false);
+    }
+  };
+
+  const handleUnbookTalent = async (submission: Submission) => {
+    const booking = bookings.find((b) => b.submissionId === submission.id);
+    if (!booking) return;
+
+    if (!confirm(`Are you sure you want to unbook ${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}?`)) {
+      return;
+    }
+
+    setBookingInProgress(true);
+    try {
+      await deleteBooking(booking.id);
+      await fetchData();
+    } catch (error) {
+      console.error("Error unbooking talent:", error);
+      alert("Failed to unbook talent");
+    } finally {
+      setBookingInProgress(false);
+    }
+  };
+
+  const getBookingForSubmission = (submissionId: string): Booking | undefined => {
+    return bookings.find((b) => b.submissionId === submissionId);
+  };
+
   const toggleRole = (roleId: string) => {
     setExpandedRoles((prev) => {
       const newSet = new Set(prev);
@@ -194,7 +261,7 @@ export default function AdminSubmissionsPage() {
       case "reviewed":
         return "Reviewed";
       case "selected":
-        return "Selected";
+        return "Booked";
       case "rejected":
         return "Rejected";
       default:
@@ -275,7 +342,7 @@ export default function AdminSubmissionsPage() {
                     },
                     {
                       value: "selected",
-                      label: `Selected (${submissions.filter((s) => s.status === "selected").length})`,
+                      label: `Booked (${submissions.filter((s) => s.status === "selected").length})`,
                     },
                     {
                       value: "rejected",
@@ -538,39 +605,84 @@ export default function AdminSubmissionsPage() {
                   </div>
                 </div>
 
-                {/* Status Actions */}
+                {/* Booking Actions */}
                 <div className="pt-4 border-t border-accent/20">
-                  <h3 className="text-sm font-semibold text-secondary mb-3">Update Status</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={selectedSubmission.status === "reviewed" ? "primary" : "outline"}
-                      className="text-sm"
-                      onClick={() => handleUpdateStatus(selectedSubmission.id, "reviewed")}
-                    >
-                      Reviewed
-                    </Button>
-                    <Button
-                      variant={selectedSubmission.status === "selected" ? "primary" : "outline"}
-                      className="text-sm"
-                      onClick={() => handleUpdateStatus(selectedSubmission.id, "selected")}
-                    >
-                      Selected
-                    </Button>
-                    <Button
-                      variant={selectedSubmission.status === "rejected" ? "primary" : "outline"}
-                      className="text-sm"
-                      onClick={() => handleUpdateStatus(selectedSubmission.id, "rejected")}
-                    >
-                      Rejected
-                    </Button>
-                    <Button
-                      variant={selectedSubmission.status === "pending" ? "primary" : "outline"}
-                      className="text-sm"
-                      onClick={() => handleUpdateStatus(selectedSubmission.id, "pending")}
-                    >
-                      Pending
-                    </Button>
-                  </div>
+                  <h3 className="text-sm font-semibold text-secondary mb-3">Actions</h3>
+
+                  {selectedSubmission.status === "selected" ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <span className="text-2xl">✓</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-green-800">Talent Booked</p>
+                          <p className="text-xs text-green-600">This talent has been confirmed for the role</p>
+                        </div>
+                      </div>
+                      <Link href={`/admin/talent/${selectedSubmission.userId}`}>
+                        <Button
+                          variant="outline"
+                          className="text-sm w-full"
+                        >
+                          👤 View Full Profile
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        className="text-sm w-full text-danger"
+                        onClick={() => handleUnbookTalent(selectedSubmission)}
+                        disabled={bookingInProgress}
+                      >
+                        {bookingInProgress ? "Unbooking..." : "Unbook Talent"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Button
+                        variant="primary"
+                        className="text-sm w-full"
+                        onClick={() => handleBookTalent(selectedSubmission)}
+                        disabled={bookingInProgress || selectedSubmission.status === "rejected"}
+                      >
+                        {bookingInProgress ? "Booking..." : "📋 Book Talent"}
+                      </Button>
+
+                      <Link href={`/admin/talent/${selectedSubmission.userId}`}>
+                        <Button
+                          variant="outline"
+                          className="text-sm w-full"
+                        >
+                          👤 View Full Profile
+                        </Button>
+                      </Link>
+
+                      <div className="border-t border-accent/20 pt-3">
+                        <p className="text-xs text-secondary-light mb-2">Review Status:</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            variant={selectedSubmission.status === "pending" ? "primary" : "outline"}
+                            className="text-xs px-2 py-1"
+                            onClick={() => handleUpdateStatus(selectedSubmission.id, "pending")}
+                          >
+                            Pending
+                          </Button>
+                          <Button
+                            variant={selectedSubmission.status === "reviewed" ? "primary" : "outline"}
+                            className="text-xs px-2 py-1"
+                            onClick={() => handleUpdateStatus(selectedSubmission.id, "reviewed")}
+                          >
+                            Reviewed
+                          </Button>
+                          <Button
+                            variant={selectedSubmission.status === "rejected" ? "primary" : "outline"}
+                            className="text-xs px-2 py-1"
+                            onClick={() => handleUpdateStatus(selectedSubmission.id, "rejected")}
+                          >
+                            Rejected
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

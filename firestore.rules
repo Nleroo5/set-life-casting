@@ -1,0 +1,191 @@
+rules_version = '2';
+
+/**
+ * Set Life Casting - Firestore Security Rules
+ *
+ * Archive-First System:
+ * - Projects can be archived, not deleted (unless no bookings exist)
+ * - Bookings can NEVER be deleted (archive only)
+ * - Roles are archived with projects (prevent orphaning)
+ * - Submissions are archived with projects
+ *
+ * Based on industry standards (Casting Networks, Entertainment Partners)
+ * Ensures 7-year data retention for IRS/legal compliance
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+
+    // Check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Check if user is an admin
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if user owns the document
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Validate that role field cannot be changed by regular users
+    function roleNotChanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
+    }
+
+    // Check if document is archived
+    function isArchived() {
+      return resource.data.get('status', '') == 'archived' ||
+             resource.data.get('archivedWithProject', false) == true;
+    }
+
+    // Validate archive operation (only admins can archive)
+    function canArchive() {
+      return isAdmin() &&
+             request.resource.data.archivedBy == request.auth.uid &&
+             request.resource.data.archivedAt is timestamp;
+    }
+
+    // ============================================================================
+    // USERS COLLECTION
+    // ============================================================================
+    match /users/{userId} {
+      // Anyone can read their own user document, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can create their own user document during signup
+      allow create: if isSignedIn() && isOwner(userId) &&
+                       request.resource.data.role == 'talent';
+
+      // Users can update their own document but cannot change role
+      allow update: if isOwner(userId) && roleNotChanged();
+
+      // Only admins can grant admin role
+      allow update: if isAdmin();
+
+      // No deletes allowed
+      allow delete: if false;
+    }
+
+    // ============================================================================
+    // PROFILES COLLECTION
+    // ============================================================================
+    match /profiles/{userId} {
+      // Anyone authenticated can read talent profiles (for casting directors to view)
+      allow read: if isSignedIn();
+
+      // Users can create and update their own profiles, admins can update any
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+
+      // Only admins can delete profiles
+      allow delete: if isAdmin();
+    }
+
+    // ============================================================================
+    // BOOKINGS COLLECTION (Admin Only)
+    // ============================================================================
+    match /bookings/{bookingId} {
+      // Admins can read all bookings, talent can read their own
+      allow read: if isAdmin() ||
+                     (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      // Only admins can create bookings
+      allow create: if isAdmin() &&
+                       request.resource.data.confirmedBy == request.auth.uid;
+
+      // Only admins can update bookings
+      // Performance tracking fields (rating, wouldRehire, completionNotes) can only be set by admins
+      allow update: if isAdmin();
+
+      // CRITICAL: Bookings can NEVER be deleted
+      // This ensures 7-year data retention for IRS/legal compliance
+      // Bookings should be archived with their projects instead
+      allow delete: if false;
+    }
+
+    // ============================================================================
+    // SUBMISSIONS COLLECTION
+    // ============================================================================
+    match /submissions/{submissionId} {
+      // Admins can read all, users can read their own submissions (including archived)
+      allow read: if isAdmin() || isOwner(resource.data.userId);
+
+      // Authenticated users can create submissions
+      allow create: if isSignedIn() &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // Only admins can update submissions
+      allow update: if isAdmin();
+
+      // Delete restrictions (archive-first system):
+      // - Can't delete archived submissions (status: "archived" or archivedWithProject: true)
+      // - Only admins can delete
+      // - Should archive instead of delete
+      allow delete: if isAdmin() && !isArchived();
+    }
+
+    // ============================================================================
+    // PROJECTS COLLECTION
+    // ============================================================================
+    match /projects/{projectId} {
+      // Public read access (for casting calls, including archived projects)
+      allow read: if true;
+
+      // Only admins can create projects
+      allow create: if isAdmin();
+
+      // Only admins can update projects
+      // Archive operation must set archivedAt, archivedBy correctly
+      allow update: if isAdmin() && (
+        // Normal update (not archiving)
+        request.resource.data.get('status', '') != 'archived' ||
+        // Archiving operation (must set archive fields)
+        (request.resource.data.status == 'archived' && canArchive())
+      );
+
+      // Delete restrictions (archive-first system):
+      // - Can't delete archived projects
+      // - Only admins can delete
+      // - Should archive instead of delete (best practice)
+      allow delete: if isAdmin() && !isArchived();
+    }
+
+    // ============================================================================
+    // ROLES COLLECTION
+    // ============================================================================
+    match /roles/{roleId} {
+      // Public read access (for browsing casting calls, including archived roles)
+      allow read: if true;
+
+      // Only admins can create roles
+      allow create: if isAdmin();
+
+      // Only admins can update roles
+      allow update: if isAdmin();
+
+      // Delete restrictions (archive-first system):
+      // - Can't delete archived roles (archivedWithProject: true)
+      // - Only admins can delete
+      // - Should archive with project instead of delete
+      allow delete: if isAdmin() && !isArchived();
+    }
+
+    // ============================================================================
+    // PASSWORD RESET TOKENS COLLECTION
+    // ============================================================================
+    match /passwordResetTokens/{tokenId} {
+      // Only allow reading/writing tokens through server-side functions
+      // No client-side access
+      allow read, write: if false;
+    }
+  }
+}

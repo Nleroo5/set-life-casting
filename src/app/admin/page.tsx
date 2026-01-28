@@ -194,9 +194,129 @@ export default function AdminPage() {
               </div>
             </div>
           </Link>
+
+          {/* Export Skins Card */}
+          <Link href="/admin/skins">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all cursor-pointer group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-4 bg-accent/10 rounded-xl group-hover:bg-accent/20 transition-colors">
+                  <svg
+                    className="w-8 h-8 text-accent"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h2
+                  className="text-2xl font-bold text-secondary"
+                  style={{ fontFamily: "var(--font-galindo)" }}
+                >
+                  Export Skins
+                </h2>
+              </div>
+              <p
+                className="text-secondary-light mb-4"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Generate formatted skins for production with selected talent
+              </p>
+              <div className="flex items-center text-accent font-semibold group-hover:translate-x-2 transition-transform">
+                Export Skins →
+              </div>
+            </div>
+          </Link>
+
+          {/* Archive Card */}
+          <Link href="/admin/archive">
+            <div className="bg-linear-to-br from-white to-gray-50/30 rounded-2xl p-8 border-2 border-gray-300 shadow-[0_0_30px_rgba(100,100,100,0.15)] hover:shadow-[0_0_50px_rgba(100,100,100,0.3)] hover:border-gray-400 transition-all cursor-pointer group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-4 bg-gray-100 rounded-xl group-hover:bg-gray-200 transition-colors">
+                  <svg
+                    className="w-8 h-8 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                    />
+                  </svg>
+                </div>
+                <h2
+                  className="text-2xl font-bold text-secondary"
+                  style={{ fontFamily: "var(--font-galindo)" }}
+                >
+                  Archive
+                </h2>
+              </div>
+              <p
+                className="text-secondary-light mb-4"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                View completed projects and historical casting data
+              </p>
+              <div className="flex items-center text-gray-600 font-semibold group-hover:translate-x-2 transition-transform">
+                View Archive →
+              </div>
+            </div>
+          </Link>
+
+          {/* Data Repair Tool Card */}
+          <Link href="/admin/repair-data">
+            <div className="bg-linear-to-br from-white to-red-50/30 rounded-2xl p-8 border-2 border-red-300 shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.3)] hover:border-red-400 transition-all cursor-pointer group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-4 bg-red-100 rounded-xl group-hover:bg-red-200 transition-colors">
+                  <svg
+                    className="w-8 h-8 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <h2
+                  className="text-2xl font-bold text-secondary"
+                  style={{ fontFamily: "var(--font-galindo)" }}
+                >
+                  Data Repair
+                </h2>
+              </div>
+              <p
+                className="text-secondary-light mb-4"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                Fix orphaned bookings and submissions after role changes
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:translate-x-2 transition-transform">
+                Repair Data →
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* Quick Stats (Optional - can add later) */}
+        {/* Quick Actions */}
         <div className="mt-8 bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent/30 shadow-[0_0_20px_rgba(95,101,196,0.1)]">
           <h3
             className="text-lg font-bold text-secondary mb-4"
@@ -204,7 +324,7 @@ export default function AdminPage() {
           >
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             <Link
               href="/admin/casting?action=new-project"
               className="p-4 bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors text-center"
@@ -227,6 +347,22 @@ export default function AdminPage() {
             >
               <p className="text-accent font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
                 View Pending
+              </p>
+            </Link>
+            <Link
+              href="/admin/skins"
+              className="p-4 bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors text-center"
+            >
+              <p className="text-accent font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                Export Skins
+              </p>
+            </Link>
+            <Link
+              href="/admin/repair-data"
+              className="p-4 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors text-center"
+            >
+              <p className="text-red-600 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                🔧 Repair Data
               </p>
             </Link>
           </div>

@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { signInWithEmail, resetPassword } from "@/lib/firebase/auth";
+import { signInWithEmail } from "@/lib/firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
@@ -21,7 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -41,9 +41,15 @@ function LoginForm() {
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      router.push(redirectTo);
+      // Redirect admins directly to admin dashboard
+      // Regular users go to their intended destination
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push(redirectTo);
+      }
     }
-  }, [authLoading, user, redirectTo, router]);
+  }, [authLoading, user, isAdmin, redirectTo, router]);
 
   const onSubmit = async (data: LoginFormData) => {
     setError("");
@@ -51,7 +57,8 @@ function LoginForm() {
 
     try {
       await signInWithEmail(data.email, data.password);
-      router.push(redirectTo);
+      // Don't redirect here - let the useEffect handle it
+      // This prevents race conditions with the isAdmin flag
     } catch (err: any) {
       console.error("Login error:", err);
       if (err.code === "auth/invalid-credential") {
@@ -63,7 +70,6 @@ function LoginForm() {
       } else {
         setError("Failed to sign in. Please try again.");
       }
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -74,18 +80,25 @@ function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await resetPassword(resetEmail);
+      const response = await fetch("/api/auth/request-reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send reset email");
+      }
+
       setResetSuccess(true);
       setResetEmail("");
     } catch (err: any) {
       console.error("Password reset error:", err);
-      if (err.code === "auth/user-not-found") {
-        setError("No account found with this email");
-      } else if (err.code === "auth/invalid-email") {
-        setError("Invalid email address");
-      } else {
-        setError("Failed to send reset email. Please try again.");
-      }
+      setError(err.message || "Failed to send reset email. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
