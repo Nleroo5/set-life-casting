@@ -7,7 +7,10 @@
     "dev:webpack": "NEXT_DISABLE_TURBOPACK=1 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:profiles": "tsx scripts/migrate-profiles-physical-field.ts",
+    "migrate:bookings": "tsx scripts/migrate-bookings-physical-field.ts",
+    "migrate:all": "npm run migrate:profiles && npm run migrate:bookings"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -15,17 +18,24 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-toast": "^1.2.15",
+    "@react-email/components": "^1.0.6",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.1",
+    "exceljs": "^4.4.0",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "nanoid": "^5.1.6",
-    "next": "16.0.2",
+    "next": "^16.1.6",
     "react": "19.2.0",
     "react-datepicker": "^9.0.0",
     "react-dom": "19.2.0",
     "react-dropzone": "^14.3.8",
+    "react-email": "^5.2.5",
     "react-hook-form": "^7.66.0",
+    "resend": "^6.9.1",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.2.0"
   },
@@ -36,8 +46,10 @@
     "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.0.2",
+    "eslint-config-next": "^16.1.6",
+    "firebase-admin": "^13.6.0",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
