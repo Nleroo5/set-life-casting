@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: "Set Life Casting <onboarding@resend.dev>", // Update this when domain is verified
+      from: "Set Life Casting <noreply@setlifecasting.com>",
+      replyTo: "SetLifeCasting@gmail.com",
       to: [email],
       subject: "Reset Your Password - Set Life Casting",
       react: PasswordResetEmail({
