@@ -96,15 +96,48 @@ export default function CreateProfilePage() {
         // Auto-save progress to Firebase
         if (user) {
           try {
+            // Build update object with step data
+            const updateData: any = {
+              userId: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              [stepKey]: stepData,
+              updatedAt: new Date(),
+            };
+
+            // ✅ Also update physical field if appearance, sizes, or details changed
+            if (stepKey === "appearance" || stepKey === "sizes" || stepKey === "details") {
+              const physical = {
+                // From appearance
+                gender: (stepKey === "appearance" ? stepData?.gender : updatedFormData.appearance?.gender) || null,
+                ethnicity: (stepKey === "appearance" ? stepData?.ethnicity : updatedFormData.appearance?.ethnicity) || null,
+                height: (stepKey === "appearance" ? stepData?.height : updatedFormData.appearance?.height) || null,
+                weight: (stepKey === "appearance" ? stepData?.weight : updatedFormData.appearance?.weight) || null,
+                hairColor: (stepKey === "appearance" ? stepData?.hairColor : updatedFormData.appearance?.hairColor) || null,
+                hairLength: (stepKey === "appearance" ? stepData?.hairLength : updatedFormData.appearance?.hairLength) || null,
+                eyeColor: (stepKey === "appearance" ? stepData?.eyeColor : updatedFormData.appearance?.eyeColor) || null,
+                dateOfBirth: (stepKey === "appearance" ? stepData?.dateOfBirth : updatedFormData.appearance?.dateOfBirth) || null,
+                // From sizes
+                shirtSize: (stepKey === "sizes" ? stepData?.shirtSize : updatedFormData.sizes?.shirtSize) || null,
+                pantsWaist: (stepKey === "sizes" ? stepData?.pantsWaist : updatedFormData.sizes?.pantsWaist) || null,
+                pantsInseam: (stepKey === "sizes" ? stepData?.pantsInseam : updatedFormData.sizes?.pantsInseam) || null,
+                dressSize: (stepKey === "sizes" ? stepData?.dressSize : updatedFormData.sizes?.dressSize) || null,
+                suitSize: (stepKey === "sizes" ? stepData?.suitSize : updatedFormData.sizes?.suitSize) || null,
+                shoeSize: (stepKey === "sizes" ? stepData?.shoeSize : updatedFormData.sizes?.shoeSize) || null,
+                shoeSizeGender: (stepKey === "sizes" ? stepData?.shoeSizeGender : updatedFormData.sizes?.shoeSizeGender) || null,
+                // From details
+                visibleTattoos: (stepKey === "details" ? stepData?.visibleTattoos : updatedFormData.details?.visibleTattoos) || false,
+                tattoosDescription: (stepKey === "details" ? stepData?.tattoosDescription : updatedFormData.details?.tattoosDescription) || null,
+                piercings: (stepKey === "details" ? stepData?.piercings : updatedFormData.details?.piercings) || false,
+                piercingsDescription: (stepKey === "details" ? stepData?.piercingsDescription : updatedFormData.details?.piercingsDescription) || null,
+                facialHair: (stepKey === "details" ? stepData?.facialHair : updatedFormData.details?.facialHair) || null,
+              };
+              updateData.physical = physical;
+            }
+
             await setDoc(
               doc(db, "profiles", user.uid),
-              {
-                userId: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                [stepKey]: stepData,
-                updatedAt: new Date(),
-              },
+              updateData,
               { merge: true }
             );
           } catch (error) {
@@ -164,25 +197,58 @@ export default function CreateProfilePage() {
     console.log("Submitting profile with photos:", finalPhotos);
 
     try {
-      // Create/update user profile
+      // ✅ CRITICAL: Create consolidated "physical" field for easy searching
+      // This combines all searchable physical attributes into one place
+      const physical = {
+        // From appearance
+        gender: formData.appearance?.gender || null,
+        ethnicity: formData.appearance?.ethnicity || null,
+        height: formData.appearance?.height || null,
+        weight: formData.appearance?.weight || null,
+        hairColor: formData.appearance?.hairColor || null,
+        hairLength: formData.appearance?.hairLength || null,
+        eyeColor: formData.appearance?.eyeColor || null,
+        dateOfBirth: formData.appearance?.dateOfBirth || null,
+        // From sizes
+        shirtSize: formData.sizes?.shirtSize || null,
+        pantsWaist: formData.sizes?.pantsWaist || null,
+        pantsInseam: formData.sizes?.pantsInseam || null,
+        dressSize: formData.sizes?.dressSize || null,
+        suitSize: formData.sizes?.suitSize || null,
+        shoeSize: formData.sizes?.shoeSize || null,
+        shoeSizeGender: formData.sizes?.shoeSizeGender || null,
+        // From details
+        visibleTattoos: formData.details?.visibleTattoos || false,
+        tattoosDescription: formData.details?.tattoosDescription || null,
+        piercings: formData.details?.piercings || false,
+        piercingsDescription: formData.details?.piercingsDescription || null,
+        facialHair: formData.details?.facialHair || null,
+      };
+
+      console.log("✅ Consolidated physical attributes:", physical);
+
+      // Create/update user profile with ALL data structures
       await setDoc(
         doc(db, "profiles", user.uid),
         {
           userId: user.uid,
           email: user.email,
           displayName: user.displayName,
+          // Keep original structure for form editing
           basicInfo: formData.basicInfo,
           appearance: formData.appearance,
           sizes: formData.sizes,
           details: formData.details,
           photos: finalPhotos,
+          // ✅ NEW: Add consolidated "physical" field for searching & skins export
+          physical: physical,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
         { merge: true }
       );
 
-      console.log("Profile successfully saved to Firebase");
+      console.log("✅ Profile successfully saved to Firebase with searchable physical data");
 
       // Redirect to dashboard
       router.push("/dashboard");

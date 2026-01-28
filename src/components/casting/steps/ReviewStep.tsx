@@ -23,6 +23,7 @@ interface ReviewStepProps {
   photos: PhotosFormData;
   onPrevious: () => void;
   onSubmit: () => Promise<void>;
+  isExistingProfile?: boolean;
 }
 
 export default function ReviewStep({
@@ -33,6 +34,7 @@ export default function ReviewStep({
   photos,
   onPrevious,
   onSubmit,
+  isExistingProfile = false,
 }: ReviewStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,6 +77,40 @@ export default function ReviewStep({
           Please review all information before submitting
         </p>
       </div>
+
+      {isExistingProfile && (
+        <div className="mb-6 p-4 bg-linear-to-r from-green-50 to-blue-50 border-2 border-green-500/30 rounded-xl">
+          <div className="flex items-start gap-3">
+            <svg
+              className="w-6 h-6 text-green-600 shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div className="flex-1">
+              <h3
+                className="text-lg font-semibold text-secondary mb-1"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Using Your Existing Profile
+              </h3>
+              <p
+                className="text-sm text-secondary-light"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                We've loaded your saved profile information. Review it below and click "Submit Application" to apply for this role.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Basic Info */}

@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = userData?.role === "admin";
 
   const logout = async () => {
+    if (!auth) throw new Error("Firebase Auth not initialized");
     try {
       await signOut(auth);
     } catch (error) {

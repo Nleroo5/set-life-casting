@@ -99,6 +99,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
   const uploadToStorage = async (file: File, slotId: string, retries = 3): Promise<string> => {
     if (!user) throw new Error("User not authenticated");
+    if (!storage) throw new Error("Firebase Storage not initialized");
 
     const compressedFile = await compressImage(file);
     const timestamp = Date.now();
