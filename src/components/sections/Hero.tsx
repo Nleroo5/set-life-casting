@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
@@ -45,16 +45,37 @@ function AnimatedCounter({
 }
 
 export default function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [shouldAutoplay, setShouldAutoplay] = useState(true);
+
+  useEffect(() => {
+    // Detect mobile device and slow connection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const isSlowConnection = connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g' || connection?.effectiveType === '3g';
+    const isSaveDataEnabled = connection?.saveData;
+
+    // Don't autoplay on mobile or slow connections to save data
+    if (isMobile || isSlowConnection || isSaveDataEnabled) {
+      setShouldAutoplay(false);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+    }
+  }, []);
+
   return (
     <section className="relative min-h-[600px] md:min-h-[800px] lg:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Video */}
       <div className="absolute inset-0 w-full h-full">
         <video
-          autoPlay
+          ref={videoRef}
+          autoPlay={shouldAutoplay}
           loop
           muted
           playsInline
-          preload="auto"
+          preload={shouldAutoplay ? "auto" : "metadata"}
+          poster="/images/hero-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/videos/atlanta-casting-video.mp4" type="video/mp4" />

@@ -2,14 +2,15 @@ import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
+import { env } from "@/lib/env";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Check if we're in a browser environment and have valid config
@@ -19,16 +20,18 @@ const hasValidConfig = firebaseConfig.apiKey && firebaseConfig.projectId;
 // Initialize Firebase only if in browser with valid config
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
-let db: Firestore | null = null;
+let dbInstance: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 
 if (isBrowser && hasValidConfig) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
-  db = getFirestore(app);
+  dbInstance = getFirestore(app);
   storage = getStorage(app);
 }
 
-// Export with fallback for build time
-export { auth, db, storage };
+// Export with type assertion for client components
+// In client components, db will always be initialized
+export { auth, storage };
+export const db = dbInstance as Firestore;
 export default app;

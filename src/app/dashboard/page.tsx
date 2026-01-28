@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
+import Image from "next/image";
+import { collection, query, where, getDocs, orderBy, doc, getDoc, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { signOut } from "@/lib/firebase/auth";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
+import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
 
 interface Submission {
   id: string;
@@ -43,6 +45,7 @@ export default function DashboardPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [pastBookings, setPastBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
 
@@ -54,6 +57,7 @@ export default function DashboardPage() {
       router.push("/admin");
     } else if (user && !isAdmin && !authLoading && !hasFetched) {
       fetchUserData();
+      fetchPastBookings();
     }
   }, [authLoading, user, isAdmin, hasFetched]);
 
@@ -73,13 +77,16 @@ export default function DashboardPage() {
       const submissionsData: Submission[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        submissionsData.push({
-          id: doc.id,
-          roleName: data.roleName,
-          projectTitle: data.projectTitle,
-          status: data.status,
-          submittedAt: data.submittedAt.toDate(),
-        });
+        // Only show submissions for active projects (not archived)
+        if (!data.archivedWithProject) {
+          submissionsData.push({
+            id: doc.id,
+            roleName: data.roleName,
+            projectTitle: data.projectTitle,
+            status: data.status,
+            submittedAt: data.submittedAt.toDate(),
+          });
+        }
       });
       setSubmissions(submissionsData);
 
@@ -100,6 +107,38 @@ export default function DashboardPage() {
     }
   }
 
+  async function fetchPastBookings() {
+    if (!user) return;
+
+    try {
+      const bookingsRef = collection(db, "bookings");
+      const q = query(
+        bookingsRef,
+        where("userId", "==", user.uid),
+        where("archivedWithProject", "==", true),
+        orderBy("updatedAt", "desc"),
+        limit(20)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const bookings: any[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        bookings.push({
+          id: doc.id,
+          roleName: data.roleName,
+          projectTitle: data.projectTitle,
+          updatedAt: data.updatedAt?.toDate(),
+        });
+      });
+
+      setPastBookings(bookings);
+    } catch (error) {
+      console.error("Error fetching past bookings:", error);
+    }
+  }
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -113,27 +152,17 @@ export default function DashboardPage() {
     switch (status) {
       case "selected":
         return "success";
-      case "reviewed":
-        return "warning";
-      case "rejected":
-        return "danger";
       default:
-        return "default";
+        return "default"; // Show all non-selected as default (pending style)
     }
   };
 
   const getStatusLabel = (status: string): string => {
     switch (status) {
-      case "pending":
-        return "Pending Review";
-      case "reviewed":
-        return "Under Review";
       case "selected":
         return "Selected";
-      case "rejected":
-        return "Not Selected";
       default:
-        return status;
+        return "Pending Review"; // Show all non-selected as pending
     }
   };
 
@@ -184,6 +213,9 @@ export default function DashboardPage() {
           </Button>
         </div>
 
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Summary Card */}
           <div className="lg:col-span-1">
@@ -211,10 +243,13 @@ export default function DashboardPage() {
                       return (
                         <div className="flex justify-center mb-6">
                           <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-accent shadow-lg">
-                            <img
+                            <Image
                               src={photoUrl}
                               alt="Headshot"
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="160px"
+                              className="object-cover"
+                              priority
                             />
                           </div>
                         </div>
@@ -373,6 +408,60 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Past Work Section */}
+        <div className="mt-6">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <h2
+              className="text-xl font-bold text-secondary mb-6"
+              style={{ fontFamily: "var(--font-galindo)" }}
+            >
+              Past Work
+            </h2>
+
+            {pastBookings.length === 0 ? (
+              <div className="text-center py-8">
+                <p
+                  className="text-secondary-light"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  No past work yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pastBookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="bg-white border-2 border-accent/20 rounded-xl p-4"
+                  >
+                    <h3
+                      className="text-lg font-semibold text-secondary mb-1"
+                      style={{ fontFamily: "var(--font-galindo)" }}
+                    >
+                      {booking.roleName}
+                    </h3>
+                    <p
+                      className="text-base text-secondary-light mb-1"
+                      style={{ fontFamily: "var(--font-outfit)" }}
+                    >
+                      {booking.projectTitle}
+                    </p>
+                    <p
+                      className="text-sm text-secondary-light"
+                      style={{ fontFamily: "var(--font-outfit)" }}
+                    >
+                      {booking.updatedAt?.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short"
+                      })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

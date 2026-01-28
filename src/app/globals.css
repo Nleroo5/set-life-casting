@@ -493,3 +493,27 @@ html {
   background-color: var(--accent);
   color: white;
 }
+
+/* Accessibility: Reduced Motion Support (WCAG 2.1 / 3.0 Compliance) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable specific animations that could cause discomfort */
+  .animate-word,
+  .glow-text,
+  .heading-shimmer {
+    animation: none !important;
+  }
+
+  /* Keep transform states but remove animation */
+  html {
+    scroll-behavior: auto;
+  }
+}

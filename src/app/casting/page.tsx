@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Project {
   id: string;
@@ -27,6 +28,8 @@ interface Role {
   date: string;
   location: string;
   bookingStatus: "booking" | "booked";
+  additionalNotes?: string;
+  referenceImageUrl?: string;
 }
 
 interface RoleWithProject extends Role {
@@ -34,10 +37,12 @@ interface RoleWithProject extends Role {
 }
 
 export default function CastingPage() {
+  const { isAdmin } = useAuth();
   const [roles, setRoles] = useState<RoleWithProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRoles();
@@ -84,26 +89,25 @@ export default function CastingPage() {
 
   // Filter roles
   const filteredRoles = roles.filter((role) => {
-    const typeMatch =
-      typeFilter === "all" || role.project.type === typeFilter;
     const statusMatch =
       statusFilter === "all" || role.bookingStatus === statusFilter;
-    return typeMatch && statusMatch;
+    return statusMatch;
   });
 
-  const projectTypeOptions = [
-    { value: "all", label: "All Types" },
-    { value: "film", label: "Film" },
-    { value: "tv", label: "TV" },
-    { value: "commercial", label: "Commercial" },
-    { value: "music-video", label: "Music Video" },
-    { value: "event", label: "Event" },
-  ];
+  const openImageModal = (imageUrl: string) => {
+    setCurrentImage(imageUrl);
+    setImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setCurrentImage(null);
+  };
 
   const bookingStatusOptions = [
     { value: "all", label: "All Status" },
-    { value: "booking", label: "Booking" },
-    { value: "booked", label: "Booked" },
+    { value: "booking", label: "Accepting Submissions" },
+    { value: "booked", label: "Closed" },
   ];
 
   return (
@@ -144,13 +148,7 @@ export default function CastingPage() {
         <section className="py-12 md:py-16 lg:py-20 xl:py-24 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Filters */}
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
-                label="Project Type"
-                options={projectTypeOptions}
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              />
+            <div className="mb-8 max-w-md">
               <Select
                 label="Booking Status"
                 options={bookingStatusOptions}
@@ -232,8 +230,8 @@ export default function CastingPage() {
                           }
                         >
                           {role.bookingStatus === "booking"
-                            ? "Booking"
-                            : "Booked"}
+                            ? "Accepting Submissions"
+                            : "Closed"}
                         </Badge>
                       </div>
 
@@ -308,21 +306,59 @@ export default function CastingPage() {
                           </p>
                         </div>
                       )}
+
+                      {role.additionalNotes && (
+                        <div className="bg-blue-50/50 rounded-lg p-3 mb-4">
+                          <p
+                            className="text-sm font-medium text-secondary-light"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
+                            <span className="font-bold text-accent">
+                              Additional Notes:
+                            </span>{" "}
+                            {role.additionalNotes}
+                          </p>
+                        </div>
+                      )}
+
+                      {role.referenceImageUrl && (
+                        <div className="mb-4">
+                          <button
+                            onClick={() => openImageModal(role.referenceImageUrl!)}
+                            className="text-sm text-accent hover:text-purple-600 underline transition-colors"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
+                            View Example
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Submit Button */}
-                    <Link href={`/casting/submit/${role.id}`}>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        className="w-full"
-                        disabled={role.bookingStatus === "booked"}
-                      >
-                        {role.bookingStatus === "booking"
-                          ? "Submit for This Role"
-                          : "Role Filled"}
-                      </Button>
-                    </Link>
+                    {isAdmin ? (
+                      <Link href="/admin/casting">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className="w-full"
+                        >
+                          Manage in Admin Panel
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href={`/casting/submit/${role.id}`}>
+                        <Button
+                          variant="primary"
+                          size="lg"
+                          className="w-full"
+                          disabled={role.bookingStatus === "booked"}
+                        >
+                          {role.bookingStatus === "booking"
+                            ? "Submit for This Role"
+                            : "Submissions Closed"}
+                        </Button>
+                      </Link>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -330,6 +366,43 @@ export default function CastingPage() {
           </div>
         </section>
       </div>
+
+      {/* Image Modal - Full Screen */}
+      {imageModalOpen && currentImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+          onClick={closeImageModal}
+        >
+          {/* Close Button */}
+          <button
+            onClick={closeImageModal}
+            className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg transition-colors"
+            aria-label="Close"
+          >
+            <svg
+              className="w-6 h-6 text-secondary"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          {/* Full Screen Image */}
+          <img
+            src={currentImage}
+            alt="Reference example"
+            className="w-full h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

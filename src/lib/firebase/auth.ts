@@ -4,6 +4,7 @@ import {
   signInAnonymously,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   User,
   updateProfile,
 } from "firebase/auth";
@@ -47,7 +48,11 @@ export async function signUpWithEmail(
     role: "talent",
     isGuest: false,
     createdAt: new Date(),
+    emailVerified: false,
   });
+
+  // Send email verification
+  await sendEmailVerification(user);
 
   return user;
 }
@@ -141,4 +146,19 @@ export async function resetPassword(email: string): Promise<void> {
   }
 
   await sendPasswordResetEmail(auth, email);
+}
+
+/**
+ * Resend email verification
+ */
+export async function resendVerificationEmail(user: User): Promise<void> {
+  if (!auth) {
+    throw new Error("Firebase is not initialized");
+  }
+
+  if (user.emailVerified) {
+    throw new Error("Email is already verified");
+  }
+
+  await sendEmailVerification(user);
 }

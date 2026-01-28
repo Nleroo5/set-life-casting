@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, setDoc, collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
 import AccountStep from "@/components/casting/steps/AccountStep";
@@ -25,9 +25,13 @@ interface Role {
   id: string;
   projectId: string;
   name: string;
-  description: string;
   requirements: string;
-  bookingStatus: "now-booking" | "booked";
+  rate: string;
+  date: string;
+  location: string;
+  bookingStatus: "booking" | "booked";
+  additionalNotes?: string;
+  referenceImageUrl?: string;
 }
 
 interface Project {
@@ -51,13 +55,14 @@ const steps = [
 export default function SubmitPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const roleId = params.roleId as string;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [role, setRole] = useState<Role | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -72,12 +77,103 @@ export default function SubmitPage() {
     fetchRoleData();
   }, [roleId]);
 
-  // Skip Step 1 if user is already authenticated
+  // Redirect admins to admin page - they don't need to submit for roles
   useEffect(() => {
-    if (!authLoading && user && currentStep === 1) {
-      setCurrentStep(2);
+    if (!authLoading && isAdmin) {
+      router.push("/admin/casting");
     }
-  }, [authLoading, user, currentStep]);
+  }, [authLoading, isAdmin, router]);
+
+  // Require email verification before submitting
+  useEffect(() => {
+    if (!authLoading && user && !user.emailVerified && !isAdmin) {
+      alert("Please verify your email address before submitting for roles. Check your inbox for the verification link.");
+      router.push("/dashboard");
+    }
+  }, [authLoading, user, isAdmin, router]);
+
+  // Check for existing profile and either skip to review or skip Step 1
+  useEffect(() => {
+    if (!authLoading && user && !isAdmin) {
+      checkExistingProfile();
+      checkExistingSubmission();
+    }
+  }, [authLoading, user, isAdmin, roleId]);
+
+  async function checkExistingProfile() {
+    if (!user) return;
+
+    try {
+      const profileDoc = await getDoc(doc(db, "profiles", user.uid));
+
+      if (profileDoc.exists()) {
+        const profileData = profileDoc.data();
+
+        // Check if profile has all required data
+        const hasCompleteProfile =
+          profileData.basicInfo &&
+          profileData.appearance &&
+          profileData.sizes &&
+          profileData.details &&
+          profileData.photos;
+
+        if (hasCompleteProfile) {
+          // Load existing profile data
+          setFormData({
+            basicInfo: profileData.basicInfo || {},
+            appearance: profileData.appearance || {},
+            sizes: profileData.sizes || {},
+            details: profileData.details || {},
+            photos: profileData.photos || {},
+          });
+          setHasExistingProfile(true);
+          setCurrentStep(7); // Skip directly to review
+        } else {
+          // Incomplete profile, start from step 2
+          setFormData({
+            basicInfo: profileData.basicInfo || {},
+            appearance: profileData.appearance || {},
+            sizes: profileData.sizes || {},
+            details: profileData.details || {},
+            photos: profileData.photos || {},
+          });
+          setCurrentStep(2);
+        }
+      } else if (currentStep === 1) {
+        // No profile, skip to step 2 (basic info)
+        setCurrentStep(2);
+      }
+    } catch (error) {
+      console.error("Error checking profile:", error);
+      if (currentStep === 1) {
+        setCurrentStep(2);
+      }
+    }
+  }
+
+  async function checkExistingSubmission() {
+    if (!user || !roleId) return;
+
+    try {
+      const submissionsRef = collection(db, "submissions");
+      const q = query(
+        submissionsRef,
+        where("userId", "==", user.uid),
+        where("roleId", "==", roleId)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // User has already submitted for this role
+        alert("You have already submitted for this role. Redirecting to your dashboard.");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error checking existing submission:", error);
+      // Don't block the user if the check fails - better UX
+    }
+  }
 
   async function fetchRoleData() {
     try {
@@ -145,6 +241,22 @@ export default function SubmitPage() {
     }
 
     try {
+      // DUPLICATE PREVENTION: Check if user has already submitted for this role
+      const submissionsRef = collection(db, "submissions");
+      const existingSubmissionQuery = query(
+        submissionsRef,
+        where("userId", "==", user.uid),
+        where("roleId", "==", role.id)
+      );
+
+      const existingSubmissions = await getDocs(existingSubmissionQuery);
+
+      if (!existingSubmissions.empty) {
+        alert("You have already submitted for this role.");
+        router.push("/dashboard");
+        return;
+      }
+
       // Create/update user profile
       await setDoc(
         doc(db, "profiles", user.uid),
@@ -202,6 +314,11 @@ export default function SubmitPage() {
         </div>
       </div>
     );
+  }
+
+  // Admins will be redirected, show nothing while redirecting
+  if (isAdmin) {
+    return null;
   }
 
   if (!role || !project) {
@@ -287,6 +404,7 @@ export default function SubmitPage() {
               photos={formData.photos as PhotosFormData}
               onPrevious={handlePrevious}
               onSubmit={handleFinalSubmit}
+              isExistingProfile={hasExistingProfile}
             />
           )}
         </div>
