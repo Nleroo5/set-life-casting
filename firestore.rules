@@ -44,7 +44,8 @@ service cloud.firestore {
     // Check if document is archived
     function isArchived() {
       return resource.data.get('status', '') == 'archived' ||
-             resource.data.get('archivedWithProject', false) == true;
+             resource.data.get('archivedWithProject', false) == true ||
+             resource.data.get('archivedIndividually', false) == true;
     }
 
     // Validate archive operation (only admins can archive)
@@ -119,7 +120,7 @@ service cloud.firestore {
       // Admins can read all, users can read their own submissions (including archived)
       allow read: if isAdmin() || isOwner(resource.data.userId);
 
-      // Authenticated users can create submissions
+      // Authenticated users can create submissions for non-archived roles
       allow create: if isSignedIn() &&
                        request.resource.data.userId == request.auth.uid;
 
@@ -127,7 +128,7 @@ service cloud.firestore {
       allow update: if isAdmin();
 
       // Delete restrictions (archive-first system):
-      // - Can't delete archived submissions (status: "archived" or archivedWithProject: true)
+      // - Can't delete archived submissions (status: "archived", archivedWithProject, or archivedIndividually)
       // - Only admins can delete
       // - Should archive instead of delete
       allow delete: if isAdmin() && !isArchived();
@@ -163,19 +164,23 @@ service cloud.firestore {
     // ROLES COLLECTION
     // ============================================================================
     match /roles/{roleId} {
-      // Public read access (for browsing casting calls, including archived roles)
-      allow read: if true;
+      // Talent can only see non-archived roles, admins can see all
+      allow read: if isAdmin() || (
+        resource.data.get('archivedWithProject', false) == false &&
+        resource.data.get('archivedIndividually', false) == false
+      );
 
       // Only admins can create roles
       allow create: if isAdmin();
 
       // Only admins can update roles
+      // Allow individual archive operations (setting archivedIndividually, archivedAt, archivedBy, archiveReason)
       allow update: if isAdmin();
 
       // Delete restrictions (archive-first system):
-      // - Can't delete archived roles (archivedWithProject: true)
+      // - Can't delete archived roles (archivedWithProject or archivedIndividually)
       // - Only admins can delete
-      // - Should archive with project instead of delete
+      // - Should archive instead of delete
       allow delete: if isAdmin() && !isArchived();
     }
 

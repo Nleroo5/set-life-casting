@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import { collection, query, where, getDocs, writeBatch, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import Link from "next/link";
+import { restoreRole } from "@/lib/firebase/roles";
 
 interface ArchivedProject {
   id: string;
@@ -24,12 +25,30 @@ interface ArchivedProject {
   submissionCount: number;
 }
 
+interface ArchivedRole {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  projectStatus: "booking" | "booked" | "archived";
+  name: string;
+  requirements: string;
+  rate: string;
+  date: string;
+  location: string;
+  archivedAt?: Date;
+  archivedBy?: string;
+  archiveReason?: string;
+  submissionCount: number;
+}
+
 export default function ArchivePage() {
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [archivedProjects, setArchivedProjects] = useState<ArchivedProject[]>([]);
+  const [archivedRoles, setArchivedRoles] = useState<ArchivedRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
+  const [restoringRole, setRestoringRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -96,9 +115,60 @@ export default function ArchivePage() {
       });
 
       setArchivedProjects(projects);
+
+      // Fetch individually archived roles
+      const rolesQuery = query(
+        collection(db, "roles"),
+        where("archivedIndividually", "==", true)
+      );
+      const rolesSnapshot = await getDocs(rolesQuery);
+
+      const roles = await Promise.all(
+        rolesSnapshot.docs.map(async (roleDoc) => {
+          const roleData = roleDoc.data();
+
+          // Get project info
+          const projectDoc = await getDocs(
+            query(collection(db, "projects"), where("__name__", "==", roleData.projectId))
+          );
+          const projectData = projectDoc.docs[0]?.data();
+
+          // Count submissions
+          const submissionsQuery = query(
+            collection(db, "submissions"),
+            where("roleId", "==", roleDoc.id)
+          );
+          const submissionsSnapshot = await getDocs(submissionsQuery);
+
+          return {
+            id: roleDoc.id,
+            projectId: roleData.projectId,
+            projectTitle: projectData?.title || "Unknown Project",
+            projectStatus: projectData?.status || "booking",
+            name: roleData.name,
+            requirements: roleData.requirements,
+            rate: roleData.rate,
+            date: roleData.date,
+            location: roleData.location,
+            archivedAt: roleData.archivedAt?.toDate?.() || roleData.archivedAt,
+            archivedBy: roleData.archivedBy,
+            archiveReason: roleData.archiveReason || "",
+            submissionCount: submissionsSnapshot.size,
+          } as ArchivedRole;
+        })
+      );
+
+      // Sort by archived date (newest first)
+      roles.sort((a, b) => {
+        const dateA = a.archivedAt instanceof Date ? a.archivedAt.getTime() : 0;
+        const dateB = b.archivedAt instanceof Date ? b.archivedAt.getTime() : 0;
+        return dateB - dateA;
+      });
+
+      setArchivedRoles(roles);
     } catch (error) {
-      console.error("Error fetching archived projects:", error);
-      alert("Failed to load archived projects");
+      console.error("Error fetching archived data:", error);
+      alert("Failed to load archived data");
     } finally {
       setLoading(false);
     }
@@ -198,6 +268,38 @@ export default function ArchivePage() {
     }
   };
 
+  const handleRestoreIndividualRole = async (role: ArchivedRole) => {
+    if (!confirm(
+      `Restore role "${role.name}"?\n\n` +
+      `This will make the role visible to talent again and restore ${role.submissionCount} submission(s).\n\n` +
+      `Project: ${role.projectTitle} (${role.projectStatus === "archived" ? "Archived" : "Active"})\n\n` +
+      `Continue?`
+    )) {
+      return;
+    }
+
+    try {
+      setRestoringRole(role.id);
+      console.log(`🔄 Restoring individually archived role: ${role.name}`);
+
+      await restoreRole(role.id);
+
+      console.log(`✅ Restored role: ${role.name}`);
+      alert(
+        `Role "${role.name}" restored successfully!\n\n` +
+        `• ${role.submissionCount} submissions restored\n\n` +
+        `The role is now visible to talent.`
+      );
+
+      await fetchArchivedProjects();
+    } catch (error: any) {
+      console.error("Error restoring role:", error);
+      alert(error.message || "Failed to restore role. Please try again.");
+    } finally {
+      setRestoringRole(null);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -227,139 +329,247 @@ export default function ArchivePage() {
             className="text-3xl md:text-4xl font-bold text-secondary mb-4"
             style={{ fontFamily: "var(--font-galindo)" }}
           >
-            📦 Archived{" "}
-            <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Projects
+            📦 Archive{" "}
+            <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Center
             </span>
           </h1>
           <p
             className="text-secondary-light max-w-2xl"
             style={{ fontFamily: "var(--font-outfit)" }}
           >
-            View completed projects and historical casting data. All booking records are preserved for compliance and future reference.
+            View archived projects and individually archived roles. All data is preserved for compliance and future reference.
           </p>
         </div>
 
-        {/* Archived Projects List */}
-        {archivedProjects.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📦</div>
-            <h2
-              className="text-2xl font-bold text-secondary mb-2"
-              style={{ fontFamily: "var(--font-galindo)" }}
-            >
-              No Archived Projects
-            </h2>
-            <p
-              className="text-secondary-light mb-6"
-              style={{ fontFamily: "var(--font-outfit)" }}
-            >
-              When you archive completed projects, they'll appear here.
-            </p>
-            <Link href="/admin/casting">
-              <Button variant="primary">Go to Casting Management</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {archivedProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-gradient-to-br from-white to-gray-50/30 rounded-xl p-6 border-2 border-gray-300 shadow-lg"
+        {/* Archived Projects Section */}
+        <div className="mb-12">
+          <h2
+            className="text-2xl font-bold text-secondary mb-6"
+            style={{ fontFamily: "var(--font-galindo)" }}
+          >
+            Archived Projects ({archivedProjects.length})
+          </h2>
+          {archivedProjects.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl border-2 border-gray-200">
+              <div className="text-5xl mb-4">📦</div>
+              <p
+                className="text-secondary-light mb-4"
+                style={{ fontFamily: "var(--font-outfit)" }}
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2
-                        className="text-2xl font-bold text-secondary"
-                        style={{ fontFamily: "var(--font-galindo)" }}
-                      >
-                        {project.title}
-                      </h2>
-                      <Badge variant="default">Archived</Badge>
-                      <Badge variant="purple">{project.type}</Badge>
-                    </div>
-                    <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                      Archived: {project.archivedAt instanceof Date ? project.archivedAt.toLocaleDateString() : "N/A"}
-                    </p>
-                    {project.completionNotes && (
-                      <p className="text-sm text-secondary mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
-                        Notes: {project.completionNotes}
+                No archived projects yet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {archivedProjects.map((project) => (
+                <div
+                  key={project.id}
+                  className="bg-linear-to-br from-white to-gray-50/30 rounded-xl p-6 border-2 border-gray-300 shadow-lg"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3
+                          className="text-2xl font-bold text-secondary"
+                          style={{ fontFamily: "var(--font-galindo)" }}
+                        >
+                          {project.title}
+                        </h3>
+                        <Badge variant="default">Archived</Badge>
+                        <Badge variant="purple">{project.type}</Badge>
+                      </div>
+                      <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Archived: {project.archivedAt instanceof Date ? project.archivedAt.toLocaleDateString() : "N/A"}
                       </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="primary"
-                    className="text-sm"
-                    onClick={() => handleRestoreProject(project.id)}
-                    disabled={restoring === project.id}
-                  >
-                    {restoring === project.id ? "Restoring..." : "🔄 Restore Project"}
-                  </Button>
-                </div>
-
-                {/* Project Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-accent" style={{ fontFamily: "var(--font-galindo)" }}>
-                      {project.roleCount}
-                    </p>
-                    <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                      Roles
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-galindo)" }}>
-                      {project.bookingCount}
-                    </p>
-                    <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                      Bookings
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600" style={{ fontFamily: "var(--font-galindo)" }}>
-                      {project.submissionCount}
-                    </p>
-                    <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                      Submissions
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                      <strong>Shoot Dates:</strong><br />
-                      {project.shootDateStart} to {project.shootDateEnd}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
-                  <Link href={`/admin/casting?project=${project.id}`}>
-                    <Button variant="outline" className="text-sm">
-                      View Details
+                      {project.completionNotes && (
+                        <p className="text-sm text-secondary mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                          Notes: {project.completionNotes}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="primary"
+                      className="text-sm"
+                      onClick={() => handleRestoreProject(project.id)}
+                      disabled={restoring === project.id}
+                    >
+                      {restoring === project.id ? "Restoring..." : "🔄 Restore Project"}
                     </Button>
-                  </Link>
+                  </div>
+
+                  {/* Project Stats */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-accent" style={{ fontFamily: "var(--font-galindo)" }}>
+                        {project.roleCount}
+                      </p>
+                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Roles
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-galindo)" }}>
+                        {project.bookingCount}
+                      </p>
+                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Bookings
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600" style={{ fontFamily: "var(--font-galindo)" }}>
+                        {project.submissionCount}
+                      </p>
+                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Submissions
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                        <strong>Shoot Dates:</strong><br />
+                        {project.shootDateStart} to {project.shootDateEnd}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
+                    <Link href={`/admin/casting?project=${project.id}`}>
+                      <Button variant="outline" className="text-sm">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Individually Archived Roles Section */}
+        <div className="mb-12">
+          <h2
+            className="text-2xl font-bold text-secondary mb-6"
+            style={{ fontFamily: "var(--font-galindo)" }}
+          >
+            Individually Archived Roles ({archivedRoles.length})
+          </h2>
+          {archivedRoles.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl border-2 border-gray-200">
+              <div className="text-5xl mb-4">🎬</div>
+              <p
+                className="text-secondary-light mb-4"
+                style={{ fontFamily: "var(--font-outfit)" }}
+              >
+                No individually archived roles yet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {archivedRoles.map((role) => (
+                <div
+                  key={role.id}
+                  className="bg-linear-to-br from-white to-blue-50/30 rounded-xl p-6 border-2 border-blue-200 shadow-md"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3
+                          className="text-xl font-bold text-secondary"
+                          style={{ fontFamily: "var(--font-galindo)" }}
+                        >
+                          {role.name}
+                        </h3>
+                        <Badge variant="default">Archived</Badge>
+                        {role.projectStatus === "archived" ? (
+                          <Badge variant="warning">Project Archived</Badge>
+                        ) : (
+                          <Badge variant="success">Project Active</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-secondary-light mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
+                        <strong>Project:</strong> {role.projectTitle}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                        <div>
+                          <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            <strong>Date:</strong> {role.date}
+                          </p>
+                          <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            <strong>Location:</strong> {role.location}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            <strong>Rate:</strong> {role.rate}
+                          </p>
+                          <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            <strong>Submissions:</strong> {role.submissionCount}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-secondary-light mb-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                        <strong>Requirements:</strong> {role.requirements}
+                      </p>
+                      {role.archiveReason && (
+                        <div className="mt-3 pt-3 border-t border-blue-200">
+                          <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            <strong>Archive Reason:</strong> {role.archiveReason}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-xs text-secondary-light mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                        Archived: {role.archivedAt instanceof Date ? role.archivedAt.toLocaleDateString() : "N/A"}
+                      </p>
+                    </div>
+                    <Button
+                      variant="primary"
+                      className="text-sm ml-4"
+                      onClick={() => handleRestoreIndividualRole(role)}
+                      disabled={restoringRole === role.id}
+                    >
+                      {restoringRole === role.id ? "Restoring..." : "🔄 Restore"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Info Box */}
-        {archivedProjects.length > 0 && (
-          <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+        {(archivedProjects.length > 0 || archivedRoles.length > 0) && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
             <h3
-              className="text-lg font-bold text-secondary mb-2"
+              className="text-lg font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
             >
-              ℹ️ About Archived Projects
+              ℹ️ About the Archive System
             </h3>
-            <ul className="text-sm text-secondary-light space-y-2" style={{ fontFamily: "var(--font-outfit)" }}>
-              <li>• Archived projects preserve all booking records for 7+ years (IRS compliance)</li>
-              <li>• All talent information, roles, and submissions remain accessible</li>
-              <li>• You can restore projects if they need to be reactivated</li>
-              <li>• Archived data helps with future casting by tracking talent performance history</li>
-            </ul>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-sm font-semibold text-secondary mb-2" style={{ fontFamily: "var(--font-galindo)" }}>
+                  Archived Projects:
+                </h4>
+                <ul className="text-sm text-secondary-light space-y-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <li>• Archives entire project with all roles and bookings</li>
+                  <li>• Preserves all data for 7+ years (IRS compliance)</li>
+                  <li>• Can be restored if project needs to be reactivated</li>
+                  <li>• Tracks talent performance history</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-secondary mb-2" style={{ fontFamily: "var(--font-galindo)" }}>
+                  Individual Archived Roles:
+                </h4>
+                <ul className="text-sm text-secondary-light space-y-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <li>• Archives single role without affecting project</li>
+                  <li>• Hides role from talent while keeping project active</li>
+                  <li>• Preserves all submissions for the role</li>
+                  <li>• Can be restored independently</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </div>

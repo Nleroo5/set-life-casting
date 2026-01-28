@@ -77,8 +77,8 @@ export default function DashboardPage() {
       const submissionsData: Submission[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        // Only show submissions for active projects (not archived)
-        if (!data.archivedWithProject) {
+        // Only show submissions for active roles (not archived with project or individually)
+        if (!data.archivedWithProject && !data.archivedIndividually) {
           submissionsData.push({
             id: doc.id,
             roleName: data.roleName,

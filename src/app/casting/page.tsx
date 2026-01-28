@@ -30,6 +30,8 @@ interface Role {
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
   referenceImageUrl?: string;
+  archivedWithProject?: boolean;
+  archivedIndividually?: boolean;
 }
 
 interface RoleWithProject extends Role {
@@ -71,7 +73,13 @@ export default function CastingPage() {
         const roleData = { id: doc.id, ...doc.data() } as Role;
         const project = projects[roleData.projectId];
 
-        if (project) {
+        // Only include roles that are:
+        // 1. From active projects (status === "booking")
+        // 2. Not archived with project (archivedWithProject !== true)
+        // 3. Not archived individually (archivedIndividually !== true)
+        if (project &&
+            !roleData.archivedWithProject &&
+            !roleData.archivedIndividually) {
           rolesData.push({
             ...roleData,
             project,

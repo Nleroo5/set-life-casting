@@ -26,6 +26,7 @@ import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import { getBookingsByProject, deleteBooking } from "@/lib/firebase/bookings";
 import type { Booking } from "@/types/booking";
+import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/firebase/roles";
 
 interface Project {
   id: string;
@@ -47,6 +48,11 @@ interface Role {
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
   referenceImageUrl?: string;
+  archivedWithProject?: boolean;
+  archivedIndividually?: boolean;
+  archivedAt?: Date;
+  archivedBy?: string;
+  archiveReason?: string;
 }
 
 interface RoleFormData {
@@ -73,6 +79,10 @@ export default function AdminCastingPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
+  const [archiveDialogRole, setArchiveDialogRole] = useState<Role | null>(null);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archivingRole, setArchivingRole] = useState(false);
+  const [showArchivedRoles, setShowArchivedRoles] = useState<{[projectId: string]: boolean}>({});
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -246,6 +256,69 @@ export default function AdminCastingPage() {
     }
   };
 
+  const handleArchiveRoleClick = (role: Role) => {
+    setArchiveDialogRole(role);
+    setArchiveReason("");
+  };
+
+  const handleArchiveRoleConfirm = async () => {
+    if (!archiveDialogRole || !user) return;
+
+    try {
+      setArchivingRole(true);
+
+      // Check for active bookings
+      const bookingCount = await getActiveBookingCount(archiveDialogRole.id);
+      if (bookingCount > 0) {
+        alert(
+          `Cannot archive role "${archiveDialogRole.name}".\n\n` +
+          `This role has ${bookingCount} active booking(s).\n\n` +
+          `Please complete bookings or archive the entire project instead.`
+        );
+        setArchiveDialogRole(null);
+        return;
+      }
+
+      await archiveRole(archiveDialogRole.id, user.uid, archiveReason);
+
+      alert(
+        `Role "${archiveDialogRole.name}" archived successfully!\n\n` +
+        `The role and its submissions are now hidden from talent.`
+      );
+
+      setArchiveDialogRole(null);
+      setArchiveReason("");
+      await fetchData();
+    } catch (error: any) {
+      console.error("Error archiving role:", error);
+      alert(error.message || "Failed to archive role. Please try again.");
+    } finally {
+      setArchivingRole(false);
+    }
+  };
+
+  const handleRestoreRole = async (roleId: string, roleName: string) => {
+    if (!confirm(`Restore role "${roleName}"?\n\nThis will make the role visible to talent again and restore all associated submissions.`)) {
+      return;
+    }
+
+    try {
+      await restoreRole(roleId);
+      alert(`Role "${roleName}" restored successfully!`);
+      await fetchData();
+    } catch (error: any) {
+      console.error("Error restoring role:", error);
+      alert(error.message || "Failed to restore role. Please try again.");
+    }
+  };
+
+  const toggleArchivedRoles = (projectId: string) => {
+    setShowArchivedRoles(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -381,14 +454,14 @@ export default function AdminCastingPage() {
                       </div>
                     </div>
 
-                    {/* Roles List */}
-                    {projectRoles.length > 0 && (
+                    {/* Active Roles List */}
+                    {projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).length > 0 && (
                       <div className="mt-4 pt-4 border-t border-accent/10">
                         <h4 className="text-sm font-semibold text-secondary mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Roles:
+                          Active Roles ({projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).length}):
                         </h4>
                         <div className="space-y-2">
-                          {projectRoles.map((role) => {
+                          {projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).map((role) => {
                             const roleBookings = bookings.filter((b) => b.roleId === role.id);
                             return (
                               <div
@@ -427,6 +500,15 @@ export default function AdminCastingPage() {
                                       </div>
                                     )}
                                   </div>
+                                  {project.status !== "archived" && (
+                                    <Button
+                                      variant="outline"
+                                      className="text-xs text-gray-600 hover:text-gray-800 ml-2"
+                                      onClick={() => handleArchiveRoleClick(role)}
+                                    >
+                                      Archive Role
+                                    </Button>
+                                  )}
                                 </div>
 
                                 {/* Booked Talent */}
@@ -462,6 +544,67 @@ export default function AdminCastingPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Archived Roles Section (Collapsible) */}
+                    {projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-accent/10">
+                        <button
+                          onClick={() => toggleArchivedRoles(project.id)}
+                          className="flex items-center gap-2 text-sm font-semibold text-secondary-light hover:text-secondary mb-3"
+                          style={{ fontFamily: "var(--font-outfit)" }}
+                        >
+                          <span>{showArchivedRoles[project.id] ? "▼" : "▶"}</span>
+                          <span>Archived Roles ({projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).length})</span>
+                        </button>
+                        {showArchivedRoles[project.id] && (
+                          <div className="space-y-2">
+                            {projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).map((role) => (
+                              <div
+                                key={role.id}
+                                className="bg-gray-50/50 rounded-lg p-3 border border-gray-200"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h5 className="font-semibold text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                        {role.name}
+                                      </h5>
+                                      <Badge variant="default">Archived</Badge>
+                                    </div>
+                                    <div className="flex gap-4 text-xs text-secondary-light mb-2">
+                                      <span>Date: {role.date}</span>
+                                      <span>•</span>
+                                      <span>Location: {role.location}</span>
+                                      <span>•</span>
+                                      <span>Rate: {role.rate}</span>
+                                    </div>
+                                    {role.archiveReason && (
+                                      <div className="mt-2 pt-2 border-t border-gray-200">
+                                        <p className="text-xs text-secondary-light">
+                                          <span className="font-semibold text-secondary">Archive Reason:</span> {role.archiveReason}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {role.archivedAt && (
+                                      <p className="text-xs text-secondary-light mt-1">
+                                        Archived: {role.archivedAt instanceof Date ? role.archivedAt.toLocaleDateString() : "N/A"}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    className="text-xs text-accent hover:text-accent-dark ml-2"
+                                    onClick={() => handleRestoreRole(role.id, role.name)}
+                                  >
+                                    Restore
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -484,6 +627,52 @@ export default function AdminCastingPage() {
               setSelectedProject(null);
             }}
           />
+        )}
+
+        {/* Archive Role Confirmation Dialog */}
+        {archiveDialogRole && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full">
+              <h3
+                className="text-xl font-bold text-secondary mb-4"
+                style={{ fontFamily: "var(--font-galindo)" }}
+              >
+                Archive Role: {archiveDialogRole.name}
+              </h3>
+              <p className="text-sm text-secondary-light mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
+                This will hide the role from talent and mark all submissions as archived.
+                The role can be restored later if needed.
+              </p>
+              <Textarea
+                label="Reason for Archiving (Optional)"
+                value={archiveReason}
+                onChange={(e) => setArchiveReason(e.target.value)}
+                rows={3}
+                placeholder="e.g., Role filled, No longer needed, Project delayed..."
+              />
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setArchiveDialogRole(null);
+                    setArchiveReason("");
+                  }}
+                  className="flex-1"
+                  disabled={archivingRole}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleArchiveRoleConfirm}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700"
+                  disabled={archivingRole}
+                >
+                  {archivingRole ? "Archiving..." : "Archive Role"}
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
