@@ -30,14 +30,14 @@ const steps = [
 ];
 
 // Helper function to clean data for Firestore (convert undefined to null)
-function cleanDataForFirestore<T extends Record<string, unknown>>(data: T): T {
-  const cleaned = { ...data };
+function cleanDataForFirestore<T extends Record<string, any>>(data: T): T {
+  const cleaned = { ...data } as any;
   Object.keys(cleaned).forEach((key) => {
     if (cleaned[key] === undefined) {
       cleaned[key] = null;
     }
   });
-  return cleaned;
+  return cleaned as T;
 }
 
 export default function CreateProfilePage() {
