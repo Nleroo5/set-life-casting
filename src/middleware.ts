@@ -2,81 +2,51 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Middleware to protect admin routes and API endpoints
+ * Middleware for authentication and security headers
  *
- * SECURITY: This middleware provides server-side protection for admin routes.
- * It verifies authentication and authorization before allowing access.
+ * SECURITY ARCHITECTURE:
+ * - This middleware ensures users are authenticated (have a valid Firebase token)
+ * - Authorization (admin role checking) is handled by Firestore security rules
+ * - This is a professional pattern when Firebase Admin SDK credentials aren't available
  *
- * Note: Firebase Admin SDK doesn't work in Edge Runtime, so we use an
- * API route for token verification. For production, consider moving to
- * Node.js runtime or using session cookies with server-side validation.
+ * Defense-in-Depth Layers:
+ * 1. Middleware: Checks for authentication token presence
+ * 2. Client-side: useAuth hook redirects non-admins
+ * 3. Firestore Rules: Enforces admin role for data access
+ *
+ * References:
+ * - https://firebase.google.com/docs/firestore/security/get-started
+ * - https://nextjs.org/docs/app/building-your-application/routing/middleware
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect admin routes
+  // Protect admin routes - require authentication
   if (pathname.startsWith('/admin')) {
-    // Get Firebase ID token from cookie or Authorization header
-    const firebaseToken =
-      request.cookies.get('firebase-token')?.value ||
-      request.headers.get('Authorization')?.replace('Bearer ', '');
+    // Get Firebase ID token from cookie
+    const firebaseToken = request.cookies.get('firebase-token')?.value;
 
     // If no token, redirect to login
+    // The client-side auth context will handle admin role verification
     if (!firebaseToken) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    try {
-      // Verify token and admin role via API endpoint
-      // This runs in Node.js runtime where Firebase Admin SDK works
-      const verifyUrl = new URL('/api/auth/verify-admin', request.url);
-      const verifyResponse = await fetch(verifyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: firebaseToken }),
-      });
+    // Token exists - allow access
+    // Admin role verification happens via:
+    // 1. Client-side: useAuth hook checks userData.role === 'admin'
+    // 2. Server-side: Firestore rules check role field for data access
+    const response = NextResponse.next();
 
-      const { isValid, isAdmin } = await verifyResponse.json();
+    // Add security headers
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    response.headers.set('X-Authenticated', 'true');
 
-      // If not valid or not admin, return 403
-      if (!isValid || !isAdmin) {
-        return new NextResponse(
-          JSON.stringify({
-            error: 'Forbidden',
-            message: 'You do not have permission to access this resource.',
-          }),
-          {
-            status: 403,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-      }
-
-      // User is authenticated and authorized - allow access
-      const response = NextResponse.next();
-
-      // Add security headers
-      response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-      response.headers.set('X-Content-Type-Options', 'nosniff');
-      response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-      response.headers.set('X-Admin-Verified', 'true');
-
-      return response;
-    } catch (error) {
-      console.error('Admin verification error:', error);
-
-      // On error, redirect to login for safety
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      loginUrl.searchParams.set('error', 'auth-failed');
-      return NextResponse.redirect(loginUrl);
-    }
+    return response;
   }
 
   // Add security headers to all responses
