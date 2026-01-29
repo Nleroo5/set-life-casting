@@ -20,7 +20,7 @@ const envSchema = z.object({
 
   // Site Configuration (required)
   NEXT_PUBLIC_SITE_URL: z.string().url("Site URL must be a valid URL"),
-  NEXT_PUBLIC_APP_URL: z.string().url("App URL must be a valid URL"),
+  NEXT_PUBLIC_APP_URL: z.string().url("App URL must be a valid URL").optional(),
   NEXT_PUBLIC_CONTACT_EMAIL: z.string().email("Contact email must be valid"),
 
   // Optional configurations

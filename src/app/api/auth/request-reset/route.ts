@@ -32,8 +32,9 @@ export async function POST(request: NextRequest) {
 
     // Send password reset email using Firebase's built-in function
     // This handles everything: email validation, template, security, etc.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL;
     await sendPasswordResetEmail(auth, email.toLowerCase(), {
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+      url: `${appUrl}/login`,
       handleCodeInApp: false,
     });
 
