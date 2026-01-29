@@ -27,25 +27,25 @@ import type { Booking } from "@/types/booking";
 import { logger } from "@/lib/logger";
 
 interface ProfileBasicInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  location: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  location?: string;
   city?: string;
   state?: string;
 }
 
 interface ProfileAppearance {
-  gender: string;
-  dateOfBirth: string;
-  ethnicity: string[];
-  height: string;
-  weight: number;
-  hairColor: string;
-  hairLength: string;
-  eyeColor: string;
+  gender?: string;
+  dateOfBirth?: string;
+  ethnicity?: string[];
+  height?: string;
+  weight?: number;
+  hairColor?: string;
+  hairLength?: string;
+  eyeColor?: string;
 }
 
 interface ProfileSizes {
@@ -76,11 +76,11 @@ interface ProfilePhotos {
 }
 
 interface ProfileData {
-  basicInfo: ProfileBasicInfo;
-  appearance: ProfileAppearance;
-  sizes: ProfileSizes;
-  details: ProfileDetails;
-  photos: ProfilePhotos;
+  basicInfo?: ProfileBasicInfo;
+  appearance?: ProfileAppearance;
+  sizes?: ProfileSizes;
+  details?: ProfileDetails;
+  photos?: ProfilePhotos;
 }
 
 interface Submission {
@@ -132,6 +132,7 @@ export default function AdminSubmissionsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [bookingInProgress, setBookingInProgress] = useState(false);
@@ -211,11 +212,48 @@ export default function AdminSubmissionsPage() {
     }
   }
 
-  // Filter submissions based on selected project and status
+  // Helper function to calculate age from date of birth
+  const calculateAge = (dateOfBirth: string | undefined): number | null => {
+    if (!dateOfBirth) return null;
+    try {
+      const birthDate = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    } catch {
+      return null;
+    }
+  };
+
+  // Filter submissions based on selected project, status, and search query
   const filteredSubmissions = submissions.filter((submission) => {
     const projectMatch = selectedProjectId === "all" || submission.projectId === selectedProjectId;
     const statusMatch = filterStatus === "all" || submission.status === filterStatus;
-    return projectMatch && statusMatch;
+
+    // Search filter: search by name, email, location
+    let searchMatch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const firstName = submission.profileData.basicInfo?.firstName?.toLowerCase() || '';
+      const lastName = submission.profileData.basicInfo?.lastName?.toLowerCase() || '';
+      const email = submission.profileData.basicInfo?.email?.toLowerCase() || '';
+      const city = submission.profileData.basicInfo?.city?.toLowerCase() || '';
+      const state = submission.profileData.basicInfo?.state?.toLowerCase() || '';
+      const location = `${city} ${state}`.trim();
+
+      searchMatch =
+        firstName.includes(query) ||
+        lastName.includes(query) ||
+        `${firstName} ${lastName}`.includes(query) ||
+        email.includes(query) ||
+        location.includes(query);
+    }
+
+    return projectMatch && statusMatch && searchMatch;
   });
 
   // Get projects that have submissions
@@ -341,11 +379,11 @@ export default function AdminSubmissionsPage() {
   const getStatusLabel = (status: string): string => {
     switch (status) {
       case "pending":
-        return "Pending";
+        return "To Review";
       case "reviewed":
         return "Reviewed";
       case "selected":
-        return "Booked";
+        return "Shortlisted";
       case "rejected":
         return "Rejected";
       default:
@@ -395,8 +433,34 @@ export default function AdminSubmissionsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Submissions List */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Filters */}
+            {/* Search and Filters */}
             <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent/20">
+              {/* Search Box */}
+              <div className="mb-4">
+                <label
+                  htmlFor="search"
+                  className="block text-sm font-medium text-secondary mb-2"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  Search
+                </label>
+                <input
+                  id="search"
+                  type="text"
+                  placeholder="Search by name, email, or location..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                />
+                {searchQuery && (
+                  <p className="mt-1 text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Showing {filteredSubmissions.length} of {submissions.length} submissions
+                  </p>
+                )}
+              </div>
+
+              {/* Project and Status Filters */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="Filter by Project"
@@ -418,7 +482,7 @@ export default function AdminSubmissionsPage() {
                     { value: "all", label: `All Status (${submissions.length})` },
                     {
                       value: "pending",
-                      label: `Pending (${submissions.filter((s) => s.status === "pending").length})`,
+                      label: `To Review (${submissions.filter((s) => s.status === "pending").length})`,
                     },
                     {
                       value: "reviewed",
@@ -426,7 +490,7 @@ export default function AdminSubmissionsPage() {
                     },
                     {
                       value: "selected",
-                      label: `Booked (${submissions.filter((s) => s.status === "selected").length})`,
+                      label: `Shortlisted (${submissions.filter((s) => s.status === "selected").length})`,
                     },
                     {
                       value: "rejected",
@@ -485,14 +549,37 @@ export default function AdminSubmissionsPage() {
                             {getStatusLabel(submission.status)}
                           </Badge>
                         </div>
-                        <p className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Role: <span className="text-secondary font-medium">{submission.roleName}</span>
+
+                        {/* Role and Project */}
+                        <p className="text-sm text-secondary font-medium mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                          {submission.roleName} • {submission.projectTitle}
                         </p>
-                        <p className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Project: {submission.projectTitle}
-                        </p>
-                        <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Submitted: {submission.submittedAt.toLocaleDateString()}
+
+                        {/* Key Casting Criteria */}
+                        <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                          {submission.profileData.appearance?.gender || 'N/A'}
+                          {(() => {
+                            const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
+                            return age !== null ? `, ${age}` : '';
+                          })()}
+                          {submission.profileData.appearance?.height ? ` • ${submission.profileData.appearance.height}` : ''}
+                          {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
+                            <> • {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}</>
+                          )}
+                        </div>
+
+                        {/* Ethnicity and Hair */}
+                        {(submission.profileData.appearance?.ethnicity?.length || submission.profileData.appearance?.hairColor) && (
+                          <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                            {submission.profileData.appearance?.ethnicity?.join(", ")}
+                            {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance?.hairColor ? ' • ' : ''}
+                            {submission.profileData.appearance?.hairColor ? `${submission.profileData.appearance.hairColor} Hair` : ''}
+                          </div>
+                        )}
+
+                        {/* Submission Details */}
+                        <p className="text-xs text-secondary-light mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                          📷 {submission.profileData.photos?.photos?.length || 0} photos • 📅 Submitted {submission.submittedAt.toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -600,8 +687,32 @@ export default function AdminSubmissionsPage() {
                                         {getStatusLabel(submission.status)}
                                       </Badge>
                                     </div>
-                                    <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                                      Submitted: {submission.submittedAt.toLocaleDateString()}
+
+                                    {/* Key Casting Criteria */}
+                                    <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                                      {submission.profileData.appearance?.gender || 'N/A'}
+                                      {(() => {
+                                        const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
+                                        return age !== null ? `, ${age}` : '';
+                                      })()}
+                                      {submission.profileData.appearance?.height ? ` • ${submission.profileData.appearance.height}` : ''}
+                                      {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
+                                        <> • {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}</>
+                                      )}
+                                    </div>
+
+                                    {/* Ethnicity and Hair */}
+                                    {(submission.profileData.appearance?.ethnicity?.length || submission.profileData.appearance?.hairColor) && (
+                                      <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
+                                        {submission.profileData.appearance?.ethnicity?.join(", ")}
+                                        {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance?.hairColor ? ' • ' : ''}
+                                        {submission.profileData.appearance?.hairColor ? `${submission.profileData.appearance.hairColor} Hair` : ''}
+                                      </div>
+                                    )}
+
+                                    {/* Submission Details */}
+                                    <p className="text-xs text-secondary-light mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                                      📷 {submission.profileData.photos?.photos?.length || 0} photos • 📅 Submitted {submission.submittedAt.toLocaleDateString()}
                                     </p>
                                   </div>
                                 </div>
@@ -749,7 +860,7 @@ export default function AdminSubmissionsPage() {
                             className="text-xs px-2 py-1"
                             onClick={() => handleUpdateStatus(selectedSubmission.id, "pending")}
                           >
-                            Pending
+                            To Review
                           </Button>
                           <Button
                             variant={selectedSubmission.status === "reviewed" ? "primary" : "outline"}
