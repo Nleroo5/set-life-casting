@@ -152,6 +152,13 @@ export default function AdminSubmissionsPage() {
       const submissionsData: Submission[] = [];
       submissionsSnapshot.forEach((doc) => {
         const data = doc.data();
+
+        // Skip submissions with missing or invalid profile data
+        if (!data.profileData || !data.profileData.basicInfo) {
+          logger.warn(`Skipping submission ${doc.id} with invalid profile data`);
+          return;
+        }
+
         submissionsData.push({
           id: doc.id,
           userId: data.userId,
@@ -248,23 +255,23 @@ export default function AdminSubmissionsPage() {
         ...submission,
         profileData: {
           basicInfo: {
-            firstName: submission.profileData.basicInfo.firstName,
-            lastName: submission.profileData.basicInfo.lastName,
-            email: submission.profileData.basicInfo.email,
-            phone: submission.profileData.basicInfo.phone,
-            dateOfBirth: submission.profileData.appearance.dateOfBirth,
-            location: submission.profileData.basicInfo.location ||
-                     `${submission.profileData.basicInfo.city || ''}, ${submission.profileData.basicInfo.state || ''}`.trim(),
+            firstName: submission.profileData.basicInfo?.firstName || '',
+            lastName: submission.profileData.basicInfo?.lastName || '',
+            email: submission.profileData.basicInfo?.email || '',
+            phone: submission.profileData.basicInfo?.phone || '',
+            dateOfBirth: submission.profileData.appearance?.dateOfBirth || submission.profileData.basicInfo?.dateOfBirth || '',
+            location: submission.profileData.basicInfo?.location ||
+                     `${submission.profileData.basicInfo?.city || ''}, ${submission.profileData.basicInfo?.state || ''}`.trim(),
           },
           physical: {
-            gender: submission.profileData.appearance.gender,
-            ethnicity: submission.profileData.appearance.ethnicity,
-            height: submission.profileData.appearance.height,
-            weight: String(submission.profileData.appearance.weight),
-            hairColor: submission.profileData.appearance.hairColor,
-            eyeColor: submission.profileData.appearance.eyeColor,
-            tattoos: submission.profileData.details.visibleTattoos,
-            piercings: submission.profileData.details.piercings || false,
+            gender: submission.profileData.appearance?.gender || '',
+            ethnicity: submission.profileData.appearance?.ethnicity || [],
+            height: submission.profileData.appearance?.height || '',
+            weight: String(submission.profileData.appearance?.weight || 0),
+            hairColor: submission.profileData.appearance?.hairColor || '',
+            eyeColor: submission.profileData.appearance?.eyeColor || '',
+            tattoos: submission.profileData.details?.visibleTattoos || false,
+            piercings: submission.profileData.details?.piercings || false,
           },
         },
       };
@@ -651,12 +658,14 @@ export default function AdminSubmissionsPage() {
                     <p className="text-secondary-light">
                       Phone: <span className="text-secondary">{selectedSubmission.profileData.basicInfo?.phone}</span>
                     </p>
-                    <p className="text-secondary-light">
-                      Location:{" "}
-                      <span className="text-secondary">
-                        {selectedSubmission.profileData.basicInfo?.city}, {selectedSubmission.profileData.basicInfo?.state}
-                      </span>
-                    </p>
+                    {(selectedSubmission.profileData.basicInfo?.city || selectedSubmission.profileData.basicInfo?.state) && (
+                      <p className="text-secondary-light">
+                        Location:{" "}
+                        <span className="text-secondary">
+                          {selectedSubmission.profileData.basicInfo?.city}{selectedSubmission.profileData.basicInfo?.city && selectedSubmission.profileData.basicInfo?.state ? ', ' : ''}{selectedSubmission.profileData.basicInfo?.state}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
