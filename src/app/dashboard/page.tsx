@@ -11,6 +11,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
+import { logger } from "@/lib/logger";
 
 interface Submission {
   id: string;
@@ -101,7 +102,7 @@ export default function DashboardPage() {
         return;
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      logger.error("Error fetching user data:", error);
     } finally {
       setLoading(false);
     }
@@ -121,7 +122,12 @@ export default function DashboardPage() {
       );
 
       const querySnapshot = await getDocs(q);
-      const bookings: any[] = [];
+      const bookings: Array<{
+        id: string;
+        roleName: string;
+        projectTitle: string;
+        updatedAt: Date | undefined;
+      }> = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -135,7 +141,7 @@ export default function DashboardPage() {
 
       setPastBookings(bookings);
     } catch (error) {
-      console.error("Error fetching past bookings:", error);
+      logger.error("Error fetching past bookings:", error);
     }
   }
 
@@ -144,7 +150,7 @@ export default function DashboardPage() {
       await signOut();
       router.push("/");
     } catch (error) {
-      console.error("Sign out error:", error);
+      logger.error("Sign out error:", error);
     }
   };
 

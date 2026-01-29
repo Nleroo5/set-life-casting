@@ -32,8 +32,9 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     try {
       await signInAsGuest();
       onNext();
-    } catch (err: any) {
-      setError(err.message || "Failed to continue as guest");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to continue as guest";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -46,8 +47,9 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     try {
       await signUpWithEmail(email, password, displayName);
       onNext();
-    } catch (err: any) {
-      setError(err.message || "Failed to create account");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create account";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -60,8 +62,9 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     try {
       await signInWithEmail(email, password);
       onNext();
-    } catch (err: any) {
-      setError(err.message || "Failed to sign in");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to sign in";
+      setError(message);
     } finally {
       setLoading(false);
     }

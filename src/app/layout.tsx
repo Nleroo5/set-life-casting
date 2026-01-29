@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { AuthProvider } from "@/contexts/AuthContext";
+import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -269,6 +270,9 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* Microsoft Clarity - Session Recording & Heatmaps */}
+        <MicrosoftClarity />
 
         {/* Website designed and developed by Drive Lead Media - https://www.driveleadmedia.com */}
         {/* Digital Marketing | Web Design | SEO Services | Atlanta, GA */}

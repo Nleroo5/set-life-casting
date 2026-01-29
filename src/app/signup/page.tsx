@@ -10,6 +10,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { signUpWithEmail } from "@/lib/firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { validateRedirectUrl } from "@/lib/utils/redirect";
+import { logger } from "@/lib/logger";
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -30,7 +32,7 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const redirectTo = validateRedirectUrl(searchParams.get("redirect"), "/dashboard");
 
   const {
     register,
@@ -54,12 +56,17 @@ function SignupForm() {
     try {
       await signUpWithEmail(data.email, data.password, data.fullName);
       router.push(redirectTo);
-    } catch (err: any) {
-      console.error("Signup error:", err);
-      if (err.code === "auth/email-already-in-use") {
-        setError("An account with this email already exists");
-      } else if (err.code === "auth/weak-password") {
-        setError("Password is too weak. Please use a stronger password");
+    } catch (err: unknown) {
+      logger.error("Signup error:", err);
+      if (err && typeof err === "object" && "code" in err) {
+        const errorCode = (err as { code: string }).code;
+        if (errorCode === "auth/email-already-in-use") {
+          setError("An account with this email already exists");
+        } else if (errorCode === "auth/weak-password") {
+          setError("Password is too weak. Please use a stronger password");
+        } else {
+          setError("Failed to create account. Please try again.");
+        }
       } else {
         setError("Failed to create account. Please try again.");
       }

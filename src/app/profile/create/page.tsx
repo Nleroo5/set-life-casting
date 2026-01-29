@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
+import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
 import BasicInfoStep from "@/components/casting/steps/BasicInfoStep";
 import AppearanceStep from "@/components/casting/steps/AppearanceStep";
 import SizesStep from "@/components/casting/steps/SizesStep";
@@ -83,6 +84,11 @@ export default function CreateProfilePage() {
     };
 
     if (!authLoading && user) {
+      // Check email verification before allowing profile creation
+      if (!user.emailVerified) {
+        // Allow loading profile for display, but block submission
+        // User will see banner to verify email
+      }
       loadProfile();
     } else if (!authLoading && !user) {
       router.push("/login?redirect=/profile/create");
@@ -119,34 +125,39 @@ export default function CreateProfilePage() {
 
             // ✅ Also update physical field if appearance, sizes, or details changed
             if (stepKey === "appearance" || stepKey === "sizes" || stepKey === "details") {
+              // Safely access appearance, sizes, and details data
+              const appearanceData = stepKey === "appearance" ? stepData : updatedFormData.appearance || {};
+              const sizesData = stepKey === "sizes" ? stepData : updatedFormData.sizes || {};
+              const detailsData = stepKey === "details" ? stepData : updatedFormData.details || {};
+
               const physical = {
                 // From appearance
-                gender: (stepKey === "appearance" ? stepData?.gender : updatedFormData.appearance?.gender) || null,
-                ethnicity: (stepKey === "appearance" ? stepData?.ethnicity : updatedFormData.appearance?.ethnicity) || null,
-                height: (stepKey === "appearance" ? stepData?.height : updatedFormData.appearance?.height) || null,
-                weight: (stepKey === "appearance" ? stepData?.weight : updatedFormData.appearance?.weight) || null,
-                hairColor: (stepKey === "appearance" ? stepData?.hairColor : updatedFormData.appearance?.hairColor) || null,
-                hairLength: (stepKey === "appearance" ? stepData?.hairLength : updatedFormData.appearance?.hairLength) || null,
-                eyeColor: (stepKey === "appearance" ? stepData?.eyeColor : updatedFormData.appearance?.eyeColor) || null,
-                dateOfBirth: (stepKey === "appearance" ? stepData?.dateOfBirth : updatedFormData.appearance?.dateOfBirth) || null,
+                gender: appearanceData?.gender ?? null,
+                ethnicity: appearanceData?.ethnicity ?? null,
+                height: appearanceData?.height ?? null,
+                weight: appearanceData?.weight ?? null,
+                hairColor: appearanceData?.hairColor ?? null,
+                hairLength: appearanceData?.hairLength ?? null,
+                eyeColor: appearanceData?.eyeColor ?? null,
+                dateOfBirth: appearanceData?.dateOfBirth ?? null,
                 // From sizes (gender-conditional)
-                shirtSize: (stepKey === "sizes" ? stepData?.shirtSize : updatedFormData.sizes?.shirtSize) || null,
-                pantWaist: (stepKey === "sizes" ? stepData?.pantWaist : updatedFormData.sizes?.pantWaist) || null,
-                pantInseam: (stepKey === "sizes" ? stepData?.pantInseam : updatedFormData.sizes?.pantInseam) || null,
-                dressSize: (stepKey === "sizes" ? stepData?.dressSize : updatedFormData.sizes?.dressSize) || null,
-                womensPantSize: (stepKey === "sizes" ? stepData?.womensPantSize : updatedFormData.sizes?.womensPantSize) || null,
-                shoeSize: (stepKey === "sizes" ? stepData?.shoeSize : updatedFormData.sizes?.shoeSize) || null,
+                shirtSize: sizesData?.shirtSize ?? null,
+                pantWaist: sizesData?.pantWaist ?? null,
+                pantInseam: sizesData?.pantInseam ?? null,
+                dressSize: sizesData?.dressSize ?? null,
+                womensPantSize: sizesData?.womensPantSize ?? null,
+                shoeSize: sizesData?.shoeSize ?? null,
                 // Optional measurements
-                bust: (stepKey === "sizes" ? stepData?.bust : updatedFormData.sizes?.bust) || null,
-                waist: (stepKey === "sizes" ? stepData?.waist : updatedFormData.sizes?.waist) || null,
-                hips: (stepKey === "sizes" ? stepData?.hips : updatedFormData.sizes?.hips) || null,
-                neck: (stepKey === "sizes" ? stepData?.neck : updatedFormData.sizes?.neck) || null,
-                sleeve: (stepKey === "sizes" ? stepData?.sleeve : updatedFormData.sizes?.sleeve) || null,
-                jacketSize: (stepKey === "sizes" ? stepData?.jacketSize : updatedFormData.sizes?.jacketSize) || null,
+                bust: sizesData?.bust ?? null,
+                waist: sizesData?.waist ?? null,
+                hips: sizesData?.hips ?? null,
+                neck: sizesData?.neck ?? null,
+                sleeve: sizesData?.sleeve ?? null,
+                jacketSize: sizesData?.jacketSize ?? null,
                 // From details
-                visibleTattoos: (stepKey === "details" ? stepData?.visibleTattoos : updatedFormData.details?.visibleTattoos) || false,
-                tattoosDescription: (stepKey === "details" ? stepData?.tattoosDescription : updatedFormData.details?.tattoosDescription) || null,
-                facialHair: (stepKey === "details" ? stepData?.facialHair : updatedFormData.details?.facialHair) || null,
+                visibleTattoos: detailsData?.visibleTattoos ?? false,
+                tattoosDescription: detailsData?.tattoosDescription ?? null,
+                facialHair: detailsData?.facialHair ?? null,
               };
               updateData.physical = physical;
             }
@@ -197,6 +208,13 @@ export default function CreateProfilePage() {
       throw new Error("User not authenticated");
     }
 
+    // ✅ CRITICAL SECURITY: Enforce email verification
+    if (!user.emailVerified) {
+      alert("Please verify your email address before submitting your profile. Check your inbox for the verification link.");
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Use provided photosData if available, otherwise use formData.photos
@@ -217,32 +235,32 @@ export default function CreateProfilePage() {
       // This combines all searchable physical attributes into one place
       const physical = {
         // From appearance
-        gender: formData.appearance?.gender || null,
-        ethnicity: formData.appearance?.ethnicity || null,
-        height: formData.appearance?.height || null,
-        weight: formData.appearance?.weight || null,
-        hairColor: formData.appearance?.hairColor || null,
-        hairLength: formData.appearance?.hairLength || null,
-        eyeColor: formData.appearance?.eyeColor || null,
-        dateOfBirth: formData.appearance?.dateOfBirth || null,
+        gender: formData.appearance?.gender ?? null,
+        ethnicity: formData.appearance?.ethnicity ?? null,
+        height: formData.appearance?.height ?? null,
+        weight: formData.appearance?.weight ?? null,
+        hairColor: formData.appearance?.hairColor ?? null,
+        hairLength: formData.appearance?.hairLength ?? null,
+        eyeColor: formData.appearance?.eyeColor ?? null,
+        dateOfBirth: formData.appearance?.dateOfBirth ?? null,
         // From sizes (gender-conditional)
-        shirtSize: formData.sizes?.shirtSize || null,
-        pantWaist: formData.sizes?.pantWaist || null,
-        pantInseam: formData.sizes?.pantInseam || null,
-        dressSize: formData.sizes?.dressSize || null,
-        womensPantSize: formData.sizes?.womensPantSize || null,
-        shoeSize: formData.sizes?.shoeSize || null,
+        shirtSize: formData.sizes?.shirtSize ?? null,
+        pantWaist: formData.sizes?.pantWaist ?? null,
+        pantInseam: formData.sizes?.pantInseam ?? null,
+        dressSize: formData.sizes?.dressSize ?? null,
+        womensPantSize: formData.sizes?.womensPantSize ?? null,
+        shoeSize: formData.sizes?.shoeSize ?? null,
         // Optional measurements
-        bust: formData.sizes?.bust || null,
-        waist: formData.sizes?.waist || null,
-        hips: formData.sizes?.hips || null,
-        neck: formData.sizes?.neck || null,
-        sleeve: formData.sizes?.sleeve || null,
-        jacketSize: formData.sizes?.jacketSize || null,
+        bust: formData.sizes?.bust ?? null,
+        waist: formData.sizes?.waist ?? null,
+        hips: formData.sizes?.hips ?? null,
+        neck: formData.sizes?.neck ?? null,
+        sleeve: formData.sizes?.sleeve ?? null,
+        jacketSize: formData.sizes?.jacketSize ?? null,
         // From details
-        visibleTattoos: formData.details?.visibleTattoos || false,
-        tattoosDescription: formData.details?.tattoosDescription || null,
-        facialHair: formData.details?.facialHair || null,
+        visibleTattoos: formData.details?.visibleTattoos ?? false,
+        tattoosDescription: formData.details?.tattoosDescription ?? null,
+        facialHair: formData.details?.facialHair ?? null,
       };
 
       logger.debug("✅ Consolidated physical attributes:", physical);
@@ -323,6 +341,9 @@ export default function CreateProfilePage() {
               : "Complete your profile to start submitting for casting calls"}
           </p>
         </div>
+
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
 
         {/* Progress Indicator */}
         <ProgressIndicator steps={steps} currentStep={currentStep} />

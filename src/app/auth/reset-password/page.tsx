@@ -4,13 +4,20 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { signInWithEmailAndPassword, updatePassword } from "firebase/auth";
+import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
+import { logger } from "@/lib/logger";
 
+/**
+ * Password Reset Page
+ *
+ * Uses Firebase's native confirmPasswordReset - no Admin SDK required!
+ * The 'oobCode' parameter comes from Firebase's password reset email.
+ */
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const oobCode = searchParams.get("oobCode"); // Firebase's reset code from email
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,28 +28,30 @@ function ResetPasswordForm() {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    if (!token) {
-      setError("Invalid reset link");
+    if (!oobCode) {
+      setError("Invalid reset link. Please request a new password reset.");
       setVerifying(false);
       return;
     }
 
-    // Verify token on mount (without consuming it yet)
-    verifyToken();
-  }, [token]);
+    // Verify the reset code is valid
+    verifyResetCode();
+  }, [oobCode]);
 
-  const verifyToken = async () => {
-    if (!token) return;
+  const verifyResetCode = async () => {
+    if (!oobCode || !auth) return;
 
     try {
-      // We'll verify the token is valid but not consume it yet
       setVerifying(true);
       setError("");
 
-      // Token will be verified when user submits the form
+      // Verify the password reset code and get the user's email
+      const email = await verifyPasswordResetCode(auth, oobCode);
+      setUserEmail(email);
       setVerifying(false);
-    } catch (err: any) {
-      setError("Invalid or expired reset link");
+    } catch (err: unknown) {
+      logger.error("Password reset code verification error:", err);
+      setError("Invalid or expired reset link. Please request a new password reset.");
       setVerifying(false);
     }
   };
@@ -62,7 +71,7 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (!token) {
+    if (!oobCode || !auth) {
       setError("Invalid reset link");
       return;
     }
@@ -70,37 +79,33 @@ function ResetPasswordForm() {
     setLoading(true);
 
     try {
-      // First, verify the token and get the email
-      const verifyResponse = await fetch("/api/auth/verify-reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
-      });
+      // Complete the password reset using Firebase's native function
+      await confirmPasswordReset(auth, oobCode, newPassword);
 
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyResponse.ok) {
-        throw new Error(verifyData.error || "Failed to verify reset token");
-      }
-
-      setUserEmail(verifyData.email);
-
-      // For now, we need to sign in the user with their OLD password to update
-      // This is a limitation - ideally we'd use Firebase Admin SDK on the server
-      // For a better UX, we can ask them to sign in after reset
-
-      // Since we can't update password without current auth, we'll need to inform the user
-      // to sign in with the temporary password or use Firebase's built-in reset
-
-      // Alternative: Use a temporary sign-in approach
+      // Password was successfully updated
       setSuccess(true);
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
         router.push("/login?reset=success");
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || "An error occurred. Please try again.");
+    } catch (err: unknown) {
+      logger.error("Password reset error:", err);
+
+      if (err && typeof err === "object" && "code" in err) {
+        const errorCode = (err as { code: string }).code;
+        if (errorCode === "auth/expired-action-code") {
+          setError("Reset link has expired. Please request a new one.");
+        } else if (errorCode === "auth/invalid-action-code") {
+          setError("Invalid reset link. Please request a new one.");
+        } else if (errorCode === "auth/weak-password") {
+          setError("Password is too weak. Please use a stronger password.");
+        } else {
+          setError("Failed to reset password. Please try again.");
+        }
+      } else {
+        setError("An error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -145,10 +150,10 @@ function ResetPasswordForm() {
               className="text-2xl font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
             >
-              Password Reset Requested
+              Password Reset Successful
             </h2>
             <p className="text-base text-secondary-light mb-6" style={{ fontFamily: "var(--font-outfit)" }}>
-              For security, please check your email ({userEmail}) and use the Firebase password reset link.
+              Your password has been successfully reset. You can now sign in with your new password.
             </p>
             <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
               Redirecting to login...

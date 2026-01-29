@@ -20,13 +20,18 @@ const envSchema = z.object({
 
   // Site Configuration (required)
   NEXT_PUBLIC_SITE_URL: z.string().url("Site URL must be a valid URL"),
+  NEXT_PUBLIC_APP_URL: z.string().url("App URL must be a valid URL"),
   NEXT_PUBLIC_CONTACT_EMAIL: z.string().email("Contact email must be valid"),
 
   // Optional configurations
   NEXT_PUBLIC_CONTACT_PHONE: z.string().optional(),
   MAILERLITE_API_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
   FACEBOOK_PAGE_ACCESS_TOKEN: z.string().optional(),
   FACEBOOK_PAGE_ID: z.string().optional(),
+
+  // Analytics
+  NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
 });
 
 // Type for validated environment variables
@@ -43,11 +48,14 @@ function validateEnv(): Env {
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
       NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_CONTACT_EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL,
       NEXT_PUBLIC_CONTACT_PHONE: process.env.NEXT_PUBLIC_CONTACT_PHONE,
       MAILERLITE_API_KEY: process.env.MAILERLITE_API_KEY,
+      RESEND_API_KEY: process.env.RESEND_API_KEY,
       FACEBOOK_PAGE_ACCESS_TOKEN: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
       FACEBOOK_PAGE_ID: process.env.FACEBOOK_PAGE_ID,
+      NEXT_PUBLIC_CLARITY_PROJECT_ID: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

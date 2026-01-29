@@ -1,6 +1,48 @@
-# Migration Scripts
+# Maintenance Scripts
 
-This directory contains scripts for migrating and maintaining the Firebase Firestore database.
+This directory contains scripts for migrating, maintaining, and administering the Firebase Firestore database.
+
+## Quick Reference
+
+| Script | Purpose | When to Use |
+|--------|---------|-------------|
+| `set-admin-claims.ts` | Set Firebase Auth admin custom claims | After implementing security fixes, when adding new admins |
+| `migrate-profiles-physical-field.ts` | Add consolidated physical field to profiles | One-time migration for search functionality |
+| `migrate-bookings-physical-field.ts` | Update booking snapshots with physical field | After profile migration |
+| `archive-old-projects.ts` | Archive completed projects | Periodic cleanup (quarterly/yearly) |
+| `fix-submissions.ts` | Repair submission data | When debugging submission issues |
+| `fix-orphaned-bookings.ts` | Fix bookings with missing project data | When database inconsistencies occur |
+| `debug-submissions.ts` | Debug submission issues | When investigating submission problems |
+
+---
+
+## Administrative Scripts
+
+### Set Admin Custom Claims
+
+**Purpose:** Grant admin access to users by setting Firebase Auth custom claims.
+
+**When to use:**
+- After implementing the professional security fix for admin authorization
+- When adding new admin users
+- When upgrading existing users to admin role
+
+**Usage:**
+```bash
+npx tsx scripts/set-admin-claims.ts admin@example.com
+```
+
+**What it does:**
+1. Finds the user by email or UID
+2. Sets `admin: true` custom claim on their Firebase Auth token
+3. Updates `role: "admin"` in Firestore `/users` collection
+4. Displays success message
+
+**Important:** User must logout and login again after this script runs to receive the new token with admin claim.
+
+**See also:** [ADMIN_ACCESS_FIX_DEPLOYMENT.md](../ADMIN_ACCESS_FIX_DEPLOYMENT.md)
+
+---
 
 ## Profile & Booking Physical Field Migration
 

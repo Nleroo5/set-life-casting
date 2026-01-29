@@ -9,6 +9,7 @@ import { collection, query, where, getDocs, writeBatch, doc } from "firebase/fir
 import { db } from "@/lib/firebase/config";
 import Link from "next/link";
 import { restoreRole } from "@/lib/firebase/roles";
+import { logger } from "@/lib/logger";
 
 interface ArchivedProject {
   id: string;
@@ -167,7 +168,7 @@ export default function ArchivePage() {
 
       setArchivedRoles(roles);
     } catch (error) {
-      console.error("Error fetching archived data:", error);
+      logger.error("Error fetching archived data:", error);
       alert("Failed to load archived data");
     } finally {
       setLoading(false);
@@ -191,7 +192,7 @@ export default function ArchivePage() {
 
     try {
       setRestoring(projectId);
-      console.log(`🔄 Starting restore process for project: ${project.title}`);
+      logger.debug(`🔄 Starting restore process for project: ${project.title}`);
 
       const batch = writeBatch(db);
 
@@ -246,10 +247,10 @@ export default function ArchivePage() {
 
       await batch.commit();
 
-      console.log(`✅ Restored project: ${project.title}`);
-      console.log(`  - ${rolesSnapshot.size} roles restored`);
-      console.log(`  - ${bookingsSnapshot.size} bookings reactivated`);
-      console.log(`  - ${submissionsSnapshot.size} submissions restored`);
+      logger.debug(`✅ Restored project: ${project.title}`);
+      logger.debug(`  - ${rolesSnapshot.size} roles restored`);
+      logger.debug(`  - ${bookingsSnapshot.size} bookings reactivated`);
+      logger.debug(`  - ${submissionsSnapshot.size} submissions restored`);
 
       alert(
         `Project "${project.title}" restored successfully!\n\n` +
@@ -261,7 +262,7 @@ export default function ArchivePage() {
 
       await fetchArchivedProjects();
     } catch (error) {
-      console.error("Error restoring project:", error);
+      logger.error("Error restoring project:", error);
       alert("Failed to restore project. Please try again.");
     } finally {
       setRestoring(null);
@@ -280,11 +281,11 @@ export default function ArchivePage() {
 
     try {
       setRestoringRole(role.id);
-      console.log(`🔄 Restoring individually archived role: ${role.name}`);
+      logger.debug(`🔄 Restoring individually archived role: ${role.name}`);
 
       await restoreRole(role.id);
 
-      console.log(`✅ Restored role: ${role.name}`);
+      logger.debug(`✅ Restored role: ${role.name}`);
       alert(
         `Role "${role.name}" restored successfully!\n\n` +
         `• ${role.submissionCount} submissions restored\n\n` +
@@ -292,9 +293,10 @@ export default function ArchivePage() {
       );
 
       await fetchArchivedProjects();
-    } catch (error: any) {
-      console.error("Error restoring role:", error);
-      alert(error.message || "Failed to restore role. Please try again.");
+    } catch (error: unknown) {
+      logger.error("Error restoring role:", error);
+      const message = error instanceof Error ? error.message : "Failed to restore role. Please try again.";
+      alert(message);
     } finally {
       setRestoringRole(null);
     }

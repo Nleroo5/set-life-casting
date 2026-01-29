@@ -3,52 +3,27 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 
-// Store the form HTML globally outside component to persist across remounts
-let savedFormHTML: string | null = null;
-let isFormSaved = false;
-
+/**
+ * Newsletter Component
+ *
+ * SECURITY: This component lets MailerLite re-inject its form on each mount
+ * instead of using innerHTML to save/restore HTML. This prevents XSS attacks
+ * while maintaining full MailerLite functionality.
+ */
 export default function Newsletter() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) {
-      return;
-    }
+    // Let MailerLite handle the form injection
+    // The data-form attribute triggers MailerLite's auto-initialization
+    // No manual HTML manipulation needed - MailerLite SDK handles it safely
 
-    // If we already saved the form HTML, restore it
-    if (isFormSaved && savedFormHTML) {
-      containerRef.current.innerHTML = savedFormHTML;
-
-      // Clone all event listeners by re-attaching the form submit handler
-      const form = containerRef.current.querySelector('form');
-      if (form && typeof window !== 'undefined' && (window as any).ml) {
-        // Trigger MailerLite to re-bind to the restored form
-        setTimeout(() => {
-          const submitButton = form.querySelector('button[type="submit"]');
-          if (submitButton) {
-            // MailerLite will automatically detect and bind
-          }
-        }, 100);
-      }
-      return;
-    }
-
-    // Check if form already exists in the DOM
-    const existingForm = containerRef.current.querySelector('form');
-    if (existingForm) {
-      savedFormHTML = containerRef.current.innerHTML;
-      isFormSaved = true;
-      return;
-    }
-
-    // Wait for MailerLite to inject the form
+    // Optional: Log when form is loaded (dev mode only via logger)
     const checkInterval = setInterval(() => {
       const form = containerRef.current?.querySelector('form');
       if (form) {
-        // Save the form HTML immediately after MailerLite injects it
-        savedFormHTML = containerRef.current!.innerHTML;
-        isFormSaved = true;
         clearInterval(checkInterval);
+        // Form successfully loaded by MailerLite
       }
     }, 100);
 

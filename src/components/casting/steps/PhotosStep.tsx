@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { storage } from "@/lib/firebase/config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Image from "next/image";
+import { logger } from "@/lib/logger";
 
 interface PhotosStepProps {
   data: Partial<PhotosFormData>;
@@ -92,7 +93,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     try {
       return await imageCompression(file, options);
     } catch (error) {
-      console.error("Image compression error:", error);
+      logger.error("Image compression error:", error);
       return file;
     }
   };
@@ -109,10 +110,10 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
       try {
         await uploadBytes(storageRef, compressedFile);
         const downloadURL = await getDownloadURL(storageRef);
-        console.log(`Successfully uploaded ${slotId} to Firebase Storage:`, downloadURL);
+        logger.debug(`Successfully uploaded ${slotId} to Firebase Storage:`, downloadURL);
         return downloadURL;
       } catch (error) {
-        console.error(`Upload attempt ${attempt} failed for ${slotId}:`, error);
+        logger.error(`Upload attempt ${attempt} failed for ${slotId}:`, error);
         if (attempt === retries) {
           throw error;
         }
@@ -152,7 +153,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
           )
         );
       } catch (error) {
-        console.error("Upload error:", error);
+        logger.error("Upload error:", error);
         // Remove preview on error
         setPhotoSlots((prev) =>
           prev.map((slot) =>

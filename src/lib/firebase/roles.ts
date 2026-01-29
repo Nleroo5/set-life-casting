@@ -15,6 +15,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { logger } from "@/lib/logger";
 
 /**
  * Archives a single role without affecting the parent project
@@ -75,9 +76,9 @@ export async function archiveRole(
 
     await Promise.all(submissionUpdates);
 
-    console.log(`✅ Archived role ${roleId} and ${submissionsSnapshot.size} submissions`);
+    logger.info(`✅ Archived role ${roleId} and ${submissionsSnapshot.size} submissions`);
   } catch (error) {
-    console.error("Error archiving role:", error);
+    logger.error("Error archiving role:", error);
     throw error;
   }
 }
@@ -138,9 +139,9 @@ export async function restoreRole(roleId: string): Promise<void> {
 
     await Promise.all(submissionUpdates);
 
-    console.log(`✅ Restored role ${roleId} and ${submissionsSnapshot.size} submissions`);
+    logger.info(`✅ Restored role ${roleId} and ${submissionsSnapshot.size} submissions`);
   } catch (error) {
-    console.error("Error restoring role:", error);
+    logger.error("Error restoring role:", error);
     throw error;
   }
 }
@@ -161,7 +162,7 @@ export async function getActiveBookingCount(roleId: string): Promise<number> {
     const bookingsSnapshot = await getDocs(bookingsQuery);
     return bookingsSnapshot.size;
   } catch (error) {
-    console.error("Error getting booking count:", error);
+    logger.error("Error getting booking count:", error);
     return 0;
   }
 }

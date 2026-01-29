@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * API route to proxy the Set Life Casting logo
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error proxying logo:", error);
+    logger.error("Error proxying logo:", error);
     return NextResponse.json({ error: "Failed to load logo" }, { status: 500 });
   }
 }

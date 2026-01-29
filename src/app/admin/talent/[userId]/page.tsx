@@ -9,6 +9,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Image from "next/image";
+import { logger } from "@/lib/logger";
 
 interface TalentProfile {
   id: string;
@@ -117,7 +118,7 @@ export default function TalentDetailPage() {
 
       setSubmissions(submissionsData);
     } catch (error) {
-      console.error("Error fetching talent data:", error);
+      logger.error("Error fetching talent data:", error);
     } finally {
       setLoading(false);
     }
@@ -151,7 +152,7 @@ export default function TalentDetailPage() {
           : "Profile unarchived successfully"
       );
     } catch (error) {
-      console.error("Error updating profile status:", error);
+      logger.error("Error updating profile status:", error);
       alert("Failed to update profile status. Please try again.");
     } finally {
       setIsArchiving(false);
@@ -172,7 +173,7 @@ export default function TalentDetailPage() {
         adminTag: tag,
       });
     } catch (error) {
-      console.error("Error updating tag:", error);
+      logger.error("Error updating tag:", error);
       alert("Failed to update tag. Please try again.");
     } finally {
       setIsSavingTag(false);
@@ -195,7 +196,7 @@ export default function TalentDetailPage() {
 
       setEditingNotes(false);
     } catch (error) {
-      console.error("Error updating notes:", error);
+      logger.error("Error updating notes:", error);
       alert("Failed to update notes. Please try again.");
     } finally {
       setIsSavingTag(false);
@@ -488,10 +489,10 @@ export default function TalentDetailPage() {
                   // Handle both nested and direct array structure
                   const photoArray = Array.isArray(talent.photos)
                     ? talent.photos
-                    : (talent.photos as any)?.photos;
+                    : (talent.photos as { photos: Array<{ url: string; type: string }> })?.photos;
 
                   return photoArray && photoArray.length > 0 ? (
-                    photoArray.map((photo: any, index: number) => (
+                    photoArray.map((photo, index) => (
                     <div
                       key={index}
                       className="relative aspect-square rounded-lg overflow-hidden border-2 border-accent/30"

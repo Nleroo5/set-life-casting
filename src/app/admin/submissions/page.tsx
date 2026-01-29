@@ -24,6 +24,64 @@ import {
   getBookingsByProject,
 } from "@/lib/firebase/bookings";
 import type { Booking } from "@/types/booking";
+import { logger } from "@/lib/logger";
+
+interface ProfileBasicInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  location: string;
+  city?: string;
+  state?: string;
+}
+
+interface ProfileAppearance {
+  gender: string;
+  dateOfBirth: string;
+  ethnicity: string[];
+  height: string;
+  weight: number;
+  hairColor: string;
+  hairLength: string;
+  eyeColor: string;
+}
+
+interface ProfileSizes {
+  shirtSize: string;
+  pantsWaist: number;
+  pantsInseam: number;
+  dressSize?: string;
+  suitSize?: string;
+  shoeSize: string;
+  shoeSizeGender: string;
+}
+
+interface ProfileDetails {
+  visibleTattoos: boolean;
+  tattoosDescription?: string;
+  piercings?: boolean;
+  piercingsDescription?: string;
+  facialHair: string;
+}
+
+interface ProfilePhoto {
+  url: string;
+  type: string;
+}
+
+interface ProfilePhotos {
+  photos: ProfilePhoto[];
+}
+
+interface ProfileData {
+  basicInfo: ProfileBasicInfo;
+  appearance: ProfileAppearance;
+  sizes: ProfileSizes;
+  details: ProfileDetails;
+  photos: ProfilePhotos;
+}
 
 interface Submission {
   id: string;
@@ -34,14 +92,7 @@ interface Submission {
   projectTitle: string;
   status: "pending" | "reviewed" | "selected" | "rejected";
   submittedAt: Date;
-  profileData: {
-    basicInfo: any;
-    physical: any;
-    appearance: any;
-    sizes: any;
-    details: any;
-    photos: any;
-  };
+  profileData: ProfileData;
 }
 
 interface Project {
@@ -147,7 +198,7 @@ export default function AdminSubmissionsPage() {
       setRoles(rolesData);
       setBookings(bookingsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      logger.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -182,7 +233,7 @@ export default function AdminSubmissionsPage() {
       });
       await fetchData();
     } catch (error) {
-      console.error("Error updating status:", error);
+      logger.error("Error updating status:", error);
       alert("Failed to update status");
     }
   };
@@ -192,13 +243,39 @@ export default function AdminSubmissionsPage() {
 
     setBookingInProgress(true);
     try {
-      await createBooking(submission, user.uid, {
+      // Transform submission to match the Booking type's expected TalentProfile structure
+      const transformedSubmission = {
+        ...submission,
+        profileData: {
+          basicInfo: {
+            firstName: submission.profileData.basicInfo.firstName,
+            lastName: submission.profileData.basicInfo.lastName,
+            email: submission.profileData.basicInfo.email,
+            phone: submission.profileData.basicInfo.phone,
+            dateOfBirth: submission.profileData.appearance.dateOfBirth,
+            location: submission.profileData.basicInfo.location ||
+                     `${submission.profileData.basicInfo.city || ''}, ${submission.profileData.basicInfo.state || ''}`.trim(),
+          },
+          physical: {
+            gender: submission.profileData.appearance.gender,
+            ethnicity: submission.profileData.appearance.ethnicity,
+            height: submission.profileData.appearance.height,
+            weight: String(submission.profileData.appearance.weight),
+            hairColor: submission.profileData.appearance.hairColor,
+            eyeColor: submission.profileData.appearance.eyeColor,
+            tattoos: submission.profileData.details.visibleTattoos,
+            piercings: submission.profileData.details.piercings || false,
+          },
+        },
+      };
+
+      await createBooking(transformedSubmission as import("@/types/booking").Submission, user.uid, {
         status: "confirmed",
       });
       await fetchData();
       alert(`Successfully booked ${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`);
     } catch (error) {
-      console.error("Error booking talent:", error);
+      logger.error("Error booking talent:", error);
       alert("Failed to book talent");
     } finally {
       setBookingInProgress(false);
@@ -218,7 +295,7 @@ export default function AdminSubmissionsPage() {
       await deleteBooking(booking.id);
       await fetchData();
     } catch (error) {
-      console.error("Error unbooking talent:", error);
+      logger.error("Error unbooking talent:", error);
       alert("Failed to unbook talent");
     } finally {
       setBookingInProgress(false);
@@ -549,7 +626,7 @@ export default function AdminSubmissionsPage() {
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-secondary mb-3">Photos</h3>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedSubmission.profileData.photos.photos.map((photo: any, index: number) => (
+                      {selectedSubmission.profileData.photos.photos.map((photo, index) => (
                         <div key={index} className="aspect-square rounded-lg overflow-hidden border-2 border-accent/30">
                           <Image
                             src={photo.url}

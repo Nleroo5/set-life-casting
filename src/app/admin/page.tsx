@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+import { logger } from "@/lib/logger";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function AdminPage() {
       await logout();
       router.push("/");
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
       setIsLoggingOut(false);
     }
   };

@@ -27,6 +27,7 @@ import Link from "next/link";
 import { getBookingsByProject, deleteBooking } from "@/lib/firebase/bookings";
 import type { Booking } from "@/types/booking";
 import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/firebase/roles";
+import { logger } from "@/lib/logger";
 
 interface Project {
   id: string;
@@ -43,7 +44,7 @@ interface Role {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
@@ -60,7 +61,7 @@ interface RoleFormData {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
@@ -106,9 +107,32 @@ export default function AdminCastingPage() {
       const rolesSnapshot = await getDocs(collection(db, "roles"));
       const rolesData: Role[] = [];
       rolesSnapshot.forEach((doc) => {
-        rolesData.push({ id: doc.id, ...doc.data() } as Role);
+        const roleData = doc.data() as any;
+
+        // Migrate old single date to bookingDates array if needed
+        if (roleData.date && !roleData.bookingDates) {
+          const { date, ...restRole } = roleData;
+          rolesData.push({
+            id: doc.id,
+            ...restRole,
+            bookingDates: [date] // Convert single date to array
+          } as Role);
+        } else if (roleData.bookingDates && Array.isArray(roleData.bookingDates)) {
+          rolesData.push({ id: doc.id, ...roleData } as Role);
+        } else {
+          // Fallback: ensure bookingDates exists
+          rolesData.push({
+            id: doc.id,
+            ...roleData,
+            bookingDates: roleData.date ? [roleData.date] : [""]
+          } as Role);
+        }
       });
       setRoles(rolesData);
+
+      // DEBUG: Log roles to check archive flags
+      logger.debug("🔍 DEBUG - Total roles loaded:", rolesData.length);
+      logger.debug("🔍 DEBUG - Sample role:", rolesData[0]);
 
       // Fetch all bookings
       const bookingsSnapshot = await getDocs(collection(db, "bookings"));
@@ -125,7 +149,7 @@ export default function AdminCastingPage() {
       });
       setBookings(bookingsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      logger.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -140,7 +164,7 @@ export default function AdminCastingPage() {
     }
 
     try {
-      console.log(`🔍 Starting archive process for project: ${project.title}`);
+      logger.debug(`🔍 Starting archive process for project: ${project.title}`);
 
       const batch = writeBatch(db);
       let rolesCount = 0;
@@ -193,10 +217,10 @@ export default function AdminCastingPage() {
 
       await batch.commit();
 
-      console.log(`✅ Archived project: ${project.title}`);
-      console.log(`  - ${rolesCount} roles archived`);
-      console.log(`  - ${bookingsCount} bookings completed`);
-      console.log(`  - ${submissionsCount} submissions archived`);
+      logger.debug(`✅ Archived project: ${project.title}`);
+      logger.debug(`  - ${rolesCount} roles archived`);
+      logger.debug(`  - ${bookingsCount} bookings completed`);
+      logger.debug(`  - ${submissionsCount} submissions archived`);
 
       alert(
         `Project "${project.title}" archived successfully!\n\n` +
@@ -208,7 +232,7 @@ export default function AdminCastingPage() {
 
       await fetchData();
     } catch (error) {
-      console.error("Error archiving project:", error);
+      logger.error("Error archiving project:", error);
       alert("Failed to archive project. Please try again.");
     }
   };
@@ -248,10 +272,10 @@ export default function AdminCastingPage() {
       // Delete project
       await deleteDoc(doc(db, "projects", projectId));
 
-      console.log(`✅ Deleted project: ${project.title}`);
+      logger.debug(`✅ Deleted project: ${project.title}`);
       await fetchData();
     } catch (error) {
-      console.error("Error deleting project:", error);
+      logger.error("Error deleting project:", error);
       alert("Failed to delete project");
     }
   };
@@ -289,9 +313,10 @@ export default function AdminCastingPage() {
       setArchiveDialogRole(null);
       setArchiveReason("");
       await fetchData();
-    } catch (error: any) {
-      console.error("Error archiving role:", error);
-      alert(error.message || "Failed to archive role. Please try again.");
+    } catch (error: unknown) {
+      logger.error("Error archiving role:", error);
+      const message = error instanceof Error ? error.message : "Failed to archive role. Please try again.";
+      alert(message);
     } finally {
       setArchivingRole(false);
     }
@@ -306,9 +331,10 @@ export default function AdminCastingPage() {
       await restoreRole(roleId);
       alert(`Role "${roleName}" restored successfully!`);
       await fetchData();
-    } catch (error: any) {
-      console.error("Error restoring role:", error);
-      alert(error.message || "Failed to restore role. Please try again.");
+    } catch (error: unknown) {
+      logger.error("Error restoring role:", error);
+      const message = error instanceof Error ? error.message : "Failed to restore role. Please try again.";
+      alert(message);
     }
   };
 
@@ -386,6 +412,14 @@ export default function AdminCastingPage() {
                 .filter(p => showArchived ? p.status === "archived" : p.status !== "archived")
                 .map((project) => {
                 const projectRoles = roles.filter((r) => r.projectId === project.id);
+                const activeRoles = projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually);
+
+                // DEBUG: Log for each project
+                logger.debug(`🔍 Project: "${project.title}" | Status: ${project.status} | Total Roles: ${projectRoles.length} | Active: ${activeRoles.length}`);
+                if (projectRoles.length > 0) {
+                  logger.debug("  First role:", projectRoles[0]);
+                }
+
                 return (
                   <div
                     key={project.id}
@@ -455,13 +489,13 @@ export default function AdminCastingPage() {
                     </div>
 
                     {/* Active Roles List */}
-                    {projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).length > 0 && (
+                    {projectRoles.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-accent/10">
                         <h4 className="text-sm font-semibold text-secondary mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Active Roles ({projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).length}):
+                          Active Roles ({projectRoles.length}): {projectRoles.filter(r => r.archivedWithProject || r.archivedIndividually).length > 0 && <span className="text-red-500 text-xs">(Some roles have archive flags - check Firestore!)</span>}
                         </h4>
                         <div className="space-y-2">
-                          {projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually).map((role) => {
+                          {projectRoles.map((role) => {
                             const roleBookings = bookings.filter((b) => b.roleId === role.id);
                             return (
                               <div
@@ -484,7 +518,7 @@ export default function AdminCastingPage() {
                                       )}
                                     </div>
                                     <div className="flex gap-4 text-xs text-secondary-light mb-2">
-                                      <span>Date: {role.date}</span>
+                                      <span>Dates: {role.bookingDates.join(", ")}</span>
                                       <span>•</span>
                                       <span>Location: {role.location}</span>
                                       <span>•</span>
@@ -572,7 +606,7 @@ export default function AdminCastingPage() {
                                       <Badge variant="default">Archived</Badge>
                                     </div>
                                     <div className="flex gap-4 text-xs text-secondary-light mb-2">
-                                      <span>Date: {role.date}</span>
+                                      <span>Dates: {role.bookingDates.join(", ")}</span>
                                       <span>•</span>
                                       <span>Location: {role.location}</span>
                                       <span>•</span>
@@ -700,7 +734,7 @@ function ProjectForm({
           name: r.name,
           requirements: r.requirements,
           rate: r.rate,
-          date: r.date,
+          bookingDates: r.bookingDates, // Already migrated by the fetch logic
           location: r.location,
           bookingStatus: r.bookingStatus,
           additionalNotes: r.additionalNotes || "",
@@ -711,7 +745,7 @@ function ProjectForm({
             name: "",
             requirements: "",
             rate: "",
-            date: "",
+            bookingDates: [""], // Start with one empty date
             location: "",
             bookingStatus: "booking" as const,
             additionalNotes: "",
@@ -733,7 +767,7 @@ function ProjectForm({
         name: "",
         requirements: "",
         rate: "",
-        date: "",
+        bookingDates: [""], // Start with one empty date
         location: "",
         bookingStatus: "booking" as const,
         additionalNotes: "",
@@ -748,7 +782,31 @@ function ProjectForm({
     }
   };
 
-  const updateRole = (index: number, field: keyof RoleFormData, value: any) => {
+  // Add a new booking date to a specific role
+  const addBookingDate = (roleIndex: number) => {
+    const updatedRoles = [...roles];
+    updatedRoles[roleIndex].bookingDates.push("");
+    setRoles(updatedRoles);
+  };
+
+  // Remove a specific booking date from a role
+  const removeBookingDate = (roleIndex: number, dateIndex: number) => {
+    const updatedRoles = [...roles];
+    // Ensure at least one date field remains
+    if (updatedRoles[roleIndex].bookingDates.length > 1) {
+      updatedRoles[roleIndex].bookingDates.splice(dateIndex, 1);
+      setRoles(updatedRoles);
+    }
+  };
+
+  // Update a specific booking date
+  const updateBookingDate = (roleIndex: number, dateIndex: number, value: string) => {
+    const updatedRoles = [...roles];
+    updatedRoles[roleIndex].bookingDates[dateIndex] = value;
+    setRoles(updatedRoles);
+  };
+
+  const updateRole = (index: number, field: keyof RoleFormData, value: string | "booking" | "booked") => {
     const newRoles = [...roles];
     newRoles[index] = { ...newRoles[index], [field]: value };
     setRoles(newRoles);
@@ -787,20 +845,20 @@ function ProjectForm({
       // Update role with image URL
       updateRole(index, 'referenceImageUrl', downloadURL);
 
-      console.log(`✅ File uploaded successfully for role ${index + 1}`);
+      logger.debug(`✅ File uploaded successfully for role ${index + 1}`);
     } catch (error) {
-      console.error('Error uploading file:', error);
+      logger.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
     } finally {
       setUploadingFiles(prev => ({ ...prev, [index]: false }));
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Partial<Project>) => {
     // Validate roles
-    const invalidRoles = roles.filter((r) => !r.name || !r.requirements || !r.rate || !r.date || !r.location);
+    const invalidRoles = roles.filter((r) => !r.name || !r.requirements || !r.rate || !r.bookingDates || r.bookingDates.length === 0 || r.bookingDates.some(d => !d) || !r.location);
     if (invalidRoles.length > 0) {
-      alert("Please fill in all role fields");
+      alert("Please fill in all role fields (each role must have at least one booking date)");
       return;
     }
 
@@ -831,7 +889,7 @@ function ProjectForm({
             name: role.name,
             requirements: role.requirements,
             rate: role.rate,
-            date: role.date,
+            bookingDates: role.bookingDates,
             location: role.location,
             bookingStatus: role.bookingStatus,
             additionalNotes: role.additionalNotes || "",
@@ -862,7 +920,7 @@ function ProjectForm({
             name: role.name,
             requirements: role.requirements,
             rate: role.rate,
-            date: role.date,
+            bookingDates: role.bookingDates,
             location: role.location,
             bookingStatus: role.bookingStatus,
             additionalNotes: role.additionalNotes || "",
@@ -875,7 +933,7 @@ function ProjectForm({
 
       onSave();
     } catch (error) {
-      console.error("Error saving project:", error);
+      logger.error("Error saving project:", error);
       alert("Failed to save project");
     } finally {
       setIsSubmitting(false);
@@ -1076,15 +1134,79 @@ function ProjectForm({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <DatePicker
-                  label="Date"
-                  value={role.date}
-                  onChange={(value) => updateRole(index, "date", value)}
-                  name={`role-${index}-date`}
-                  placeholder="Select date"
-                />
+              {/* Booking Dates - Multiple dates support */}
+              <div>
+                <label
+                  className="block text-sm font-medium text-secondary mb-2"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  Booking Dates *
+                </label>
 
+                <div className="space-y-3">
+                  {role.bookingDates.map((date, dateIndex) => (
+                    <div key={dateIndex} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <DatePicker
+                          value={date}
+                          onChange={(value) => updateBookingDate(index, dateIndex, value)}
+                          name={`role-${index}-date-${dateIndex}`}
+                          placeholder="Select booking date"
+                        />
+                      </div>
+
+                      {/* Remove Date Button - Only show if more than 1 date */}
+                      {role.bookingDates.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeBookingDate(index, dateIndex)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove this date"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add Booking Date Button */}
+                  <button
+                    type="button"
+                    onClick={() => addBookingDate(index)}
+                    className="w-full py-2 px-4 border-2 border-dashed border-accent/40 rounded-lg text-accent hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
+                    style={{ fontFamily: "var(--font-outfit)" }}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Add Booking Date
+                  </button>
+                </div>
+              </div>
+
+              <div>
                 <Input
                   label="Location"
                   value={role.location}

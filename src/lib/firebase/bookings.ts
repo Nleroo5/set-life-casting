@@ -19,6 +19,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "./config";
+import { logger } from "@/lib/logger";
 import type {
   Booking,
   Submission,
@@ -101,7 +102,7 @@ export async function createBooking(
 
     return docRef.id;
   } catch (error) {
-    console.error("Error creating booking:", error);
+    logger.error("Error creating booking:", error);
     throw error; // Re-throw to preserve error message
   }
 }
@@ -151,7 +152,7 @@ export async function createBookingsBatch(
 
     // If there are duplicates, warn but continue with valid ones
     if (duplicates.length > 0) {
-      console.warn("Skipped duplicate bookings:", duplicates);
+      logger.warn("Skipped duplicate bookings:", duplicates);
     }
 
     if (validSubmissions.length === 0) {
@@ -198,7 +199,7 @@ export async function createBookingsBatch(
     await batch.commit();
     return bookingIds;
   } catch (error) {
-    console.error("Error creating bookings batch:", error);
+    logger.error("Error creating bookings batch:", error);
     throw error; // Re-throw to preserve error message
   }
 }
@@ -229,7 +230,7 @@ export async function getBookingsByProject(projectId: string): Promise<Booking[]
       talentConfirmedAt: doc.data().talentConfirmedAt?.toDate?.() || doc.data().talentConfirmedAt,
     })) as Booking[];
   } catch (error) {
-    console.error("Error fetching bookings by project:", error);
+    logger.error("Error fetching bookings by project:", error);
     throw new Error("Failed to fetch bookings");
   }
 }
@@ -256,7 +257,7 @@ export async function getBookingsByRole(roleId: string): Promise<Booking[]> {
       talentConfirmedAt: doc.data().talentConfirmedAt?.toDate?.() || doc.data().talentConfirmedAt,
     })) as Booking[];
   } catch (error) {
-    console.error("Error fetching bookings by role:", error);
+    logger.error("Error fetching bookings by role:", error);
     throw new Error("Failed to fetch bookings");
   }
 }
@@ -266,21 +267,21 @@ export async function getBookingsByRole(roleId: string): Promise<Booking[]> {
  */
 export async function getBookingsByRoles(roleIds: string[]): Promise<Booking[]> {
   try {
-    console.log("🔍 getBookingsByRoles called with roleIds:", roleIds);
+    logger.debug("🔍 getBookingsByRoles called with roleIds:", roleIds);
 
     if (roleIds.length === 0) {
-      console.log("⚠️ No roleIds provided, returning empty array");
+      logger.debug("⚠️ No roleIds provided, returning empty array");
       return [];
     }
 
     // DEBUG: First, let's fetch ALL bookings to see what's in the database
-    console.log("🔬 DEBUG: Fetching ALL bookings to compare roleIds...");
+    logger.debug("🔬 DEBUG: Fetching ALL bookings to compare roleIds...");
     const allBookingsSnapshot = await getDocs(collection(db, BOOKINGS_COLLECTION));
-    console.log(`🔬 DEBUG: Found ${allBookingsSnapshot.docs.length} total bookings in database`);
+    logger.debug(`🔬 DEBUG: Found ${allBookingsSnapshot.docs.length} total bookings in database`);
 
     allBookingsSnapshot.docs.forEach((doc) => {
       const data = doc.data();
-      console.log(`🔬 DEBUG: Booking ${doc.id}:`, {
+      logger.debug(`🔬 DEBUG: Booking ${doc.id}:`, {
         roleId: data.roleId,
         roleIdType: typeof data.roleId,
         roleIdValue: JSON.stringify(data.roleId),
@@ -289,7 +290,7 @@ export async function getBookingsByRoles(roleIds: string[]): Promise<Booking[]> 
       });
     });
 
-    console.log("🔬 DEBUG: Looking for roleIds:", roleIds.map((id) => `"${id}" (type: ${typeof id})`));
+    logger.debug("🔬 DEBUG: Looking for roleIds:", roleIds.map((id) => `"${id}" (type: ${typeof id})`));
 
     // Firestore 'in' queries are limited to 10 items
     // For more than 10 roles, we need to batch the queries
@@ -297,7 +298,7 @@ export async function getBookingsByRoles(roleIds: string[]): Promise<Booking[]> 
 
     for (let i = 0; i < roleIds.length; i += 10) {
       const batch = roleIds.slice(i, i + 10);
-      console.log(`🔎 Querying batch ${i / 10 + 1}: roleIds =`, batch);
+      logger.debug(`🔎 Querying batch ${i / 10 + 1}: roleIds =`, batch);
 
       const q = query(
         collection(db, BOOKINGS_COLLECTION),
@@ -307,11 +308,11 @@ export async function getBookingsByRoles(roleIds: string[]): Promise<Booking[]> 
       );
 
       const snapshot = await getDocs(q);
-      console.log(`📦 Found ${snapshot.docs.length} documents in batch ${i / 10 + 1}`);
+      logger.debug(`📦 Found ${snapshot.docs.length} documents in batch ${i / 10 + 1}`);
 
       // Log raw data for debugging
       snapshot.docs.forEach((doc) => {
-        console.log(`  - Document ${doc.id}:`, {
+        logger.debug(`  - Document ${doc.id}:`, {
           roleId: doc.data().roleId,
           userId: doc.data().userId,
           talentName: `${doc.data().talentProfile?.basicInfo?.firstName} ${doc.data().talentProfile?.basicInfo?.lastName}`,
@@ -331,10 +332,10 @@ export async function getBookingsByRoles(roleIds: string[]): Promise<Booking[]> 
       bookings.push(...batchBookings);
     }
 
-    console.log(`✅ Total bookings found: ${bookings.length}`);
+    logger.debug(`✅ Total bookings found: ${bookings.length}`);
     return bookings;
   } catch (error) {
-    console.error("❌ Error fetching bookings by roles:", error);
+    logger.error("❌ Error fetching bookings by roles:", error);
     throw new Error("Failed to fetch bookings");
   }
 }
@@ -362,7 +363,7 @@ export async function getBookingById(bookingId: string): Promise<Booking | null>
       talentConfirmedAt: data.talentConfirmedAt?.toDate?.() || data.talentConfirmedAt,
     } as Booking;
   } catch (error) {
-    console.error("Error fetching booking:", error);
+    logger.error("Error fetching booking:", error);
     throw new Error("Failed to fetch booking");
   }
 }
@@ -384,7 +385,7 @@ export async function updateBookingStatus(
       updatedAt: new Date(),
     });
   } catch (error) {
-    console.error("Error updating booking status:", error);
+    logger.error("Error updating booking status:", error);
     throw new Error("Failed to update booking status");
   }
 }
@@ -402,7 +403,7 @@ export async function updateBooking(
       updatedAt: new Date(),
     });
   } catch (error) {
-    console.error("Error updating booking:", error);
+    logger.error("Error updating booking:", error);
     throw new Error("Failed to update booking");
   }
 }
@@ -418,7 +419,7 @@ export async function markTalentNotified(bookingId: string): Promise<void> {
       updatedAt: new Date(),
     });
   } catch (error) {
-    console.error("Error marking talent as notified:", error);
+    logger.error("Error marking talent as notified:", error);
     throw new Error("Failed to mark talent as notified");
   }
 }
@@ -435,7 +436,7 @@ export async function markTalentConfirmed(bookingId: string): Promise<void> {
       updatedAt: new Date(),
     });
   } catch (error) {
-    console.error("Error marking talent as confirmed:", error);
+    logger.error("Error marking talent as confirmed:", error);
     throw new Error("Failed to mark talent as confirmed");
   }
 }
@@ -468,7 +469,7 @@ export async function deleteBooking(bookingId: string): Promise<void> {
 
     await batch.commit();
   } catch (error) {
-    console.error("Error deleting booking:", error);
+    logger.error("Error deleting booking:", error);
     throw new Error("Failed to delete booking");
   }
 }
@@ -492,7 +493,7 @@ export async function deleteBookingsByRole(roleId: string): Promise<void> {
 
     await batch.commit();
   } catch (error) {
-    console.error("Error deleting bookings by role:", error);
+    logger.error("Error deleting bookings by role:", error);
     throw new Error("Failed to delete bookings");
   }
 }
@@ -514,7 +515,7 @@ export async function isSubmissionBooked(submissionId: string): Promise<boolean>
     const snapshot = await getDocs(q);
     return !snapshot.empty;
   } catch (error) {
-    console.error("Error checking if submission is booked:", error);
+    logger.error("Error checking if submission is booked:", error);
     return false;
   }
 }
@@ -542,7 +543,7 @@ export async function isUserBookedForRole(userId: string, roleId: string): Promi
 
     return hasActiveBooking;
   } catch (error) {
-    console.error("Error checking if user is booked for role:", error);
+    logger.error("Error checking if user is booked for role:", error);
     return false;
   }
 }
@@ -555,7 +556,7 @@ export async function getBookingCountForRole(roleId: string): Promise<number> {
     const bookings = await getBookingsByRole(roleId);
     return bookings.filter((b) => b.status !== "cancelled").length;
   } catch (error) {
-    console.error("Error getting booking count:", error);
+    logger.error("Error getting booking count:", error);
     return 0;
   }
 }

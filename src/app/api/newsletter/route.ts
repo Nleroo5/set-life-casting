@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('MailerLite error:', data);
+      logger.error('MailerLite error:', data);
 
       // Handle duplicate email gracefully
       if (response.status === 422 && data.message?.includes('already exists')) {
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
+    logger.error('Newsletter subscription error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

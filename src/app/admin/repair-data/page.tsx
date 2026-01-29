@@ -12,6 +12,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { logger } from "@/lib/logger";
 
 interface OrphanedDocument {
   id: string;
@@ -52,7 +53,7 @@ export default function DataRepairPage() {
     setMappings([]);
 
     try {
-      console.log("🔍 Scanning for orphaned documents...");
+      logger.debug("🔍 Scanning for orphaned documents...");
 
       // Get all active roles
       const rolesSnapshot = await getDocs(collection(db, "roles"));
@@ -64,13 +65,13 @@ export default function DataRepairPage() {
       }));
 
       setCurrentRoles(rolesData);
-      console.log(`✅ Found ${activeRoleIds.size} active roles`);
+      logger.debug(`✅ Found ${activeRoleIds.size} active roles`);
 
       const orphaned: OrphanedDocument[] = [];
 
       // Check bookings
       const bookingsSnapshot = await getDocs(collection(db, "bookings"));
-      console.log(`📦 Checking ${bookingsSnapshot.docs.length} bookings...`);
+      logger.debug(`📦 Checking ${bookingsSnapshot.docs.length} bookings...`);
 
       bookingsSnapshot.docs.forEach((docSnap) => {
         const data = docSnap.data();
@@ -88,7 +89,7 @@ export default function DataRepairPage() {
 
       // Check submissions
       const submissionsSnapshot = await getDocs(collection(db, "submissions"));
-      console.log(`📦 Checking ${submissionsSnapshot.docs.length} submissions...`);
+      logger.debug(`📦 Checking ${submissionsSnapshot.docs.length} submissions...`);
 
       submissionsSnapshot.docs.forEach((docSnap) => {
         const data = docSnap.data();
@@ -104,7 +105,7 @@ export default function DataRepairPage() {
         }
       });
 
-      console.log(`⚠️  Found ${orphaned.length} orphaned documents`);
+      logger.debug(`⚠️  Found ${orphaned.length} orphaned documents`);
       setOrphanedDocs(orphaned);
       setScanComplete(true);
 
@@ -125,7 +126,7 @@ export default function DataRepairPage() {
               newRoleId: matchingRole.id,
               roleName: orphan.roleName,
             });
-            console.log(
+            logger.debug(
               `🔗 Auto-mapped: "${orphan.roleName}" ${orphan.roleId} → ${matchingRole.id}`
             );
           }
@@ -134,7 +135,7 @@ export default function DataRepairPage() {
 
       setMappings(autoMappings);
     } catch (error) {
-      console.error("Error scanning:", error);
+      logger.error("Error scanning:", error);
       alert("Failed to scan database");
     } finally {
       setScanning(false);
@@ -179,14 +180,14 @@ export default function DataRepairPage() {
     setRepairing(true);
 
     try {
-      console.log("🚀 Starting data repair...");
+      logger.debug("🚀 Starting data repair...");
 
       const batch = writeBatch(db);
       let bookingsUpdated = 0;
       let submissionsUpdated = 0;
 
       for (const mapping of mappings) {
-        console.log(`\n🔧 Applying mapping: ${mapping.oldRoleId} → ${mapping.newRoleId}`);
+        logger.debug(`\n🔧 Applying mapping: ${mapping.oldRoleId} → ${mapping.newRoleId}`);
 
         // Update bookings
         const bookingsSnapshot = await getDocs(collection(db, "bookings"));
@@ -198,7 +199,7 @@ export default function DataRepairPage() {
               updatedAt: new Date(),
             });
             bookingsUpdated++;
-            console.log(`  ✅ Queued booking update: ${docSnap.id}`);
+            logger.debug(`  ✅ Queued booking update: ${docSnap.id}`);
           }
         });
 
@@ -212,15 +213,15 @@ export default function DataRepairPage() {
               updatedAt: new Date(),
             });
             submissionsUpdated++;
-            console.log(`  ✅ Queued submission update: ${docSnap.id}`);
+            logger.debug(`  ✅ Queued submission update: ${docSnap.id}`);
           }
         });
       }
 
       await batch.commit();
 
-      console.log(`\n✅ Updated ${bookingsUpdated} bookings`);
-      console.log(`✅ Updated ${submissionsUpdated} submissions`);
+      logger.debug(`\n✅ Updated ${bookingsUpdated} bookings`);
+      logger.debug(`✅ Updated ${submissionsUpdated} submissions`);
 
       alert(
         `Data repair complete!\n\n` +
@@ -234,7 +235,7 @@ export default function DataRepairPage() {
       setMappings([]);
       setScanComplete(false);
     } catch (error) {
-      console.error("Error repairing data:", error);
+      logger.error("Error repairing data:", error);
       alert("Failed to repair data. Check console for details.");
     } finally {
       setRepairing(false);

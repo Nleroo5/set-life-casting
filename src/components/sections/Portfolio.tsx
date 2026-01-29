@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { logger } from "@/lib/logger";
 
 const projects = [
   {
@@ -137,7 +138,7 @@ export default function Portfolio() {
     }
     // Debug: Log the center card on initial load
     if (currentIndex === projects.length && cards[1]) {
-      console.log('Center poster on load:', cards[1].image.split('/').pop());
+      logger.debug('Center poster on load:', cards[1].image.split('/').pop());
     }
     return cards;
   };

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { resendVerificationEmail } from "@/lib/firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "./Button";
+import { logger } from "@/lib/logger";
 
 export default function EmailVerificationBanner() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function EmailVerificationBanner() {
       await resendVerificationEmail(user);
       setMessage("Verification email sent! Please check your inbox.");
     } catch (error) {
-      console.error("Error sending verification email:", error);
+      logger.error("Error sending verification email:", error);
       setMessage("Failed to send email. Please try again later.");
     } finally {
       setSending(false);

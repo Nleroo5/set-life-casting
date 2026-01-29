@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+import { logger } from "@/lib/logger";
 
 interface TalentProfile {
   id: string;
@@ -131,7 +132,7 @@ export default function TalentDatabasePage() {
 
       setTalents(talentsData);
     } catch (error) {
-      console.error("Error fetching talents:", error);
+      logger.error("Error fetching talents:", error);
     } finally {
       setLoading(false);
     }
@@ -668,9 +669,9 @@ export default function TalentDatabasePage() {
               // Handle both nested and direct array structure
               const photoArray = Array.isArray(talent.photos)
                 ? talent.photos
-                : (talent.photos as any)?.photos;
+                : (talent.photos as { photos: Array<{ url: string; type: string }> })?.photos;
 
-              const headshotPhoto = photoArray?.find?.((p: any) => p.type === "headshot");
+              const headshotPhoto = photoArray?.find?.((p) => p.type === "headshot");
               const photoUrl = headshotPhoto?.url || photoArray?.[0]?.url;
               const age = calculateAge(talent.appearance.dateOfBirth);
 

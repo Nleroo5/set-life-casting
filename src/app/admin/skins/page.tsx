@@ -11,6 +11,7 @@ import Input from "@/components/ui/Input";
 import Badge from "@/components/ui/Badge";
 import * as XLSX from "exceljs";
 import type { Booking } from "@/types/booking";
+import { logger } from "@/lib/logger";
 
 interface Project {
   id: string;
@@ -110,7 +111,7 @@ export default function SkinsBuilderPage() {
       })) as Project[];
       setProjects(projectsList);
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      logger.error("Error fetching projects:", error);
     }
   }
 
@@ -129,7 +130,7 @@ export default function SkinsBuilderPage() {
       })) as Role[];
       setRoles(rolesList);
     } catch (error) {
-      console.error("Error fetching roles:", error);
+      logger.error("Error fetching roles:", error);
     }
   }
 
@@ -153,10 +154,10 @@ export default function SkinsBuilderPage() {
       // Filter out cancelled bookings
       const activeBookings = bookingsList.filter(b => b.status !== "cancelled");
 
-      console.log(`✅ Fetched ${activeBookings.length} active bookings for project`);
+      logger.debug(`✅ Fetched ${activeBookings.length} active bookings for project`);
       setBookings(activeBookings);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
+      logger.error("Error fetching bookings:", error);
     }
   }
 
@@ -166,29 +167,29 @@ export default function SkinsBuilderPage() {
       return;
     }
 
-    console.log("🎬 Adding role to skin:", selectedRoleId);
-    console.log("📋 Available bookings:", bookings.length);
-    console.log("📋 Bookings roleIds:", bookings.map(b => `${b.roleId} (${b.talentProfile?.basicInfo?.firstName})`));
+    logger.debug("🎬 Adding role to skin:", selectedRoleId);
+    logger.debug("📋 Available bookings:", bookings.length);
+    logger.debug("📋 Bookings roleIds:", bookings.map(b => `${b.roleId} (${b.talentProfile?.basicInfo?.firstName})`));
 
     // Find the role
     const role = roles.find(r => r.id === selectedRoleId);
     if (!role) {
-      console.error("❌ Role not found:", selectedRoleId);
+      logger.error("❌ Role not found:", selectedRoleId);
       return;
     }
 
-    console.log("✅ Role found:", role.name);
+    logger.debug("✅ Role found:", role.name);
 
     // Find the booking for this role
     const booking = bookings.find(b => b.roleId === selectedRoleId);
     if (!booking) {
-      console.error("❌ No booking found for roleId:", selectedRoleId);
-      console.error("Available roleIds in bookings:", bookings.map(b => b.roleId));
+      logger.error("❌ No booking found for roleId:", selectedRoleId);
+      logger.error("Available roleIds in bookings:", bookings.map(b => b.roleId));
       alert("No talent booked for this role. Please book talent from the Submissions page first.");
       return;
     }
 
-    console.log("✅ Booking found:", booking.talentProfile?.basicInfo?.firstName, booking.talentProfile?.basicInfo?.lastName);
+    logger.debug("✅ Booking found:", booking.talentProfile?.basicInfo?.firstName, booking.talentProfile?.basicInfo?.lastName);
 
     // Check if role already added
     if (skinRoles.some(sr => sr.role.id === selectedRoleId)) {
@@ -207,7 +208,7 @@ export default function SkinsBuilderPage() {
 
     setSkinRoles([...skinRoles, newSkinRole]);
     setSelectedRoleId(""); // Reset selection
-    console.log("✅ Role added to skin successfully");
+    logger.debug("✅ Role added to skin successfully");
   }
 
   function removeRoleFromSkin(skinRoleId: string) {
@@ -336,7 +337,7 @@ export default function SkinsBuilderPage() {
         // ✅ Convert ethnicity to code (C, A, AA, H, O)
         const ethCode = getEthnicityCode(ethnicity);
 
-        console.log(`📋 Ethnicity for ${profile?.basicInfo?.firstName}:`, {
+        logger.debug(`📋 Ethnicity for ${profile?.basicInfo?.firstName}:`, {
           physical: profile?.physical?.ethnicity,
           appearance: (profile as any)?.appearance?.ethnicity,
           code: ethCode
@@ -353,7 +354,7 @@ export default function SkinsBuilderPage() {
           sexValue = gender.charAt(0).toUpperCase();
         }
 
-        console.log(`👤 Gender for ${profile?.basicInfo?.firstName}:`, {
+        logger.debug(`👤 Gender for ${profile?.basicInfo?.firstName}:`, {
           physical: profile?.physical?.gender,
           appearance: (profile as any)?.appearance?.gender,
           final: sexValue
@@ -427,9 +428,9 @@ export default function SkinsBuilderPage() {
           ext: { width: 180, height: 80 },
         });
 
-        console.log(`✅ Logo at image row ${logoRowIndex}, table ends at sheet row ${lastTableRow}`);
+        logger.debug(`✅ Logo at image row ${logoRowIndex}, table ends at sheet row ${lastTableRow}`);
       } catch (error) {
-        console.error("❌ Logo error:", error);
+        logger.error("❌ Logo error:", error);
         const fallbackCell = worksheet.getCell(`E${lastTableRow + 5}`);
         fallbackCell.value = "SET LIFE CASTING";
         fallbackCell.font = { bold: true, size: 14, color: { argb: `FF${brandGray}` } };
@@ -460,7 +461,7 @@ export default function SkinsBuilderPage() {
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Export error:", error);
+      logger.error("Export error:", error);
       alert("Failed to export. Please try again.");
     } finally {
       setIsExporting(false);

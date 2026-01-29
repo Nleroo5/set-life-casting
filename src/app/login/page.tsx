@@ -10,6 +10,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { signInWithEmail } from "@/lib/firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { validateRedirectUrl } from "@/lib/utils/redirect";
+import { logger } from "@/lib/logger";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,7 +30,7 @@ function LoginForm() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
 
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const redirectTo = validateRedirectUrl(searchParams.get("redirect"), "/dashboard");
 
   const {
     register,
@@ -59,14 +61,19 @@ function LoginForm() {
       await signInWithEmail(data.email, data.password);
       // Don't redirect here - let the useEffect handle it
       // This prevents race conditions with the isAdmin flag
-    } catch (err: any) {
-      console.error("Login error:", err);
-      if (err.code === "auth/invalid-credential") {
-        setError("Invalid email or password");
-      } else if (err.code === "auth/user-not-found") {
-        setError("No account found with this email");
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password");
+    } catch (err: unknown) {
+      logger.error("Login error:", err);
+      if (err && typeof err === "object" && "code" in err) {
+        const errorCode = (err as { code: string }).code;
+        if (errorCode === "auth/invalid-credential") {
+          setError("Invalid email or password");
+        } else if (errorCode === "auth/user-not-found") {
+          setError("No account found with this email");
+        } else if (errorCode === "auth/wrong-password") {
+          setError("Incorrect password");
+        } else {
+          setError("Failed to sign in. Please try again.");
+        }
       } else {
         setError("Failed to sign in. Please try again.");
       }
@@ -96,9 +103,10 @@ function LoginForm() {
 
       setResetSuccess(true);
       setResetEmail("");
-    } catch (err: any) {
-      console.error("Password reset error:", err);
-      setError(err.message || "Failed to send reset email. Please try again.");
+    } catch (err: unknown) {
+      logger.error("Password reset error:", err);
+      const message = err instanceof Error ? err.message : "Failed to send reset email. Please try again.";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
