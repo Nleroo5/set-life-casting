@@ -91,12 +91,19 @@ export default function TalentDetailPage() {
       const profileDoc = await getDoc(doc(db, "profiles", userId));
       if (profileDoc.exists()) {
         const data = profileDoc.data();
-        setTalent({
-          id: profileDoc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          status: data.status || "active",
-        } as TalentProfile);
+
+        // Validate critical data before setting talent
+        if (!data.basicInfo || !data.appearance) {
+          logger.error(`Profile ${userId} missing critical data`);
+          setTalent(null);
+        } else {
+          setTalent({
+            id: profileDoc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            status: data.status || "active",
+          } as TalentProfile);
+        }
       }
 
       // Fetch submissions
@@ -288,7 +295,7 @@ export default function TalentDetailPage() {
     );
   }
 
-  const age = calculateAge(talent.appearance.dateOfBirth);
+  const age = talent.appearance?.dateOfBirth ? calculateAge(talent.appearance.dateOfBirth) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
@@ -300,17 +307,17 @@ export default function TalentDetailPage() {
               className="text-3xl md:text-4xl font-bold text-secondary mb-2"
               style={{ fontFamily: "var(--font-galindo)" }}
             >
-              {talent.basicInfo.firstName}{" "}
+              {talent.basicInfo?.firstName || 'Unknown'}{" "}
               <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {talent.basicInfo.lastName}
+                {talent.basicInfo?.lastName || ''}
               </span>
             </h1>
             <p
               className="text-base text-secondary-light"
               style={{ fontFamily: "var(--font-outfit)" }}
             >
-              {talent.appearance.gender} • {age} years old •{" "}
-              {talent.basicInfo.city}, {talent.basicInfo.state}
+              {talent.appearance?.gender || 'N/A'} {age !== null && `• ${age} years old`} •{" "}
+              {talent.basicInfo?.city || 'Unknown'}, {talent.basicInfo?.state || ''}
             </p>
           </div>
           <div className="flex gap-3">
@@ -537,19 +544,19 @@ export default function TalentDetailPage() {
                 Contact Information
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
-                <DetailItem label="Email" value={talent.basicInfo.email} />
-                <DetailItem label="Phone" value={talent.basicInfo.phone} />
+                <DetailItem label="Email" value={talent.basicInfo?.email || 'N/A'} />
+                <DetailItem label="Phone" value={talent.basicInfo?.phone || 'N/A'} />
                 <DetailItem
                   label="Location"
-                  value={`${talent.basicInfo.city}, ${talent.basicInfo.state}`}
+                  value={`${talent.basicInfo?.city || 'Unknown'}, ${talent.basicInfo?.state || ''}`}
                 />
                 <DetailItem
                   label="Profile Created"
-                  value={talent.createdAt.toLocaleDateString("en-US", {
+                  value={talent.createdAt?.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
-                  })}
+                  }) || 'N/A'}
                 />
               </div>
             </div>
@@ -563,23 +570,25 @@ export default function TalentDetailPage() {
                 Appearance
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
-                <DetailItem label="Gender" value={talent.appearance.gender} />
-                <DetailItem label="Age" value={`${age} years`} />
-                <DetailItem
-                  label="Date of Birth"
-                  value={new Date(talent.appearance.dateOfBirth).toLocaleDateString()}
-                />
+                <DetailItem label="Gender" value={talent.appearance?.gender || 'N/A'} />
+                {age !== null && <DetailItem label="Age" value={`${age} years`} />}
+                {talent.appearance?.dateOfBirth && (
+                  <DetailItem
+                    label="Date of Birth"
+                    value={new Date(talent.appearance.dateOfBirth).toLocaleDateString()}
+                  />
+                )}
                 <DetailItem
                   label="Ethnicity"
-                  value={talent.appearance.ethnicity.join(", ")}
+                  value={talent.appearance?.ethnicity?.join(", ") || 'N/A'}
                 />
-                <DetailItem label="Height" value={talent.appearance.height} />
-                <DetailItem label="Weight" value={`${talent.appearance.weight} lbs`} />
+                <DetailItem label="Height" value={talent.appearance?.height || 'N/A'} />
+                <DetailItem label="Weight" value={talent.appearance?.weight ? `${talent.appearance.weight} lbs` : 'N/A'} />
                 <DetailItem
                   label="Hair"
-                  value={`${talent.appearance.hairColor} (${talent.appearance.hairLength})`}
+                  value={talent.appearance?.hairColor && talent.appearance?.hairLength ? `${talent.appearance.hairColor} (${talent.appearance.hairLength})` : 'N/A'}
                 />
-                <DetailItem label="Eyes" value={talent.appearance.eyeColor} />
+                <DetailItem label="Eyes" value={talent.appearance?.eyeColor || 'N/A'} />
               </div>
             </div>
 
@@ -592,21 +601,25 @@ export default function TalentDetailPage() {
                 Sizes
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
-                <DetailItem label="Shirt Size" value={talent.sizes.shirtSize} />
-                <DetailItem
-                  label="Pants"
-                  value={`Waist: ${talent.sizes.pantsWaist}" / Inseam: ${talent.sizes.pantsInseam}"`}
-                />
-                {talent.sizes.dressSize && (
+                <DetailItem label="Shirt Size" value={talent.sizes?.shirtSize || 'N/A'} />
+                {(talent.sizes?.pantsWaist || talent.sizes?.pantsInseam) && (
+                  <DetailItem
+                    label="Pants"
+                    value={`Waist: ${talent.sizes?.pantsWaist || 'N/A'}" / Inseam: ${talent.sizes?.pantsInseam || 'N/A'}"`}
+                  />
+                )}
+                {talent.sizes?.dressSize && (
                   <DetailItem label="Dress Size" value={talent.sizes.dressSize} />
                 )}
-                {talent.sizes.suitSize && (
+                {talent.sizes?.suitSize && (
                   <DetailItem label="Suit Size" value={talent.sizes.suitSize} />
                 )}
-                <DetailItem
-                  label="Shoe Size"
-                  value={`${talent.sizes.shoeSize} (${talent.sizes.shoeSizeGender})`}
-                />
+                {(talent.sizes?.shoeSize || talent.sizes?.shoeSizeGender) && (
+                  <DetailItem
+                    label="Shoe Size"
+                    value={`${talent.sizes?.shoeSize || 'N/A'} (${talent.sizes?.shoeSizeGender || 'N/A'})`}
+                  />
+                )}
               </div>
             </div>
 
@@ -621,10 +634,10 @@ export default function TalentDetailPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <DetailItem
                   label="Visible Tattoos"
-                  value={talent.details.visibleTattoos ? "Yes" : "No"}
+                  value={talent.details?.visibleTattoos ? "Yes" : "No"}
                 />
-                {talent.details.visibleTattoos &&
-                  talent.details.tattoosDescription && (
+                {talent.details?.visibleTattoos &&
+                  talent.details?.tattoosDescription && (
                     <DetailItem
                       label="Tattoos Description"
                       value={talent.details.tattoosDescription}
@@ -632,15 +645,15 @@ export default function TalentDetailPage() {
                   )}
                 <DetailItem
                   label="Piercings (other than ears)"
-                  value={talent.details.piercings ? "Yes" : "No"}
+                  value={talent.details?.piercings ? "Yes" : "No"}
                 />
-                {talent.details.piercings && talent.details.piercingsDescription && (
+                {talent.details?.piercings && talent.details?.piercingsDescription && (
                   <DetailItem
                     label="Piercings Description"
                     value={talent.details.piercingsDescription}
                   />
                 )}
-                <DetailItem label="Facial Hair" value={talent.details.facialHair} />
+                <DetailItem label="Facial Hair" value={talent.details?.facialHair || 'N/A'} />
               </div>
             </div>
 

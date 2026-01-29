@@ -101,6 +101,13 @@ export default function TalentDatabasePage() {
       const talentsData: TalentProfile[] = [];
       profilesSnapshot.forEach((doc) => {
         const data = doc.data();
+
+        // Skip profiles with missing critical data
+        if (!data.basicInfo || !data.appearance) {
+          logger.warn(`Skipping profile ${doc.id} with missing critical data`);
+          return;
+        }
+
         talentsData.push({
           id: doc.id,
           ...data,
@@ -151,10 +158,10 @@ export default function TalentDatabasePage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (t) =>
-          t.basicInfo.firstName.toLowerCase().includes(query) ||
-          t.basicInfo.lastName.toLowerCase().includes(query) ||
-          t.basicInfo.email.toLowerCase().includes(query) ||
-          `${t.basicInfo.city}, ${t.basicInfo.state}`.toLowerCase().includes(query)
+          t.basicInfo?.firstName?.toLowerCase().includes(query) ||
+          t.basicInfo?.lastName?.toLowerCase().includes(query) ||
+          t.basicInfo?.email?.toLowerCase().includes(query) ||
+          `${t.basicInfo?.city || ''}, ${t.basicInfo?.state || ''}`.toLowerCase().includes(query)
       );
     }
 
@@ -171,18 +178,19 @@ export default function TalentDatabasePage() {
     // Ethnicity filter
     if (ethnicityFilter.length > 0) {
       filtered = filtered.filter((t) =>
-        t.appearance.ethnicity.some((eth) => ethnicityFilter.includes(eth))
+        t.appearance?.ethnicity?.some((eth) => ethnicityFilter.includes(eth))
       );
     }
 
     // Hair color filter
     if (hairColorFilter !== "all") {
-      filtered = filtered.filter((t) => t.appearance.hairColor === hairColorFilter);
+      filtered = filtered.filter((t) => t.appearance?.hairColor === hairColorFilter);
     }
 
     // Height range filter
     if (minHeight || maxHeight) {
       filtered = filtered.filter((t) => {
+        if (!t.appearance?.height) return false;
         const heightInInches = parseHeightToInches(t.appearance.height);
         const minHeightInches = minHeight ? parseHeightToInches(minHeight) : 0;
         const maxHeightInches = maxHeight ? parseHeightToInches(maxHeight) : 999;
@@ -192,7 +200,7 @@ export default function TalentDatabasePage() {
 
     // Gender filter
     if (genderFilter !== "all") {
-      filtered = filtered.filter((t) => t.appearance.gender === genderFilter);
+      filtered = filtered.filter((t) => t.appearance?.gender === genderFilter);
     }
 
     // Location filter
@@ -200,8 +208,8 @@ export default function TalentDatabasePage() {
       const locQuery = locationFilter.toLowerCase();
       filtered = filtered.filter(
         (t) =>
-          t.basicInfo.city.toLowerCase().includes(locQuery) ||
-          t.basicInfo.state.toLowerCase().includes(locQuery)
+          t.basicInfo?.city?.toLowerCase().includes(locQuery) ||
+          t.basicInfo?.state?.toLowerCase().includes(locQuery)
       );
     }
 
@@ -209,6 +217,7 @@ export default function TalentDatabasePage() {
     if (ageRangeFilter !== "all") {
       const now = new Date();
       filtered = filtered.filter((t) => {
+        if (!t.appearance?.dateOfBirth) return false;
         const birthDate = new Date(t.appearance.dateOfBirth);
         const age = now.getFullYear() - birthDate.getFullYear();
 
@@ -673,7 +682,7 @@ export default function TalentDatabasePage() {
 
               const headshotPhoto = photoArray?.find?.((p) => p.type === "headshot");
               const photoUrl = headshotPhoto?.url || photoArray?.[0]?.url;
-              const age = calculateAge(talent.appearance.dateOfBirth);
+              const age = talent.appearance?.dateOfBirth ? calculateAge(talent.appearance.dateOfBirth) : null;
 
               // Determine border and shadow based on admin tag
               let borderClass = "border-accent/20";
@@ -737,23 +746,27 @@ export default function TalentDatabasePage() {
                       className="text-lg font-bold text-secondary mb-2"
                       style={{ fontFamily: "var(--font-galindo)" }}
                     >
-                      {talent.basicInfo.firstName} {talent.basicInfo.lastName}
+                      {talent.basicInfo?.firstName || 'Unknown'} {talent.basicInfo?.lastName || ''}
                     </h3>
                     <div
                       className="space-y-1 text-sm text-secondary-light"
                       style={{ fontFamily: "var(--font-outfit)" }}
                     >
                       <p>
-                        {talent.appearance.gender} • {age} years
+                        {talent.appearance?.gender || 'N/A'} {age !== null && `• ${age} years`}
                       </p>
-                      <p>
-                        {talent.basicInfo.city}, {talent.basicInfo.state}
-                      </p>
-                      <p>
-                        {talent.appearance.height} • {talent.appearance.weight} lbs
-                      </p>
+                      {(talent.basicInfo?.city || talent.basicInfo?.state) && (
+                        <p>
+                          {talent.basicInfo?.city}{talent.basicInfo?.city && talent.basicInfo?.state ? ', ' : ''}{talent.basicInfo?.state}
+                        </p>
+                      )}
+                      {(talent.appearance?.height || talent.appearance?.weight) && (
+                        <p>
+                          {talent.appearance?.height || 'N/A'} {talent.appearance?.weight && `• ${talent.appearance.weight} lbs`}
+                        </p>
+                      )}
                       <p className="text-xs text-accent font-medium mt-2">
-                        {talent.photos?.length || 0} photos
+                        {photoArray?.length || 0} photos
                       </p>
                     </div>
                   </div>
