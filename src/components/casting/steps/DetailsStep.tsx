@@ -11,6 +11,7 @@ import { detailsSchema, DetailsFormData } from "@/lib/schemas/casting";
 
 interface DetailsStepProps {
   data: Partial<DetailsFormData>;
+  gender?: string;
   onNext: (data: DetailsFormData) => void;
   onPrevious: () => void;
 }
@@ -30,7 +31,7 @@ const FACIAL_HAIR_OPTIONS = [
   { value: "N/A", label: "N/A" },
 ];
 
-export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepProps) {
+export default function DetailsStep({ data, gender, onNext, onPrevious }: DetailsStepProps) {
   const {
     register,
     handleSubmit,
@@ -40,15 +41,17 @@ export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepPro
   } = useForm<DetailsFormData>({
     resolver: zodResolver(detailsSchema),
     defaultValues: {
+      gender: gender,
       visibleTattoos: false,
-      piercings: false,
       facialHair: "",
       ...data,
     },
   });
 
   const visibleTattoos = watch("visibleTattoos");
-  const piercings = watch("piercings");
+
+  // Show facial hair field for male, non-binary, other, but NOT for female
+  const showFacialHair = gender !== "Female";
 
   const onSubmit = (formData: DetailsFormData) => {
     onNext(formData);
@@ -72,6 +75,9 @@ export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepPro
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Hidden gender field to ensure validation works */}
+        <input type="hidden" {...register("gender")} value={gender} />
+
         <div className="space-y-4">
           <Controller
             name="visibleTattoos"
@@ -98,38 +104,14 @@ export default function DetailsStep({ data, onNext, onPrevious }: DetailsStepPro
           )}
         </div>
 
-        <div className="space-y-4">
-          <Controller
-            name="piercings"
-            control={control}
-            render={({ field }) => (
-              <RadioGroup
-                label="Do you have piercings (other than ears)?"
-                options={YES_NO_OPTIONS}
-                value={field.value === true ? "true" : "false"}
-                onChange={(val) => field.onChange(val === "true")}
-                error={errors.piercings?.message}
-              />
-            )}
+        {showFacialHair && (
+          <Select
+            label="Facial Hair"
+            {...register("facialHair")}
+            options={FACIAL_HAIR_OPTIONS}
+            error={errors.facialHair?.message}
           />
-
-          {piercings && (
-            <Textarea
-              label="Please describe your piercings (location, type)"
-              {...register("piercingsDescription")}
-              error={errors.piercingsDescription?.message}
-              placeholder="E.g., Nose ring, eyebrow piercing"
-              rows={3}
-            />
-          )}
-        </div>
-
-        <Select
-          label="Facial Hair"
-          {...register("facialHair")}
-          options={FACIAL_HAIR_OPTIONS}
-          error={errors.facialHair?.message}
-        />
+        )}
 
         <div className="flex gap-4 pt-6">
           <Button

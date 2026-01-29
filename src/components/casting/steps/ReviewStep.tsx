@@ -14,6 +14,7 @@ import {
   PhotosFormData,
 } from "@/lib/schemas/casting";
 import Image from "next/image";
+import { logger } from "@/lib/logger";
 
 interface ReviewStepProps {
   basicInfo: BasicInfoFormData;
@@ -54,7 +55,7 @@ export default function ReviewStep({
     try {
       await onSubmit();
     } catch (error) {
-      console.error("Submission error:", error);
+      logger.error("Submission error:", error);
       alert("Failed to submit. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -134,11 +135,28 @@ export default function ReviewStep({
 
         {/* Sizes */}
         <ReviewSection title="Sizes">
-          <ReviewItem label="Shirt" value={sizes.shirtSize} />
-          <ReviewItem label="Pants" value={`Waist: ${sizes.pantsWaist}" / Inseam: ${sizes.pantsInseam}"`} />
-          {sizes.dressSize && <ReviewItem label="Dress" value={sizes.dressSize} />}
-          {sizes.suitSize && <ReviewItem label="Suit" value={sizes.suitSize} />}
-          <ReviewItem label="Shoe" value={`${sizes.shoeSize} (${sizes.shoeSizeGender})`} />
+          {/* Shirt size (universal) */}
+          {sizes.shirtSize && <ReviewItem label="Shirt Size" value={sizes.shirtSize} />}
+
+          {/* Male sizes */}
+          {sizes.pantWaist && sizes.pantInseam && (
+            <ReviewItem label="Pant Size (Men's)" value={`Waist: ${sizes.pantWaist}" / Inseam: ${sizes.pantInseam}"`} />
+          )}
+
+          {/* Female sizes */}
+          {sizes.dressSize && <ReviewItem label="Dress Size" value={sizes.dressSize} />}
+          {sizes.womensPantSize && <ReviewItem label="Pant Size (Women's)" value={sizes.womensPantSize} />}
+
+          {/* Universal */}
+          {sizes.shoeSize && <ReviewItem label="Shoe Size" value={sizes.shoeSize} />}
+
+          {/* Optional measurements */}
+          {sizes.bust && <ReviewItem label="Bust" value={`${sizes.bust}"`} />}
+          {sizes.waist && <ReviewItem label="Waist" value={`${sizes.waist}"`} />}
+          {sizes.hips && <ReviewItem label="Hips" value={`${sizes.hips}"`} />}
+          {sizes.neck && <ReviewItem label="Neck" value={`${sizes.neck}"`} />}
+          {sizes.sleeve && <ReviewItem label="Sleeve" value={`${sizes.sleeve}"`} />}
+          {sizes.jacketSize && <ReviewItem label="Jacket Size" value={sizes.jacketSize} />}
         </ReviewSection>
 
         {/* Additional Details */}
@@ -150,14 +168,9 @@ export default function ReviewStep({
           {details.visibleTattoos && details.tattoosDescription && (
             <ReviewItem label="Tattoos Description" value={details.tattoosDescription} />
           )}
-          <ReviewItem
-            label="Piercings (other than ears)"
-            value={details.piercings ? "Yes" : "No"}
-          />
-          {details.piercings && details.piercingsDescription && (
-            <ReviewItem label="Piercings Description" value={details.piercingsDescription} />
+          {appearance.gender !== "Female" && details.facialHair && (
+            <ReviewItem label="Facial Hair" value={details.facialHair} />
           )}
-          <ReviewItem label="Facial Hair" value={details.facialHair} />
         </ReviewSection>
 
         {/* Photos */}

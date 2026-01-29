@@ -20,6 +20,7 @@ import {
   DetailsFormData,
   PhotosFormData,
 } from "@/lib/schemas/casting";
+import { logger } from "@/lib/logger";
 
 interface Role {
   id: string;
@@ -27,7 +28,7 @@ interface Role {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
@@ -76,6 +77,13 @@ export default function SubmitPage() {
   useEffect(() => {
     fetchRoleData();
   }, [roleId]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
 
   // Redirect admins to admin page - they don't need to submit for roles
   useEffect(() => {
@@ -144,7 +152,7 @@ export default function SubmitPage() {
         setCurrentStep(2);
       }
     } catch (error) {
-      console.error("Error checking profile:", error);
+      logger.error("Error checking profile:", error);
       if (currentStep === 1) {
         setCurrentStep(2);
       }
@@ -170,7 +178,7 @@ export default function SubmitPage() {
         router.push("/dashboard");
       }
     } catch (error) {
-      console.error("Error checking existing submission:", error);
+      logger.error("Error checking existing submission:", error);
       // Don't block the user if the check fails - better UX
     }
   }
@@ -192,14 +200,14 @@ export default function SubmitPage() {
         setProject({ id: projectDoc.id, ...projectDoc.data() } as Project);
       }
     } catch (error) {
-      console.error("Error fetching role:", error);
+      logger.error("Error fetching role:", error);
       router.push("/casting");
     } finally {
       setLoading(false);
     }
   }
 
-  const handleNext = (stepData?: any) => {
+  const handleNext = (stepData?: Record<string, unknown>) => {
     // Save step data
     if (stepData) {
       const stepKey = getCurrentStepKey();
@@ -295,7 +303,7 @@ export default function SubmitPage() {
       // Redirect to success page
       router.push("/casting/success");
     } catch (error) {
-      console.error("Submission error:", error);
+      logger.error("Submission error:", error);
       throw error;
     }
   };
@@ -382,6 +390,7 @@ export default function SubmitPage() {
           {currentStep === 5 && (
             <DetailsStep
               data={formData.details}
+              gender={formData.appearance.gender}
               onNext={(data) => handleNext(data)}
               onPrevious={handlePrevious}
             />

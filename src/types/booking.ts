@@ -35,7 +35,7 @@ export interface Role {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
@@ -149,15 +149,31 @@ export interface TalentProfile {
     hairColor: string;
     eyeColor: string;
     tattoos: boolean;
-    piercings: boolean;
   };
 
-  // Wardrobe
+  // Wardrobe (Gender-Conditional Sizing)
   wardrobe?: {
+    gender: string;
+
+    // Male sizes
     shirtSize?: string;
+    pantWaist?: number;
+    pantInseam?: number;
+
+    // Female sizes
     dressSize?: string;
-    pantSize?: string;
+    womensPantSize?: string;
+
+    // Universal
     shoeSize?: string;
+
+    // Optional measurements
+    bust?: number;
+    waist?: number;
+    hips?: number;
+    neck?: number;
+    sleeve?: number;
+    jacketSize?: string;
   };
 
   // Experience & Skills
@@ -189,7 +205,7 @@ export interface RoleFormData {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;

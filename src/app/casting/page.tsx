@@ -9,6 +9,7 @@ import Select from "@/components/ui/Select";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/lib/logger";
 
 interface Project {
   id: string;
@@ -25,7 +26,7 @@ interface Role {
   name: string;
   requirements: string;
   rate: string;
-  date: string;
+  bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
   additionalNotes?: string;
@@ -89,7 +90,7 @@ export default function CastingPage() {
 
       setRoles(rolesData);
     } catch (error) {
-      console.error("Error fetching roles:", error);
+      logger.error("Error fetching roles:", error);
     } finally {
       setLoading(false);
     }
@@ -259,7 +260,7 @@ export default function CastingPage() {
                               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
-                          {role.date}
+                          {role.bookingDates?.join(", ") || "TBD"}
                         </span>
                         <span className="flex items-center">
                           <svg
@@ -302,28 +303,34 @@ export default function CastingPage() {
                       </div>
 
                       {role.requirements && (
-                        <div className="bg-purple-50/50 rounded-lg p-3 mb-4">
+                        <div className="bg-purple-50/50 rounded-lg p-4 mb-4">
                           <p
-                            className="text-sm font-medium text-secondary-light"
+                            className="text-sm font-bold text-accent text-center mb-2"
                             style={{ fontFamily: "var(--font-outfit)" }}
                           >
-                            <span className="font-bold text-accent">
-                              Requirements:
-                            </span>{" "}
+                            Requirements:
+                          </p>
+                          <p
+                            className="text-sm font-medium text-secondary-light text-center"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
                             {role.requirements}
                           </p>
                         </div>
                       )}
 
                       {role.additionalNotes && (
-                        <div className="bg-blue-50/50 rounded-lg p-3 mb-4">
+                        <div className="bg-blue-50/50 rounded-lg p-4 mb-4">
                           <p
-                            className="text-sm font-medium text-secondary-light"
+                            className="text-sm font-bold text-accent text-center mb-2"
                             style={{ fontFamily: "var(--font-outfit)" }}
                           >
-                            <span className="font-bold text-accent">
-                              Additional Notes:
-                            </span>{" "}
+                            Additional Notes:
+                          </p>
+                          <p
+                            className="text-sm font-medium text-secondary-light text-center"
+                            style={{ fontFamily: "var(--font-outfit)" }}
+                          >
                             {role.additionalNotes}
                           </p>
                         </div>

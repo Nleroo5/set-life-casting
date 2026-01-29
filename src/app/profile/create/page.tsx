@@ -18,6 +18,7 @@ import {
   DetailsFormData,
   PhotosFormData,
 } from "@/lib/schemas/casting";
+import { logger } from "@/lib/logger";
 
 const steps = [
   { number: 1, title: "Basic Info" },
@@ -26,6 +27,17 @@ const steps = [
   { number: 4, title: "Details" },
   { number: 5, title: "Photos" },
 ];
+
+// Helper function to clean data for Firestore (convert undefined to null)
+function cleanDataForFirestore<T extends Record<string, unknown>>(data: T): T {
+  const cleaned = { ...data };
+  Object.keys(cleaned).forEach((key) => {
+    if (cleaned[key] === undefined) {
+      cleaned[key] = null;
+    }
+  });
+  return cleaned;
+}
 
 export default function CreateProfilePage() {
   const router = useRouter();
@@ -64,7 +76,7 @@ export default function CreateProfilePage() {
           setIsEditing(true); // Profile exists, so this is an edit
         }
       } catch (error) {
-        console.error("Error loading profile:", error);
+        logger.error("Error loading profile:", error);
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +94,7 @@ export default function CreateProfilePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
 
-  const handleNext = async (stepData?: any) => {
+  const handleNext = async (stepData?: Record<string, unknown>) => {
     // Save step data
     if (stepData) {
       const stepKey = getCurrentStepKey();
@@ -96,12 +108,12 @@ export default function CreateProfilePage() {
         // Auto-save progress to Firebase
         if (user) {
           try {
-            // Build update object with step data
-            const updateData: any = {
+            // Build update object with step data (clean undefined values)
+            const updateData: Record<string, unknown> = {
               userId: user.uid,
               email: user.email,
               displayName: user.displayName,
-              [stepKey]: stepData,
+              [stepKey]: cleanDataForFirestore(stepData as Record<string, unknown>),
               updatedAt: new Date(),
             };
 
@@ -117,19 +129,23 @@ export default function CreateProfilePage() {
                 hairLength: (stepKey === "appearance" ? stepData?.hairLength : updatedFormData.appearance?.hairLength) || null,
                 eyeColor: (stepKey === "appearance" ? stepData?.eyeColor : updatedFormData.appearance?.eyeColor) || null,
                 dateOfBirth: (stepKey === "appearance" ? stepData?.dateOfBirth : updatedFormData.appearance?.dateOfBirth) || null,
-                // From sizes
+                // From sizes (gender-conditional)
                 shirtSize: (stepKey === "sizes" ? stepData?.shirtSize : updatedFormData.sizes?.shirtSize) || null,
-                pantsWaist: (stepKey === "sizes" ? stepData?.pantsWaist : updatedFormData.sizes?.pantsWaist) || null,
-                pantsInseam: (stepKey === "sizes" ? stepData?.pantsInseam : updatedFormData.sizes?.pantsInseam) || null,
+                pantWaist: (stepKey === "sizes" ? stepData?.pantWaist : updatedFormData.sizes?.pantWaist) || null,
+                pantInseam: (stepKey === "sizes" ? stepData?.pantInseam : updatedFormData.sizes?.pantInseam) || null,
                 dressSize: (stepKey === "sizes" ? stepData?.dressSize : updatedFormData.sizes?.dressSize) || null,
-                suitSize: (stepKey === "sizes" ? stepData?.suitSize : updatedFormData.sizes?.suitSize) || null,
+                womensPantSize: (stepKey === "sizes" ? stepData?.womensPantSize : updatedFormData.sizes?.womensPantSize) || null,
                 shoeSize: (stepKey === "sizes" ? stepData?.shoeSize : updatedFormData.sizes?.shoeSize) || null,
-                shoeSizeGender: (stepKey === "sizes" ? stepData?.shoeSizeGender : updatedFormData.sizes?.shoeSizeGender) || null,
+                // Optional measurements
+                bust: (stepKey === "sizes" ? stepData?.bust : updatedFormData.sizes?.bust) || null,
+                waist: (stepKey === "sizes" ? stepData?.waist : updatedFormData.sizes?.waist) || null,
+                hips: (stepKey === "sizes" ? stepData?.hips : updatedFormData.sizes?.hips) || null,
+                neck: (stepKey === "sizes" ? stepData?.neck : updatedFormData.sizes?.neck) || null,
+                sleeve: (stepKey === "sizes" ? stepData?.sleeve : updatedFormData.sizes?.sleeve) || null,
+                jacketSize: (stepKey === "sizes" ? stepData?.jacketSize : updatedFormData.sizes?.jacketSize) || null,
                 // From details
                 visibleTattoos: (stepKey === "details" ? stepData?.visibleTattoos : updatedFormData.details?.visibleTattoos) || false,
                 tattoosDescription: (stepKey === "details" ? stepData?.tattoosDescription : updatedFormData.details?.tattoosDescription) || null,
-                piercings: (stepKey === "details" ? stepData?.piercings : updatedFormData.details?.piercings) || false,
-                piercingsDescription: (stepKey === "details" ? stepData?.piercingsDescription : updatedFormData.details?.piercingsDescription) || null,
                 facialHair: (stepKey === "details" ? stepData?.facialHair : updatedFormData.details?.facialHair) || null,
               };
               updateData.physical = physical;
@@ -141,7 +157,7 @@ export default function CreateProfilePage() {
               { merge: true }
             );
           } catch (error) {
-            console.error("Error saving progress:", error);
+            logger.error("Error saving progress:", error);
           }
         }
       }
@@ -188,13 +204,13 @@ export default function CreateProfilePage() {
 
     // Validate that photos exist
     if (!finalPhotos || !finalPhotos.photos || finalPhotos.photos.length < 2) {
-      console.error("Insufficient photos:", finalPhotos);
+      logger.error("Insufficient photos:", finalPhotos);
       alert("Please upload at least a headshot and full body photo before submitting.");
       setIsSubmitting(false);
       return;
     }
 
-    console.log("Submitting profile with photos:", finalPhotos);
+    logger.debug("Submitting profile with photos:", finalPhotos);
 
     try {
       // ✅ CRITICAL: Create consolidated "physical" field for easy searching
@@ -209,23 +225,27 @@ export default function CreateProfilePage() {
         hairLength: formData.appearance?.hairLength || null,
         eyeColor: formData.appearance?.eyeColor || null,
         dateOfBirth: formData.appearance?.dateOfBirth || null,
-        // From sizes
+        // From sizes (gender-conditional)
         shirtSize: formData.sizes?.shirtSize || null,
-        pantsWaist: formData.sizes?.pantsWaist || null,
-        pantsInseam: formData.sizes?.pantsInseam || null,
+        pantWaist: formData.sizes?.pantWaist || null,
+        pantInseam: formData.sizes?.pantInseam || null,
         dressSize: formData.sizes?.dressSize || null,
-        suitSize: formData.sizes?.suitSize || null,
+        womensPantSize: formData.sizes?.womensPantSize || null,
         shoeSize: formData.sizes?.shoeSize || null,
-        shoeSizeGender: formData.sizes?.shoeSizeGender || null,
+        // Optional measurements
+        bust: formData.sizes?.bust || null,
+        waist: formData.sizes?.waist || null,
+        hips: formData.sizes?.hips || null,
+        neck: formData.sizes?.neck || null,
+        sleeve: formData.sizes?.sleeve || null,
+        jacketSize: formData.sizes?.jacketSize || null,
         // From details
         visibleTattoos: formData.details?.visibleTattoos || false,
         tattoosDescription: formData.details?.tattoosDescription || null,
-        piercings: formData.details?.piercings || false,
-        piercingsDescription: formData.details?.piercingsDescription || null,
         facialHair: formData.details?.facialHair || null,
       };
 
-      console.log("✅ Consolidated physical attributes:", physical);
+      logger.debug("✅ Consolidated physical attributes:", physical);
 
       // Create/update user profile with ALL data structures
       await setDoc(
@@ -234,10 +254,10 @@ export default function CreateProfilePage() {
           userId: user.uid,
           email: user.email,
           displayName: user.displayName,
-          // Keep original structure for form editing
+          // Keep original structure for form editing (clean undefined values)
           basicInfo: formData.basicInfo,
           appearance: formData.appearance,
-          sizes: formData.sizes,
+          sizes: cleanDataForFirestore(formData.sizes as Record<string, unknown>),
           details: formData.details,
           photos: finalPhotos,
           // ✅ NEW: Add consolidated "physical" field for searching & skins export
@@ -248,12 +268,12 @@ export default function CreateProfilePage() {
         { merge: true }
       );
 
-      console.log("✅ Profile successfully saved to Firebase with searchable physical data");
+      logger.debug("✅ Profile successfully saved to Firebase with searchable physical data");
 
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (error) {
-      console.error("Profile creation error:", error);
+      logger.error("Profile creation error:", error);
       alert("Failed to create profile. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -337,6 +357,7 @@ export default function CreateProfilePage() {
           {currentStep === 4 && (
             <DetailsStep
               data={formData.details}
+              gender={formData.appearance.gender}
               onNext={(data) => handleNext(data)}
               onPrevious={handlePrevious}
             />

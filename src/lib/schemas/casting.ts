@@ -22,24 +22,115 @@ export const appearanceSchema = z.object({
   eyeColor: z.string().min(1, "Eye color is required"),
 });
 
-// Step 4: Sizes
+// Step 4: Sizes (Gender-Conditional)
+// Based on industry standards from Casting Networks, Actors Access, Central Casting
 export const sizesSchema = z.object({
-  shirtSize: z.string().min(1, "Shirt size is required"),
-  pantsWaist: z.number().min(1, "Pants waist is required"),
-  pantsInseam: z.number().min(1, "Pants inseam is required"),
+  // Gender is passed from appearance step to determine which fields to show
+  gender: z.string().min(1, "Gender is required"),
+
+  // Male-specific sizes
+  shirtSize: z.string().optional(),
+  pantWaist: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  pantInseam: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+
+  // Female-specific sizes
   dressSize: z.string().optional(),
-  suitSize: z.string().optional(),
+  womensPantSize: z.string().optional(),
+
+  // Universal fields
   shoeSize: z.string().min(1, "Shoe size is required"),
-  shoeSizeGender: z.enum(["M", "W"]),
+
+  // Optional measurements (with NaN and null handling for empty fields)
+  bust: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  waist: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  hips: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  neck: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  sleeve: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
+  jacketSize: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Validate based on gender
+  const isMale = data.gender === "Male";
+  const isFemale = data.gender === "Female";
+  const isNonBinary = data.gender === "Non-binary";
+
+  if (isMale) {
+    // Male required fields
+    if (!data.shirtSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Shirt size is required",
+        path: ["shirtSize"],
+      });
+    }
+    if (!data.pantWaist || data.pantWaist < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pant waist is required",
+        path: ["pantWaist"],
+      });
+    }
+    if (!data.pantInseam || data.pantInseam < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pant inseam is required",
+        path: ["pantInseam"],
+      });
+    }
+  } else if (isFemale) {
+    // Female required fields: shirt, dress, pant size, shoe
+    if (!data.shirtSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Shirt size is required",
+        path: ["shirtSize"],
+      });
+    }
+    if (!data.dressSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Dress size is required",
+        path: ["dressSize"],
+      });
+    }
+    if (!data.womensPantSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pant size is required",
+        path: ["womensPantSize"],
+      });
+    }
+  } else if (isNonBinary) {
+    // Non-binary can fill either set, but must fill at least one complete set
+    const hasMaleData = data.shirtSize && data.pantWaist && data.pantInseam;
+    const hasFemaleData = data.shirtSize && data.dressSize && data.womensPantSize;
+
+    if (!hasMaleData && !hasFemaleData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide either male or female sizing information",
+        path: ["gender"],
+      });
+    }
+  }
 });
 
 // Step 5: Additional Details
 export const detailsSchema = z.object({
+  gender: z.string().optional(), // Passed from appearance step
   visibleTattoos: z.boolean(),
   tattoosDescription: z.string().optional(),
-  piercings: z.boolean(),
-  piercingsDescription: z.string().optional(),
-  facialHair: z.string().min(1, "Facial hair option is required"),
+  facialHair: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Facial hair is only required for male, non-binary, and other genders (not female)
+  const isFemale = data.gender === "Female";
+
+  if (!isFemale && (!data.facialHair || data.facialHair.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Facial hair option is required",
+      path: ["facialHair"],
+    });
+  }
 });
 
 // Step 6: Photos
