@@ -93,6 +93,7 @@ interface Submission {
   status: "pending" | "reviewed" | "selected" | "rejected";
   submittedAt: Date;
   profileData: ProfileData;
+  pinned?: boolean;
 }
 
 interface Project {
@@ -136,6 +137,8 @@ export default function AdminSubmissionsPage() {
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [bookingInProgress, setBookingInProgress] = useState(false);
+  const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -170,6 +173,7 @@ export default function AdminSubmissionsPage() {
           status: data.status,
           submittedAt: data.submittedAt.toDate(),
           profileData: data.profileData,
+          pinned: data.pinned || false,
         });
       });
 
@@ -229,32 +233,42 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  // Filter submissions based on selected project, status, and search query
-  const filteredSubmissions = submissions.filter((submission) => {
-    const projectMatch = selectedProjectId === "all" || submission.projectId === selectedProjectId;
-    const statusMatch = filterStatus === "all" || submission.status === filterStatus;
+  // Filter submissions based on selected project, status, search query, and pin status
+  const filteredSubmissions = submissions
+    .filter((submission) => {
+      const projectMatch = selectedProjectId === "all" || submission.projectId === selectedProjectId;
+      const statusMatch = filterStatus === "all" || submission.status === filterStatus;
 
-    // Search filter: search by name, email, location
-    let searchMatch = true;
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const firstName = submission.profileData.basicInfo?.firstName?.toLowerCase() || '';
-      const lastName = submission.profileData.basicInfo?.lastName?.toLowerCase() || '';
-      const email = submission.profileData.basicInfo?.email?.toLowerCase() || '';
-      const city = submission.profileData.basicInfo?.city?.toLowerCase() || '';
-      const state = submission.profileData.basicInfo?.state?.toLowerCase() || '';
-      const location = `${city} ${state}`.trim();
+      // Search filter: search by name, email, location
+      let searchMatch = true;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const firstName = submission.profileData.basicInfo?.firstName?.toLowerCase() || '';
+        const lastName = submission.profileData.basicInfo?.lastName?.toLowerCase() || '';
+        const email = submission.profileData.basicInfo?.email?.toLowerCase() || '';
+        const city = submission.profileData.basicInfo?.city?.toLowerCase() || '';
+        const state = submission.profileData.basicInfo?.state?.toLowerCase() || '';
+        const location = `${city} ${state}`.trim();
 
-      searchMatch =
-        firstName.includes(query) ||
-        lastName.includes(query) ||
-        `${firstName} ${lastName}`.includes(query) ||
-        email.includes(query) ||
-        location.includes(query);
-    }
+        searchMatch =
+          firstName.includes(query) ||
+          lastName.includes(query) ||
+          `${firstName} ${lastName}`.includes(query) ||
+          email.includes(query) ||
+          location.includes(query);
+      }
 
-    return projectMatch && statusMatch && searchMatch;
-  });
+      // Pin filter: if showPinnedOnly is true, only show pinned submissions
+      const pinnedMatch = !showPinnedOnly || submission.pinned === true;
+
+      return projectMatch && statusMatch && searchMatch && pinnedMatch;
+    })
+    // Sort: pinned submissions float to top
+    .sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return 0;
+    });
 
   // Get projects that have submissions
   const projectsWithSubmissions = projects.filter((project) =>
@@ -391,6 +405,72 @@ export default function AdminSubmissionsPage() {
     }
   };
 
+  // Toggle pin status for a submission
+  const handleTogglePin = async (submissionId: string) => {
+    try {
+      const submission = submissions.find((s) => s.id === submissionId);
+      if (!submission) return;
+
+      const newPinnedState = !submission.pinned;
+      await updateDoc(doc(db, "submissions", submissionId), {
+        pinned: newPinnedState,
+      });
+      await fetchData();
+    } catch (error) {
+      logger.error("Error toggling pin:", error);
+      alert("Failed to update pin status");
+    }
+  };
+
+  // Toggle checkbox selection for a submission
+  const handleToggleSelection = (submissionId: string) => {
+    setSelectedSubmissionIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all filtered submissions
+  const handleSelectAll = () => {
+    const allIds = new Set(filteredSubmissions.map((s) => s.id));
+    setSelectedSubmissionIds(allIds);
+  };
+
+  // Deselect all submissions
+  const handleDeselectAll = () => {
+    setSelectedSubmissionIds(new Set());
+  };
+
+  // Bulk update status for selected submissions
+  const handleBulkUpdateStatus = async (newStatus: string) => {
+    if (selectedSubmissionIds.size === 0) {
+      alert("Please select submissions first");
+      return;
+    }
+
+    if (!confirm(`Update ${selectedSubmissionIds.size} submission(s) to ${getStatusLabel(newStatus)}?`)) {
+      return;
+    }
+
+    try {
+      const updatePromises = Array.from(selectedSubmissionIds).map((id) =>
+        updateDoc(doc(db, "submissions", id), { status: newStatus })
+      );
+      await Promise.all(updatePromises);
+      await fetchData();
+      setSelectedSubmissionIds(new Set()); // Clear selection after bulk update
+      alert(`Successfully updated ${selectedSubmissionIds.size} submission(s)`);
+    } catch (error) {
+      logger.error("Error bulk updating status:", error);
+      alert("Failed to update submissions");
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -499,7 +579,94 @@ export default function AdminSubmissionsPage() {
                   ]}
                 />
               </div>
+
+              {/* Pin Filter */}
+              <div className="mt-4 flex items-center gap-2">
+                <input
+                  id="showPinnedOnly"
+                  type="checkbox"
+                  checked={showPinnedOnly}
+                  onChange={(e) => setShowPinnedOnly(e.target.checked)}
+                  className="w-4 h-4 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
+                />
+                <label
+                  htmlFor="showPinnedOnly"
+                  className="text-sm text-secondary cursor-pointer select-none"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  ⭐ Show Pinned Only ({submissions.filter((s) => s.pinned).length})
+                </label>
+              </div>
             </div>
+
+            {/* Bulk Action Bar */}
+            {selectedSubmissionIds.size > 0 && (
+              <div className="bg-accent text-white rounded-xl p-4 border-2 border-accent shadow-lg">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                      {selectedSubmissionIds.size} selected
+                    </span>
+                    <button
+                      onClick={handleDeselectAll}
+                      className="text-sm hover:underline"
+                      style={{ fontFamily: "var(--font-outfit)" }}
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm mr-2" style={{ fontFamily: "var(--font-outfit)" }}>
+                      Bulk Actions:
+                    </span>
+                    <Button
+                      variant="outline"
+                      className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
+                      onClick={() => handleBulkUpdateStatus("pending")}
+                    >
+                      Mark as To Review
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
+                      onClick={() => handleBulkUpdateStatus("reviewed")}
+                    >
+                      Mark as Reviewed
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
+                      onClick={() => handleBulkUpdateStatus("selected")}
+                    >
+                      Mark as Shortlisted
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
+                      onClick={() => handleBulkUpdateStatus("rejected")}
+                    >
+                      Mark as Rejected
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Select All Button */}
+            {filteredSubmissions.length > 0 && (
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={selectedSubmissionIds.size === filteredSubmissions.length ? handleDeselectAll : handleSelectAll}
+                  className="text-sm text-accent hover:text-accent-dark hover:underline transition-colors"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  {selectedSubmissionIds.size === filteredSubmissions.length ? "☑ Deselect All" : "☐ Select All"}
+                </button>
+                <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                  {selectedSubmissionIds.size} of {filteredSubmissions.length} selected
+                </p>
+              </div>
+            )}
 
             {/* Submissions - Show by role if a project is selected, otherwise show all */}
             {selectedProjectId === "all" ? (
@@ -514,29 +681,47 @@ export default function AdminSubmissionsPage() {
                 filteredSubmissions.map((submission) => (
                   <div
                     key={submission.id}
-                    className={`bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 transition-all cursor-pointer ${
+                    className={`bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 transition-all ${
                       selectedSubmission?.id === submission.id
                         ? "border-accent shadow-[0_0_30px_rgba(95,101,196,0.3)]"
                         : "border-accent/20 hover:border-accent/40"
-                    }`}
-                    onClick={() => setSelectedSubmission(submission)}
+                    } ${submission.pinned ? "ring-2 ring-yellow-400" : ""}`}
                   >
                     <div className="flex items-start gap-4">
+                      {/* Checkbox */}
+                      <div className="flex items-start pt-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedSubmissionIds.has(submission.id)}
+                          onChange={() => handleToggleSelection(submission.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
+                        />
+                      </div>
+
                       {/* Photo */}
-                      {submission.profileData.photos?.photos?.[0] && (
-                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
-                          <Image
-                            src={submission.profileData.photos.photos[0].url}
-                            alt="Profile"
-                            width={64}
-                            height={64}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                      <div
+                        onClick={() => setSelectedSubmission(submission)}
+                        className="cursor-pointer"
+                      >
+                        {submission.profileData.photos?.photos?.[0] && (
+                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
+                            <Image
+                              src={submission.profileData.photos.photos[0].url}
+                              alt="Profile"
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
 
                       {/* Info */}
-                      <div className="flex-1 min-w-0">
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => setSelectedSubmission(submission)}
+                      >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h3
                             className="text-lg font-bold text-secondary truncate"
@@ -545,9 +730,23 @@ export default function AdminSubmissionsPage() {
                             {submission.profileData.basicInfo?.firstName}{" "}
                             {submission.profileData.basicInfo?.lastName}
                           </h3>
-                          <Badge variant={getStatusBadgeVariant(submission.status)}>
-                            {getStatusLabel(submission.status)}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={getStatusBadgeVariant(submission.status)}>
+                              {getStatusLabel(submission.status)}
+                            </Badge>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTogglePin(submission.id);
+                              }}
+                              className={`text-2xl hover:scale-110 transition-transform ${
+                                submission.pinned ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
+                              }`}
+                              title={submission.pinned ? "Unpin submission" : "Pin submission"}
+                            >
+                              {submission.pinned ? "⭐" : "☆"}
+                            </button>
+                          </div>
                         </div>
 
                         {/* Role and Project */}
@@ -652,29 +851,47 @@ export default function AdminSubmissionsPage() {
                             roleWithSubs.submissions.map((submission) => (
                               <div
                                 key={submission.id}
-                                className={`bg-white rounded-lg p-5 border-2 transition-all cursor-pointer ${
+                                className={`bg-white rounded-lg p-5 border-2 transition-all ${
                                   selectedSubmission?.id === submission.id
                                     ? "border-accent shadow-[0_0_20px_rgba(95,101,196,0.3)]"
                                     : "border-accent/20 hover:border-accent/40"
-                                }`}
-                                onClick={() => setSelectedSubmission(submission)}
+                                } ${submission.pinned ? "ring-2 ring-yellow-400" : ""}`}
                               >
                                 <div className="flex items-start gap-4">
+                                  {/* Checkbox */}
+                                  <div className="flex items-start pt-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedSubmissionIds.has(submission.id)}
+                                      onChange={() => handleToggleSelection(submission.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
+                                    />
+                                  </div>
+
                                   {/* Photo */}
-                                  {submission.profileData.photos?.photos?.[0] && (
-                                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
-                                      <Image
-                                        src={submission.profileData.photos.photos[0].url}
-                                        alt="Profile"
-                                        width={64}
-                                        height={64}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    </div>
-                                  )}
+                                  <div
+                                    onClick={() => setSelectedSubmission(submission)}
+                                    className="cursor-pointer"
+                                  >
+                                    {submission.profileData.photos?.photos?.[0] && (
+                                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
+                                        <Image
+                                          src={submission.profileData.photos.photos[0].url}
+                                          alt="Profile"
+                                          width={64}
+                                          height={64}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
 
                                   {/* Info */}
-                                  <div className="flex-1 min-w-0">
+                                  <div
+                                    className="flex-1 min-w-0 cursor-pointer"
+                                    onClick={() => setSelectedSubmission(submission)}
+                                  >
                                     <div className="flex items-start justify-between gap-2 mb-2">
                                       <h4
                                         className="text-lg font-bold text-secondary truncate"
@@ -683,9 +900,23 @@ export default function AdminSubmissionsPage() {
                                         {submission.profileData.basicInfo?.firstName}{" "}
                                         {submission.profileData.basicInfo?.lastName}
                                       </h4>
-                                      <Badge variant={getStatusBadgeVariant(submission.status)}>
-                                        {getStatusLabel(submission.status)}
-                                      </Badge>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant={getStatusBadgeVariant(submission.status)}>
+                                          {getStatusLabel(submission.status)}
+                                        </Badge>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleTogglePin(submission.id);
+                                          }}
+                                          className={`text-2xl hover:scale-110 transition-transform ${
+                                            submission.pinned ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
+                                          }`}
+                                          title={submission.pinned ? "Unpin submission" : "Pin submission"}
+                                        >
+                                          {submission.pinned ? "⭐" : "☆"}
+                                        </button>
+                                      </div>
                                     </div>
 
                                     {/* Key Casting Criteria */}
