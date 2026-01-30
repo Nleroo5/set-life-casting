@@ -228,6 +228,24 @@ export default function CreateProfilePage() {
       return;
     }
 
+    // Validate headshot and full body photos are present
+    const hasHeadshot = finalPhotos.photos.some((p) => p.type === "headshot");
+    const hasFullBody = finalPhotos.photos.some((p) => p.type === "fullbody");
+
+    if (!hasHeadshot) {
+      logger.error("Missing headshot photo");
+      alert("Headshot photo is required. Please upload a headshot before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!hasFullBody) {
+      logger.error("Missing full body photo");
+      alert("Full body photo is required. Please upload a full body photo before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
+
     logger.debug("Submitting profile with photos:", finalPhotos);
 
     try {

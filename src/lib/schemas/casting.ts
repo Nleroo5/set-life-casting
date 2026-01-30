@@ -138,7 +138,16 @@ export const photosSchema = z.object({
   photos: z.array(z.object({
     url: z.string(),
     type: z.enum(["headshot", "fullbody", "additional"]),
-  })).min(2, "At least 2 photos required (headshot and full body)"),
+  }))
+    .min(2, "At least 2 photos required (headshot and full body)")
+    .refine(
+      (photos) => photos.some((p) => p.type === "headshot"),
+      { message: "Headshot photo is required" }
+    )
+    .refine(
+      (photos) => photos.some((p) => p.type === "fullbody"),
+      { message: "Full body photo is required" }
+    ),
 });
 
 // Step 7: Review
