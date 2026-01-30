@@ -16,7 +16,8 @@ export default function AdminPage() {
     if (!loading && (!user || !isAdmin)) {
       router.push("/login?redirect=/admin");
     }
-  }, [loading, user, isAdmin, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, isAdmin]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

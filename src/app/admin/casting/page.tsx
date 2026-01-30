@@ -91,7 +91,8 @@ export default function AdminCastingPage() {
     } else if (user && isAdmin) {
       fetchData();
     }
-  }, [authLoading, user, isAdmin, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, isAdmin]);
 
   async function fetchData() {
     try {

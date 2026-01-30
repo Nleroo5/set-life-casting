@@ -44,7 +44,8 @@ export default function DataRepairPage() {
     if (!authLoading && (!user || !isAdmin)) {
       router.push("/login?redirect=/admin/repair-data");
     }
-  }, [authLoading, user, isAdmin, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, isAdmin]);
 
   const scanForOrphans = async () => {
     setScanning(true);

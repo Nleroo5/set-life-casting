@@ -100,7 +100,8 @@ export default function TalentDetailPage() {
 
     // Fetch data
     fetchTalentData();
-  }, [authLoading, user, userData, isAdmin, userId, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, userData, isAdmin, userId]);
 
   async function fetchTalentData() {
     try {

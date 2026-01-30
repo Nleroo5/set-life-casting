@@ -78,7 +78,8 @@ export default function SkinsBuilderPage() {
     if (!isAdmin) {
       router.push("/admin");
     }
-  }, [isAdmin, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   // Fetch projects
   useEffect(() => {
