@@ -37,18 +37,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let tokenRefreshInterval: NodeJS.Timeout | null = null;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("[AUTH CONTEXT DEBUG] Auth state changed", {
+        hasUser: !!firebaseUser,
+        uid: firebaseUser?.uid,
+      });
+
       setUser(firebaseUser);
 
       if (firebaseUser) {
         try {
           // ✅ FIX: Fetch user data first before marking as loaded
+          console.log("[AUTH CONTEXT DEBUG] Fetching user data for", firebaseUser.uid);
           const data = await getUserData(firebaseUser.uid);
+          console.log("[AUTH CONTEXT DEBUG] User data fetched", {
+            hasData: !!data,
+            role: data?.role,
+          });
           setUserData(data);
 
           // Get Firebase ID token and store in cookie for server-side verification
           const token = await firebaseUser.getIdToken();
           // Store token in cookie (httpOnly would be better but requires server-side)
           document.cookie = `firebase-token=${token}; path=/; max-age=3600; SameSite=Strict`;
+          console.log("[AUTH CONTEXT DEBUG] Token stored in cookie");
 
           // Clear any existing interval before setting a new one
           if (tokenRefreshInterval) {
@@ -82,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserData(null);
         }
       } else {
+        console.log("[AUTH CONTEXT DEBUG] No user, clearing data");
         setUserData(null);
         // Clear token cookie on logout
         document.cookie = "firebase-token=; path=/; max-age=0";
@@ -94,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // ✅ FIX: Set loading to false AFTER all async operations complete
+      console.log("[AUTH CONTEXT DEBUG] Auth loading complete");
       setLoading(false);
     });
 
