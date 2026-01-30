@@ -66,7 +66,7 @@ export default function TalentDetailPage() {
   const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, userData, isAdmin, loading: authLoading } = useAuth();
   const [talent, setTalent] = useState<TalentProfile | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +85,14 @@ export default function TalentDetailPage() {
       return;
     }
 
-    // Redirect if not admin
+    // Wait for userData to load before checking isAdmin
+    // This prevents false negative when userData is still being fetched
+    if (!userData) {
+      // userData is still loading from Firestore, wait
+      return;
+    }
+
+    // Redirect if not admin (now safe to check since userData exists)
     if (!isAdmin) {
       router.push("/admin");
       return;
@@ -93,7 +100,7 @@ export default function TalentDetailPage() {
 
     // Fetch data
     fetchTalentData();
-  }, [authLoading, user, isAdmin, userId, router]);
+  }, [authLoading, user, userData, isAdmin, userId, router]);
 
   async function fetchTalentData() {
     try {
