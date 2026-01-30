@@ -76,12 +76,24 @@ export default function TalentDetailPage() {
   const [tempNotes, setTempNotes] = useState("");
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.push("/admin");
-    } else if (user && isAdmin && !authLoading) {
-      fetchTalentData();
+    // Don't do anything while auth is loading
+    if (authLoading) return;
+
+    // Redirect if not authenticated
+    if (!user) {
+      router.push(`/login?redirect=/admin/talent/${userId}`);
+      return;
     }
-  }, [authLoading, user, isAdmin, userId]);
+
+    // Redirect if not admin
+    if (!isAdmin) {
+      router.push("/admin");
+      return;
+    }
+
+    // Fetch data
+    fetchTalentData();
+  }, [authLoading, user, isAdmin, userId, router]);
 
   async function fetchTalentData() {
     try {
