@@ -42,16 +42,21 @@ function LoginForm() {
 
   // Redirect if already logged in
   useEffect(() => {
+    console.log("[LOGIN DEBUG] useEffect check", {
+      authLoading,
+      hasUser: !!user,
+      isAdmin,
+      redirectTo,
+    });
+
     if (!authLoading && user) {
-      // Redirect admins directly to admin dashboard
-      // Regular users go to their intended destination
-      if (isAdmin) {
-        router.push("/admin");
-      } else {
-        router.push(redirectTo);
-      }
+      console.log("[LOGIN DEBUG] User already logged in, redirecting to:", redirectTo);
+      // Redirect all users (including admins) to their intended destination
+      // This ensures deep links work correctly even after cookie expiration
+      router.push(redirectTo);
     }
-  }, [authLoading, user, isAdmin, redirectTo, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, isAdmin, redirectTo]);
 
   const onSubmit = async (data: LoginFormData) => {
     setError("");

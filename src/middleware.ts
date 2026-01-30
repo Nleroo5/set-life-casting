@@ -26,13 +26,23 @@ export async function middleware(request: NextRequest) {
     // Get Firebase ID token from cookie
     const firebaseToken = request.cookies.get('firebase-token')?.value;
 
+    console.log('[MIDDLEWARE DEBUG] Admin route access attempt:', {
+      pathname,
+      hasToken: !!firebaseToken,
+      tokenPreview: firebaseToken ? `${firebaseToken.substring(0, 20)}...` : 'NONE',
+      allCookies: request.cookies.getAll().map(c => c.name),
+    });
+
     // If no token, redirect to login
     // The client-side auth context will handle admin role verification
     if (!firebaseToken) {
+      console.log('[MIDDLEWARE DEBUG] No token found, redirecting to login');
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    console.log('[MIDDLEWARE DEBUG] Token found, allowing access');
 
     // Token exists - allow access
     // Admin role verification happens via:
