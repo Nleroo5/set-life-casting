@@ -296,7 +296,7 @@ export default function TalentDetailPage() {
     );
   }
 
-  if (!user || !isAdmin || !talent) {
+  if (!user || !userData || !isAdmin || !talent) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
