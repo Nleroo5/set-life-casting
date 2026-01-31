@@ -7,20 +7,30 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "firebase/auth";
+import { z } from "zod";
 import { auth } from "@/lib/firebase/config";
 import { logger } from "@/lib/logger";
 
+// Email validation schema
+const emailSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
 
-    // Validate email
-    if (!email || typeof email !== "string") {
+    // Validate email with Zod
+    const validation = emailSchema.safeParse(body);
+
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Email is required" },
+        { error: "Valid email address is required" },
         { status: 400 }
       );
     }
+
+    const { email } = validation.data;
 
     // Check if Firebase Auth is initialized
     if (!auth) {

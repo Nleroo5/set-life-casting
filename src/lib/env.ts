@@ -29,6 +29,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   FACEBOOK_PAGE_ACCESS_TOKEN: z.string().optional(),
   FACEBOOK_PAGE_ID: z.string().optional(),
+  LOGO_URL: z.string().url().optional(),
 
   // Analytics
   NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),

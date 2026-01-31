@@ -7,7 +7,8 @@ import { logger } from "@/lib/logger";
  */
 export async function GET(request: NextRequest) {
   try {
-    const logoUrl =
+    // Use environment variable (fallback to hardcoded URL for backwards compatibility)
+    const logoUrl = process.env.LOGO_URL ||
       "https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d";
 
     const response = await fetch(logoUrl);

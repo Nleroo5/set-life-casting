@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fredoka, Outfit } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -277,6 +278,7 @@ export default function RootLayout({
         {/* Website designed and developed by Drive Lead Media - https://www.driveleadmedia.com */}
         {/* Digital Marketing | Web Design | SEO Services | Atlanta, GA */}
         <AuthProvider>
+          <Toaster />
           <Header />
           <Breadcrumbs />
           <main className="min-h-screen">{children}</main>
