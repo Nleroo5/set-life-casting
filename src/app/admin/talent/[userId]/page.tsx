@@ -74,6 +74,8 @@ export default function TalentDetailPage() {
   const [isSavingTag, setIsSavingTag] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [tempNotes, setTempNotes] = useState("");
+  // ✅ FIX: Calculate age on client-side only to prevent hydration error
+  const [age, setAge] = useState<number | null>(null);
 
   useEffect(() => {
     // DIRECT CONSOLE LOG - BYPASS LOGGER
@@ -148,6 +150,17 @@ export default function TalentDetailPage() {
     fetchTalentData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user, userData, isAdmin, userId]);
+
+  // ✅ FIX: Calculate age on client-side only to prevent hydration mismatch
+  // This useEffect runs AFTER hydration, ensuring server/client HTML match
+  useEffect(() => {
+    if (talent?.appearance?.dateOfBirth) {
+      const calculatedAge = calculateAge(talent.appearance.dateOfBirth);
+      setAge(calculatedAge);
+    } else {
+      setAge(null);
+    }
+  }, [talent]); // Recalculate when talent data changes
 
   async function fetchTalentData() {
     try {
@@ -418,7 +431,8 @@ export default function TalentDetailPage() {
     );
   }
 
-  const age = talent.appearance?.dateOfBirth ? calculateAge(talent.appearance.dateOfBirth) : null;
+  // ✅ Age is now calculated client-side in useEffect above (line ~153)
+  // This prevents hydration mismatch errors from new Date()
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
@@ -438,6 +452,7 @@ export default function TalentDetailPage() {
             <p
               className="text-base text-secondary-light"
               style={{ fontFamily: "var(--font-outfit)" }}
+              suppressHydrationWarning={true}
             >
               {talent.appearance?.gender || 'N/A'} {age !== null && `• ${age} years old`} •{" "}
               {talent.basicInfo?.city || 'Unknown'}, {talent.basicInfo?.state || ''}
