@@ -76,13 +76,27 @@ export default function TalentDetailPage() {
   const [tempNotes, setTempNotes] = useState("");
 
   useEffect(() => {
+    logger.debug("TalentDetailPage: Auth flow triggered", {
+      authLoading,
+      hasUser: !!user,
+      userId: user?.uid,
+      hasUserData: !!userData,
+      userRole: userData?.role,
+      isAdmin,
+      talentProfileId: userId,
+    });
+
     // Don't do anything while auth is loading
     if (authLoading) {
+      logger.debug("TalentDetailPage: Auth still loading, waiting...");
       return;
     }
 
     // Redirect if not authenticated
     if (!user) {
+      logger.warn("TalentDetailPage: No authenticated user, redirecting to login", {
+        redirectUrl: `/login?redirect=/admin/talent/${userId}`,
+      });
       router.push(`/login?redirect=/admin/talent/${userId}`);
       return;
     }
@@ -90,35 +104,65 @@ export default function TalentDetailPage() {
     // Wait for userData to load before checking isAdmin
     // This prevents false negative when userData is still being fetched
     if (!userData) {
+      logger.debug("TalentDetailPage: User authenticated but userData not loaded yet, waiting for Firestore...", {
+        userId: user.uid,
+        email: user.email,
+      });
       // userData is still loading from Firestore, wait
       return;
     }
 
     // Redirect if not admin (now safe to check since userData exists)
     if (!isAdmin) {
+      logger.warn("TalentDetailPage: User is not admin, redirecting to /admin", {
+        userId: user.uid,
+        userRole: userData.role,
+        redirectUrl: "/admin",
+      });
       router.push("/admin");
       return;
     }
 
     // Fetch data
+    logger.debug("TalentDetailPage: Auth complete, fetching talent data", {
+      userId: user.uid,
+      isAdmin: true,
+      talentProfileId: userId,
+    });
     fetchTalentData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user, userData, isAdmin, userId]);
 
   async function fetchTalentData() {
     try {
+      logger.debug("TalentDetailPage: Starting talent data fetch", { userId });
       setLoading(true);
 
       // Fetch talent profile
       const profileDoc = await getDoc(doc(db, "profiles", userId));
+
       if (profileDoc.exists()) {
+        logger.debug("TalentDetailPage: Profile document found", {
+          userId,
+          hasBasicInfo: !!profileDoc.data().basicInfo,
+          hasAppearance: !!profileDoc.data().appearance,
+        });
+
         const data = profileDoc.data();
 
         // Validate critical data before setting talent
         if (!data.basicInfo || !data.appearance) {
-          logger.error(`Profile ${userId} missing critical data`);
+          logger.error("TalentDetailPage: Profile missing critical data", {
+            userId,
+            hasBasicInfo: !!data.basicInfo,
+            hasAppearance: !!data.appearance,
+          });
           setTalent(null);
         } else {
+          logger.debug("TalentDetailPage: Profile data validated successfully", {
+            userId,
+            name: `${data.basicInfo.firstName} ${data.basicInfo.lastName}`,
+          });
           setTalent({
             id: profileDoc.id,
             ...data,
@@ -126,6 +170,11 @@ export default function TalentDetailPage() {
             status: data.status || "active",
           } as TalentProfile);
         }
+      } else {
+        logger.warn("TalentDetailPage: Profile document not found in Firestore", {
+          userId,
+        });
+        setTalent(null);
       }
 
       // Fetch submissions
@@ -145,11 +194,21 @@ export default function TalentDetailPage() {
         });
       });
 
+      logger.debug("TalentDetailPage: Submissions fetched", {
+        userId,
+        submissionCount: submissionsData.length,
+      });
       setSubmissions(submissionsData);
     } catch (error) {
-      logger.error("Error fetching talent data:", error);
+      logger.error("TalentDetailPage: Error fetching talent data", {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+      });
+      setTalent(null);
     } finally {
       setLoading(false);
+      logger.debug("TalentDetailPage: Data fetch complete", { userId });
     }
   }
 
@@ -300,6 +359,19 @@ export default function TalentDetailPage() {
   }
 
   if (!user || !userData || !isAdmin || !talent) {
+    logger.warn("TalentDetailPage: Render guard triggered - showing 'not found' screen", {
+      hasUser: !!user,
+      hasUserData: !!userData,
+      isAdmin,
+      hasTalent: !!talent,
+      reason: !user
+        ? "no_user"
+        : !userData
+        ? "no_userData"
+        : !isAdmin
+        ? "not_admin"
+        : "no_talent",
+    });
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

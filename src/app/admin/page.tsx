@@ -13,8 +13,24 @@ export default function AdminPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
+    logger.debug("AdminPage: Auth check triggered", {
+      loading,
+      hasUser: !!user,
+      isAdmin,
+      userId: user?.uid,
+    });
+
     if (!loading && (!user || !isAdmin)) {
+      logger.warn("AdminPage: User not authorized, redirecting to login", {
+        hasUser: !!user,
+        isAdmin,
+        redirectUrl: "/login?redirect=/admin",
+      });
       router.push("/login?redirect=/admin");
+    } else if (!loading && user && isAdmin) {
+      logger.debug("AdminPage: User authorized, showing admin dashboard", {
+        userId: user.uid,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user, isAdmin]);
