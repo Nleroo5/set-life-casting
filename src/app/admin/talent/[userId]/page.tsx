@@ -76,6 +76,17 @@ export default function TalentDetailPage() {
   const [tempNotes, setTempNotes] = useState("");
 
   useEffect(() => {
+    // DIRECT CONSOLE LOG - BYPASS LOGGER
+    console.log("🔍 TALENT PAGE - Auth flow triggered", {
+      authLoading,
+      hasUser: !!user,
+      userId: user?.uid,
+      hasUserData: !!userData,
+      userRole: userData?.role,
+      isAdmin,
+      talentProfileId: userId,
+    });
+
     logger.debug("TalentDetailPage: Auth flow triggered", {
       authLoading,
       hasUser: !!user,
@@ -114,6 +125,11 @@ export default function TalentDetailPage() {
 
     // Redirect if not admin (now safe to check since userData exists)
     if (!isAdmin) {
+      console.warn("⚠️ TALENT PAGE - NOT ADMIN! Redirecting to /admin", {
+        userId: user.uid,
+        userRole: userData.role,
+        redirectUrl: "/admin",
+      });
       logger.warn("TalentDetailPage: User is not admin, redirecting to /admin", {
         userId: user.uid,
         userRole: userData.role,
@@ -359,6 +375,19 @@ export default function TalentDetailPage() {
   }
 
   if (!user || !userData || !isAdmin || !talent) {
+    console.warn("🚫 RENDER GUARD - Showing not found screen", {
+      hasUser: !!user,
+      hasUserData: !!userData,
+      isAdmin,
+      hasTalent: !!talent,
+      reason: !user
+        ? "no_user"
+        : !userData
+        ? "no_userData"
+        : !isAdmin
+        ? "not_admin"
+        : "no_talent",
+    });
     logger.warn("TalentDetailPage: Render guard triggered - showing 'not found' screen", {
       hasUser: !!user,
       hasUserData: !!userData,
