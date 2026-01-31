@@ -48,6 +48,23 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()'
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.mailerlitelibrary.com https://www.clarity.ms",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.firebaseio.com https://firebasestorage.googleapis.com https://www.google-analytics.com https://www.clarity.ms https://*.mailerlite.com wss://*.firebaseio.com",
+              "frame-src 'self' https://www.google.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
         ],
       },
     ];

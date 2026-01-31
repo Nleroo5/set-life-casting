@@ -76,23 +76,13 @@ export default function TalentDetailPage() {
   const [tempNotes, setTempNotes] = useState("");
 
   useEffect(() => {
-    console.log("[TALENT PROFILE DEBUG] useEffect triggered", {
-      authLoading,
-      hasUser: !!user,
-      hasUserData: !!userData,
-      isAdmin,
-      userId,
-    });
-
     // Don't do anything while auth is loading
     if (authLoading) {
-      console.log("[TALENT PROFILE DEBUG] Auth still loading, waiting...");
       return;
     }
 
     // Redirect if not authenticated
     if (!user) {
-      console.log("[TALENT PROFILE DEBUG] No user, redirecting to login");
       router.push(`/login?redirect=/admin/talent/${userId}`);
       return;
     }
@@ -101,19 +91,16 @@ export default function TalentDetailPage() {
     // This prevents false negative when userData is still being fetched
     if (!userData) {
       // userData is still loading from Firestore, wait
-      console.log("[TALENT PROFILE DEBUG] userData not loaded yet, waiting...");
       return;
     }
 
     // Redirect if not admin (now safe to check since userData exists)
     if (!isAdmin) {
-      console.log("[TALENT PROFILE DEBUG] User is not admin, redirecting to /admin");
       router.push("/admin");
       return;
     }
 
     // Fetch data
-    console.log("[TALENT PROFILE DEBUG] All checks passed, fetching talent data");
     fetchTalentData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user, userData, isAdmin, userId]);

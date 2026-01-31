@@ -42,15 +42,7 @@ function LoginForm() {
 
   // Redirect if already logged in
   useEffect(() => {
-    console.log("[LOGIN DEBUG] useEffect check", {
-      authLoading,
-      hasUser: !!user,
-      isAdmin,
-      redirectTo,
-    });
-
     if (!authLoading && user) {
-      console.log("[LOGIN DEBUG] User already logged in, redirecting to:", redirectTo);
       // Redirect all users (including admins) to their intended destination
       // This ensures deep links work correctly even after cookie expiration
       router.push(redirectTo);
