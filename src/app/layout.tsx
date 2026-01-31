@@ -9,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -239,23 +240,12 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} ${outfit.variable} ${galindo.variable} antialiased`}
       >
-        {/* Google Analytics */}
+        {/* Google Analytics - Fixed: Moved new Date() to client component */}
         <Script
           strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-152PSRW9DD"
         />
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-152PSRW9DD');
-            `,
-          }}
-        />
+        <GoogleAnalytics />
 
         {/* MailerLite Universal Script */}
         <Script

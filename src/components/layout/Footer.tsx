@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -37,7 +37,13 @@ const footerLinks = {
 };
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  // ✅ FIX: Calculate year in useEffect to prevent hydration error
+  // new Date() must be called client-side only to avoid server/client mismatch
+  const [currentYear, setCurrentYear] = useState<number>(2026);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="relative bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
