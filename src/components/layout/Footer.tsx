@@ -40,12 +40,12 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+    <footer className="relative bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
       {/* Glass Morphism Background Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-white/5 backdrop-blur-sm"></div>
 
       {/* Top Glowing Border */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent shadow-[0_0_10px_rgba(168,85,247,0.4)]"></div>
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500/50 to-transparent shadow-[0_0_10px_rgba(168,85,247,0.4)]"></div>
 
       {/*
         Website Design & Development by Drive Lead Media

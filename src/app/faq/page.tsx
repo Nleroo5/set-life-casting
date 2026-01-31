@@ -144,7 +144,7 @@ export default function FAQPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Frequently Asked <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Questions</span>
+              Frequently Asked <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Questions</span>
             </h1>
             <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               We've gathered the most common questions from talent and productions so you can find answers fast.
@@ -154,7 +154,7 @@ export default function FAQPage() {
       </section>
 
       {/* Unified Background Section */}
-      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+      <div className="bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
@@ -193,7 +193,7 @@ export default function FAQPage() {
                   return (
                     <div
                       key={id}
-                      className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl overflow-hidden border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+                      className="bg-linear-to-br from-white to-purple-50/30 rounded-xl overflow-hidden border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
                     >
                       <button
                         onClick={() => toggleAccordion(id)}

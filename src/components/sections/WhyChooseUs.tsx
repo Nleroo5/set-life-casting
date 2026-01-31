@@ -50,29 +50,29 @@ export default function WhyChooseUs() {
               </div>
 
               {/* Bottom edge shadow for depth */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-b from-black/50 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-b from-black/50 to-transparent" />
             </div>
 
             {/* HINGE BAR */}
-            <div className="h-3 bg-gradient-to-b from-gray-800 via-gray-700 to-gray-900 relative shadow-inner">
+            <div className="h-3 bg-linear-to-b from-gray-800 via-gray-700 to-gray-900 relative shadow-inner">
               {/* Highlight on top edge */}
               <div className="absolute top-0 left-0 right-0 h-px bg-white/30" />
               {/* Shadow on bottom edge */}
               <div className="absolute bottom-0 left-0 right-0 h-px bg-black/60" />
 
               {/* Hinge screws/bolts */}
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
-              <div className="absolute right-12 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
-              <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
+              <div className="absolute left-12 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-linear-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
+              <div className="absolute right-12 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-linear-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
+              <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-linear-to-br from-gray-400 to-gray-600 shadow-sm border border-gray-500" />
             </div>
 
             {/* COLOR BARS - Traditional clapper board identification */}
             <div className="h-12 flex relative">
-              <div className="flex-1 bg-gradient-to-b from-yellow-400 to-yellow-500" />
-              <div className="flex-1 bg-gradient-to-b from-purple-500 to-purple-600" />
-              <div className="flex-1 bg-gradient-to-b from-red-500 to-red-600" />
-              <div className="flex-1 bg-gradient-to-b from-blue-500 to-blue-600" />
-              <div className="flex-1 bg-gradient-to-b from-green-500 to-green-600" />
+              <div className="flex-1 bg-linear-to-b from-yellow-400 to-yellow-500" />
+              <div className="flex-1 bg-linear-to-b from-purple-500 to-purple-600" />
+              <div className="flex-1 bg-linear-to-b from-red-500 to-red-600" />
+              <div className="flex-1 bg-linear-to-b from-blue-500 to-blue-600" />
+              <div className="flex-1 bg-linear-to-b from-green-500 to-green-600" />
             </div>
 
             {/* MAIN BOARD - Header */}
@@ -112,11 +112,11 @@ export default function WhyChooseUs() {
             </motion.div>
 
             {/* Bottom edge details */}
-            <div className="h-2 bg-gradient-to-b from-gray-300 to-gray-400" />
+            <div className="h-2 bg-linear-to-b from-gray-300 to-gray-400" />
 
             {/* Side depth shadows */}
-            <div className="absolute -left-1 top-24 bottom-2 w-1 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
-            <div className="absolute -right-1 top-24 bottom-2 w-1 bg-gradient-to-l from-black/30 to-transparent pointer-events-none" />
+            <div className="absolute -left-1 top-24 bottom-2 w-1 bg-linear-to-r from-black/30 to-transparent pointer-events-none" />
+            <div className="absolute -right-1 top-24 bottom-2 w-1 bg-linear-to-l from-black/30 to-transparent pointer-events-none" />
           </div>
 
           {/* Outer shadow for depth */}

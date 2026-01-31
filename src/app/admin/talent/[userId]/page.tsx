@@ -421,7 +421,7 @@ export default function TalentDetailPage() {
   const age = talent.appearance?.dateOfBirth ? calculateAge(talent.appearance.dateOfBirth) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -431,7 +431,7 @@ export default function TalentDetailPage() {
               style={{ fontFamily: "var(--font-galindo)" }}
             >
               {talent.basicInfo?.firstName || 'Unknown'}{" "}
-              <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {talent.basicInfo?.lastName || ''}
               </span>
             </h1>
@@ -469,7 +469,7 @@ export default function TalentDetailPage() {
         )}
 
         {/* Admin Tags & Notes */}
-        <div className="mb-6 bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+        <div className="mb-6 bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
           <h2
             className="text-xl font-bold text-secondary mb-4"
             style={{ fontFamily: "var(--font-galindo)" }}
@@ -607,7 +607,7 @@ export default function TalentDetailPage() {
           {/* Left Column - Photos */}
           <div className="lg:col-span-1 space-y-6">
             {/* Photos */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}
@@ -659,7 +659,7 @@ export default function TalentDetailPage() {
           {/* Right Column - Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Contact Information */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}
@@ -685,7 +685,7 @@ export default function TalentDetailPage() {
             </div>
 
             {/* Appearance */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}
@@ -716,7 +716,7 @@ export default function TalentDetailPage() {
             </div>
 
             {/* Sizes */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}
@@ -747,7 +747,7 @@ export default function TalentDetailPage() {
             </div>
 
             {/* Additional Details */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}
@@ -781,7 +781,7 @@ export default function TalentDetailPage() {
             </div>
 
             {/* Submission History */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)]">
               <h2
                 className="text-xl font-bold text-secondary mb-4"
                 style={{ fontFamily: "var(--font-galindo)" }}

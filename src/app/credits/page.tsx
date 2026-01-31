@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function CreditsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Header */}
         <div className="text-center mb-16">
@@ -64,7 +64,7 @@ export default function CreditsPage() {
               Services Provided
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-accent/5 to-purple-50 p-6 rounded-lg">
+              <div className="bg-linear-to-br from-accent/5 to-purple-50 p-6 rounded-lg">
                 <h3 className="font-bold text-lg text-secondary mb-2">
                   Web Design
                 </h3>
@@ -73,7 +73,7 @@ export default function CreditsPage() {
                   target audience in the Atlanta film industry
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg">
+              <div className="bg-linear-to-br from-purple-50 to-blue-50 p-6 rounded-lg">
                 <h3 className="font-bold text-lg text-secondary mb-2">
                   Web Development
                 </h3>
@@ -82,7 +82,7 @@ export default function CreditsPage() {
                   and Tailwind CSS for optimal performance
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-accent/5 p-6 rounded-lg">
+              <div className="bg-linear-to-br from-blue-50 to-accent/5 p-6 rounded-lg">
                 <h3 className="font-bold text-lg text-secondary mb-2">
                   SEO Optimization
                 </h3>
@@ -91,7 +91,7 @@ export default function CreditsPage() {
                   for key Atlanta casting and extras-related keywords
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-accent/5 to-purple-50 p-6 rounded-lg">
+              <div className="bg-linear-to-br from-accent/5 to-purple-50 p-6 rounded-lg">
                 <h3 className="font-bold text-lg text-secondary mb-2">
                   Digital Strategy
                 </h3>
@@ -139,7 +139,7 @@ export default function CreditsPage() {
           </section>
 
           {/* Contact Drive Lead Media */}
-          <section className="bg-gradient-to-br from-accent/10 to-purple-50 p-8 rounded-xl text-center">
+          <section className="bg-linear-to-br from-accent/10 to-purple-50 p-8 rounded-xl text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4">
               Need a Professional Website?
             </h2>

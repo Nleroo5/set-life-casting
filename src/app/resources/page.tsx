@@ -27,10 +27,10 @@ export default function ResourcesPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Everything You Need to Know About <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Being An Extra</span>
+              Everything You Need to Know About <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Being An Extra</span>
             </h1>
             <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
-              <span className="inline-block bg-gradient-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
+              <span className="inline-block bg-linear-to-r from-white via-purple-300 to-white bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer font-semibold">
                 New to being an extra? Perfect!
               </span>
               {" "}
@@ -41,7 +41,7 @@ export default function ResourcesPage() {
       </section>
 
       {/* Unified Background Section */}
-      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+      <div className="bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
@@ -89,7 +89,7 @@ export default function ResourcesPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">1</span>
               </div>
@@ -102,7 +102,7 @@ export default function ResourcesPage() {
             </div>
 
             {/* Step 2 */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">2</span>
               </div>
@@ -115,7 +115,7 @@ export default function ResourcesPage() {
             </div>
 
             {/* Step 3 */}
-            <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+            <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">3</span>
               </div>
@@ -133,7 +133,7 @@ export default function ResourcesPage() {
       {/* How to Know If You're Right for a Role */}
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to Know If You're Right for a Role
             </h2>
@@ -151,9 +151,9 @@ export default function ResourcesPage() {
       <section id="photos" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              How to <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Submit Like a Pro</span>
+              How to <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Submit Like a Pro</span>
             </h2>
             <p className="text-lg md:text-lgtext-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
@@ -162,9 +162,9 @@ export default function ResourcesPage() {
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* DO Section */}
-            <div className="bg-gradient-to-br from-white to-green-50/30 rounded-2xl p-8 border-2 border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:shadow-[0_0_50px_rgba(34,197,94,0.25)] transition-all duration-300">
+            <div className="bg-linear-to-br from-white to-green-50/30 rounded-2xl p-8 border-2 border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:shadow-[0_0_50px_rgba(34,197,94,0.25)] transition-all duration-300">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-linear-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center">
                   <svg
                     className="w-7 h-7 text-white"
                     fill="none"
@@ -208,9 +208,9 @@ export default function ResourcesPage() {
             </div>
 
             {/* DON'T Section */}
-            <div className="bg-gradient-to-br from-white to-red-50/30 rounded-2xl p-8 border-2 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.25)] transition-all duration-300">
+            <div className="bg-linear-to-br from-white to-red-50/30 rounded-2xl p-8 border-2 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.25)] transition-all duration-300">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-linear-to-br from-red-400 to-red-500 rounded-xl flex items-center justify-center">
                   <svg
                     className="w-7 h-7 text-white"
                     fill="none"
@@ -345,7 +345,7 @@ export default function ResourcesPage() {
       <section id="etiquette" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               Your First Day on Set: What to Expect
             </h2>
@@ -378,7 +378,7 @@ export default function ResourcesPage() {
             ].map((section) => (
               <div
                 key={section.title}
-                className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+                className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
               >
                 <h3 className="text-2xl font-bold text-accent mb-6">
                   {section.title}
@@ -426,7 +426,7 @@ export default function ResourcesPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+            <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
             <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               Getting Paid
             </h2>
@@ -466,9 +466,9 @@ export default function ResourcesPage() {
       {/* Questions Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="h-1 w-20 bg-gradient-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
+          <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
           <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-            Still Have <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Questions?</span>
+            Still Have <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Questions?</span>
           </h2>
           <p className="text-lg md:text-lgtext-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.
@@ -483,7 +483,7 @@ export default function ResourcesPage() {
       </div>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-to-br from-accent to-purple-600 text-white">
+      <section className="py-20 bg-linear-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?

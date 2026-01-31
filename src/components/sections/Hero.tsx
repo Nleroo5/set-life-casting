@@ -82,7 +82,7 @@ export default function Hero() {
           Your browser does not support the video tag.
         </video>
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary/70 via-secondary/60 to-secondary/70" />
+        <div className="absolute inset-0 bg-linear-to-br from-secondary/70 via-secondary/60 to-secondary/70" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center z-10">
@@ -93,7 +93,7 @@ export default function Hero() {
         >
           {/* Main Heading */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-            Casting Made <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Simple</span><br />For Talent & Productions
+            Casting Made <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Simple</span><br />For Talent & Productions
           </h1>
 
           {/* Subheading */}

@@ -159,7 +159,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
 
         {/* MALE SIZES */}
         {(isMale || isNonBinary) && (
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
+          <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
             <h3
               className="text-lg font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
@@ -204,7 +204,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
 
         {/* FEMALE SIZES */}
         {(isFemale || isNonBinary) && (
-          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
+          <div className="bg-linear-to-br from-pink-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
             <h3
               className="text-lg font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
@@ -245,7 +245,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
         )}
 
         {/* OPTIONAL MEASUREMENTS */}
-        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent/10">
+        <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent/10">
           <h3
             className="text-lg font-bold text-secondary mb-2"
             style={{ fontFamily: "var(--font-galindo)" }}

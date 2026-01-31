@@ -323,7 +323,7 @@ export default function TalentDatabasePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -333,7 +333,7 @@ export default function TalentDatabasePage() {
               style={{ fontFamily: "var(--font-galindo)" }}
             >
               Talent{" "}
-              <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Database
               </span>
             </h1>
@@ -351,7 +351,7 @@ export default function TalentDatabasePage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
             <p
               className="text-sm text-secondary-light mb-1"
               style={{ fontFamily: "var(--font-outfit)" }}
@@ -365,7 +365,7 @@ export default function TalentDatabasePage() {
               {stats.total}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
             <p
               className="text-sm text-secondary-light mb-1"
               style={{ fontFamily: "var(--font-outfit)" }}
@@ -379,7 +379,7 @@ export default function TalentDatabasePage() {
               {stats.newThisMonth}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
             <p
               className="text-sm text-secondary-light mb-1"
               style={{ fontFamily: "var(--font-outfit)" }}
@@ -393,7 +393,7 @@ export default function TalentDatabasePage() {
               {stats.active}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent shadow-[0_0_20px_rgba(95,101,196,0.1)]">
             <p
               className="text-sm text-secondary-light mb-1"
               style={{ fontFamily: "var(--font-outfit)" }}
@@ -410,7 +410,7 @@ export default function TalentDatabasePage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] mb-8">
+        <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] mb-8">
           {/* Search Bar and Show Archived Toggle */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             <div className="lg:col-span-2">
@@ -711,7 +711,7 @@ export default function TalentDatabasePage() {
                 <Link
                   key={talent.id}
                   href={`/admin/talent/${talent.id}`}
-                  className={`bg-gradient-to-br from-white to-purple-50/30 rounded-xl border-2 ${borderClass} ${shadowClass} ${hoverBorderClass} ${hoverShadowClass} transition-all duration-300 overflow-hidden group`}
+                  className={`bg-linear-to-br from-white to-purple-50/30 rounded-xl border-2 ${borderClass} ${shadowClass} ${hoverBorderClass} ${hoverShadowClass} transition-all duration-300 overflow-hidden group`}
                 >
                   {/* Photo */}
                   <div className="relative w-full aspect-square bg-gray-200 overflow-hidden">
@@ -722,7 +722,7 @@ export default function TalentDatabasePage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                      <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-100 to-pink-100">
                         <svg
                           className="w-24 h-24 text-secondary-light/30"
                           fill="none"

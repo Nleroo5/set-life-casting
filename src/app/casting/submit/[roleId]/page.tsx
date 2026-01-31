@@ -334,7 +334,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Header */}
         <div className="text-center mb-8">
@@ -343,7 +343,7 @@ export default function SubmitPage() {
             style={{ fontFamily: "var(--font-galindo)" }}
           >
             Submit for{" "}
-            <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
               {role.name}
             </span>
           </h1>
@@ -359,7 +359,7 @@ export default function SubmitPage() {
         <ProgressIndicator steps={steps} currentStep={currentStep} />
 
         {/* Form Steps */}
-        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] mt-8">
+        <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] mt-8">
           {currentStep === 1 && <AccountStep onNext={() => handleNext()} />}
 
           {currentStep === 2 && (

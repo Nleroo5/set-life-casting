@@ -122,9 +122,9 @@ export default function CastingPage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 md:pb-16 lg:pb-20 xl:pb-24 overflow-hidden bg-gradient-to-br from-secondary via-secondary-dark to-secondary">
+      <section className="relative pt-32 pb-12 md:pb-16 lg:pb-20 xl:pb-24 overflow-hidden bg-linear-to-br from-secondary via-secondary-dark to-secondary">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-purple-600/10 to-pink-600/10"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -133,7 +133,7 @@ export default function CastingPage() {
               style={{ fontFamily: "var(--font-galindo)" }}
             >
               Current{" "}
-              <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">
+              <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">
                 Casting Calls
               </span>
             </h1>
@@ -149,7 +149,7 @@ export default function CastingPage() {
       </section>
 
       {/* Main Content */}
-      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+      <div className="bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
@@ -220,7 +220,7 @@ export default function CastingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 md:p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+                    className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-6 md:p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
                   >
                     {/* Role Info */}
                     <div className="mb-4">

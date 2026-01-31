@@ -28,7 +28,7 @@ export default function ContactPage() {
             className="text-center max-w-3xl mx-auto"
           >
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
-              Let&apos;s <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Work Together!</span>
+              Let&apos;s <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Work Together!</span>
             </h1>
             <p className="text-lg md:text-lg text-white leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
               Whether you&apos;re hiring background talent or hoping to be booked, here&apos;s the best way to reach us.
@@ -38,7 +38,7 @@ export default function ContactPage() {
       </section>
 
       {/* Unified Background Section */}
-      <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+      <div className="bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
@@ -53,13 +53,13 @@ export default function ContactPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+              className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
             >
               <div className="text-center mb-6">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
-                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
+                  className="w-16 h-16 bg-linear-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
                 >
                   <svg
                     className="w-8 h-8 text-accent"
@@ -152,13 +152,13 @@ export default function ContactPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
+              className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300"
             >
               <div className="text-center mb-6">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.2 }}
-                  className="w-16 h-16 bg-gradient-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
+                  className="w-16 h-16 bg-linear-to-br from-accent/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.6)]"
                 >
                   <svg
                     className="w-8 h-8 text-accent"
@@ -313,7 +313,7 @@ export default function ContactPage() {
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="w-14 h-14 bg-accent/10 hover:bg-gradient-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] text-accent hover:text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg"
+                className="w-14 h-14 bg-accent/10 hover:bg-linear-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] text-accent hover:text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg"
                 aria-label="Instagram"
               >
                 <svg

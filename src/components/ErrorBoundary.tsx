@@ -40,7 +40,7 @@ class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full border-2 border-red-300 shadow-lg">
             <div className="text-center">
               <div className="text-5xl mb-4">⚠️</div>

@@ -196,7 +196,7 @@ export default function ReviewStep({
 
         {/* Confirmation Form */}
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-accent/30 rounded-xl p-6 space-y-4">
+          <div className="bg-linear-to-br from-purple-50 to-pink-50 border-2 border-accent/30 rounded-xl p-6 space-y-4">
             <h3
               className="text-lg font-semibold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}

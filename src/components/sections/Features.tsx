@@ -65,7 +65,7 @@ const mainServices = [
 
 export default function Features() {
   return (
-    <section className="pt-12 pb-24 bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
+    <section className="pt-12 pb-24 bg-linear-to-br from-purple-100 via-pink-50 to-blue-50 relative overflow-hidden">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl" />
@@ -84,7 +84,7 @@ export default function Features() {
           {mainServices.map((service, index) => (
             <div
               key={service.title}
-              className="relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
+              className="relative bg-linear-to-br from-white to-purple-50/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 border-2 border-[#7c3aed] shadow-[0_0_30px_rgba(124,58,237,0.15)] hover:shadow-[0_0_50px_rgba(124,58,237,0.3)] transition-all duration-300 h-full text-center"
             >
               {/* Purple Star */}
               <div className="flex justify-center mb-4">

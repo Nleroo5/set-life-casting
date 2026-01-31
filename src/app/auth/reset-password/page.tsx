@@ -113,7 +113,7 @@ function ResetPasswordForm() {
 
   if (verifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
         <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4">
           <div className="text-center">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent mb-4"></div>
@@ -128,7 +128,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
         <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4">
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
@@ -165,7 +165,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
       <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4">
         <div className="text-center mb-8">
           <h1
@@ -234,7 +234,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">
         <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
       </div>
     }>

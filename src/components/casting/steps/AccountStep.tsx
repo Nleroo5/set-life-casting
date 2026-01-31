@@ -90,7 +90,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
 
         <div className="space-y-4">
           <div
-            className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent cursor-pointer hover:shadow-lg transition-all duration-300"
+            className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent cursor-pointer hover:shadow-lg transition-all duration-300"
             onClick={() => setMode("signup")}
           >
             <h3
@@ -109,7 +109,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
           </div>
 
           <div
-            className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl p-6 border-2 border-gray-300 cursor-pointer hover:border-accent hover:shadow-lg transition-all duration-300"
+            className="bg-linear-to-br from-white to-blue-50/30 rounded-xl p-6 border-2 border-gray-300 cursor-pointer hover:border-accent hover:shadow-lg transition-all duration-300"
             onClick={handleGuestSignIn}
           >
             <h3
