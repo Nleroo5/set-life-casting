@@ -55,7 +55,7 @@ export interface Submission {
   roleName: string;
   projectId: string;
   projectTitle: string;
-  status: "pending" | "reviewed" | "selected" | "rejected" | "archived";
+  status: "pinned" | "booked" | "rejected" | "archived" | null;
   profileData: TalentProfile;
   submittedAt: Date;
   updatedAt?: Date;

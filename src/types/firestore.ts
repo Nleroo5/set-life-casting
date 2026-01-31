@@ -195,7 +195,7 @@ export interface TalentProfile {
 // SUBMISSIONS
 // ============================================================================
 
-export type SubmissionStatus = "pending" | "reviewed" | "selected" | "rejected" | "archived";
+export type SubmissionStatus = "pinned" | "booked" | "rejected" | "archived" | null;
 
 export interface Submission {
   id: string;

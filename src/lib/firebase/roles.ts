@@ -131,7 +131,7 @@ export async function restoreRole(roleId: string): Promise<void> {
 
     const submissionUpdates = submissionsSnapshot.docs.map((submissionDoc) => {
       return updateDoc(submissionDoc.ref, {
-        status: "pending",
+        status: null,
         archivedIndividually: false,
         updatedAt: Timestamp.now(),
       });

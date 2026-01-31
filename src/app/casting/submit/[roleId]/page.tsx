@@ -289,7 +289,7 @@ export default function SubmitPage() {
         projectId: project.id,
         roleName: role.name,
         projectTitle: project.title,
-        status: "pending",
+        status: null,
         submittedAt: new Date(),
         profileData: {
           basicInfo: formData.basicInfo,

@@ -15,10 +15,12 @@ import { logger } from "@/lib/logger";
 
 interface Submission {
   id: string;
+  roleId: string;
   roleName: string;
+  projectId: string;
   projectTitle: string;
-  status: "pending" | "reviewed" | "selected" | "rejected";
-  submittedAt: Date;
+  status: "pinned" | "booked" | "rejected" | null;
+  submittedAt: any;
 }
 
 interface UserProfile {
@@ -154,21 +156,18 @@ export default function DashboardPage() {
     }
   };
 
-  const getStatusBadgeVariant = (status: string): "default" | "success" | "warning" | "danger" => {
-    switch (status) {
-      case "selected":
-        return "success";
-      default:
-        return "default"; // Show all non-selected as default (pending style)
-    }
+  const getStatusBadgeVariant = (status: string | null): "default" | "success" => {
+    return status === "booked" ? "success" : "default";
   };
 
-  const getStatusLabel = (status: string): string => {
+  const getStatusLabel = (status: string | null): string => {
     switch (status) {
-      case "selected":
-        return "Selected";
+      case "booked":
+        return "Booked";
+      case "rejected":
+        return "Not Selected";
       default:
-        return "Pending Review"; // Show all non-selected as pending
+        return "Under Review"; // For pinned, new, or any other status
     }
   };
 

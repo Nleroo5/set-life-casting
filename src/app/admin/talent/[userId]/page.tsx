@@ -56,9 +56,11 @@ interface TalentProfile {
 
 interface Submission {
   id: string;
+  roleId: string;
   roleName: string;
+  projectId: string;
   projectTitle: string;
-  status: "pending" | "reviewed" | "selected" | "rejected";
+  status: "pinned" | "booked" | "rejected" | null;
   submittedAt: Date;
 }
 
@@ -342,12 +344,12 @@ export default function TalentDetailPage() {
   }
 
   const getStatusBadgeVariant = (
-    status: string
+    status: string | null
   ): "default" | "success" | "warning" | "danger" => {
     switch (status) {
-      case "selected":
+      case "booked":
         return "success";
-      case "reviewed":
+      case "pinned":
         return "warning";
       case "rejected":
         return "danger";
@@ -356,18 +358,16 @@ export default function TalentDetailPage() {
     }
   };
 
-  const getStatusLabel = (status: string): string => {
+  const getStatusLabel = (status: string | null): string => {
     switch (status) {
-      case "pending":
-        return "Pending Review";
-      case "reviewed":
-        return "Under Review";
-      case "selected":
-        return "Selected";
+      case "pinned":
+        return "Pinned";
+      case "booked":
+        return "Booked";
       case "rejected":
-        return "Not Selected";
+        return "Rejected";
       default:
-        return status;
+        return "New";
     }
   };
 

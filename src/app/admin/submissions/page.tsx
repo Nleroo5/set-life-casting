@@ -17,13 +17,6 @@ import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  createBooking,
-  deleteBooking,
-  isSubmissionBooked,
-  getBookingsByProject,
-} from "@/lib/firebase/bookings";
-import type { Booking } from "@/types/booking";
 import { logger } from "@/lib/logger";
 
 interface ProfileBasicInfo {
@@ -90,10 +83,9 @@ interface Submission {
   projectId: string;
   roleName: string;
   projectTitle: string;
-  status: "pending" | "reviewed" | "selected" | "rejected";
+  status: "pinned" | "booked" | "rejected" | null;
   submittedAt: Date;
   profileData: ProfileData;
-  pinned?: boolean;
 }
 
 interface Project {
@@ -121,7 +113,7 @@ interface RoleWithSubmissions {
   submissions: Submission[];
 }
 
-type FilterStatus = "all" | "pending" | "reviewed" | "selected" | "rejected";
+type FilterStatus = "all" | "new" | "pinned" | "booked" | "rejected";
 
 export default function AdminSubmissionsPage() {
   const router = useRouter();
@@ -129,16 +121,13 @@ export default function AdminSubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [bookingInProgress, setBookingInProgress] = useState(false);
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
-  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -192,24 +181,9 @@ export default function AdminSubmissionsPage() {
         rolesData.push({ id: doc.id, ...doc.data() } as Role);
       });
 
-      // Fetch all bookings
-      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
-      const bookingsData: Booking[] = [];
-      bookingsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        bookingsData.push({
-          id: doc.id,
-          ...data,
-          confirmedAt: data.confirmedAt?.toDate?.() || data.confirmedAt,
-          createdAt: data.createdAt?.toDate?.() || data.createdAt,
-          updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
-        } as Booking);
-      });
-
       setSubmissions(submissionsData);
       setProjects(projectsData);
       setRoles(rolesData);
-      setBookings(bookingsData);
     } catch (error) {
       logger.error("Error fetching data:", error);
     } finally {
@@ -234,11 +208,18 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  // Filter submissions based on selected project, status, search query, and pin status
+  // Filter submissions based on selected project, status, and search query
   const filteredSubmissions = submissions
     .filter((submission) => {
       const projectMatch = selectedProjectId === "all" || submission.projectId === selectedProjectId;
-      const statusMatch = filterStatus === "all" || submission.status === filterStatus;
+
+      // Status filter logic
+      let statusMatch = true;
+      if (filterStatus === "new") {
+        statusMatch = submission.status === null;
+      } else if (filterStatus !== "all") {
+        statusMatch = submission.status === filterStatus;
+      }
 
       // Search filter: search by name, email, location
       let searchMatch = true;
@@ -259,17 +240,10 @@ export default function AdminSubmissionsPage() {
           location.includes(query);
       }
 
-      // Pin filter: if showPinnedOnly is true, only show pinned submissions
-      const pinnedMatch = !showPinnedOnly || submission.pinned === true;
-
-      return projectMatch && statusMatch && searchMatch && pinnedMatch;
+      return projectMatch && statusMatch && searchMatch;
     })
-    // Sort: pinned submissions float to top
-    .sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return 0;
-    });
+    // Sort by submission date (newest first)
+    .sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
 
   // Get projects that have submissions
   const projectsWithSubmissions = projects.filter((project) =>
@@ -298,73 +272,6 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  const handleBookTalent = async (submission: Submission) => {
-    if (!user) return;
-
-    setBookingInProgress(true);
-    try {
-      // Transform submission to match the Booking type's expected TalentProfile structure
-      const transformedSubmission = {
-        ...submission,
-        profileData: {
-          basicInfo: {
-            firstName: submission.profileData.basicInfo?.firstName || '',
-            lastName: submission.profileData.basicInfo?.lastName || '',
-            email: submission.profileData.basicInfo?.email || '',
-            phone: submission.profileData.basicInfo?.phone || '',
-            dateOfBirth: submission.profileData.appearance?.dateOfBirth || submission.profileData.basicInfo?.dateOfBirth || '',
-            location: submission.profileData.basicInfo?.location ||
-                     `${submission.profileData.basicInfo?.city || ''}, ${submission.profileData.basicInfo?.state || ''}`.trim(),
-          },
-          physical: {
-            gender: submission.profileData.appearance?.gender || '',
-            ethnicity: submission.profileData.appearance?.ethnicity || [],
-            height: submission.profileData.appearance?.height || '',
-            weight: String(submission.profileData.appearance?.weight || 0),
-            hairColor: submission.profileData.appearance?.hairColor || '',
-            eyeColor: submission.profileData.appearance?.eyeColor || '',
-            tattoos: submission.profileData.details?.visibleTattoos || false,
-            piercings: submission.profileData.details?.piercings || false,
-          },
-        },
-      };
-
-      await createBooking(transformedSubmission as import("@/types/booking").Submission, user.uid, {
-        status: "confirmed",
-      });
-      await fetchData();
-      alert(`Successfully booked ${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`);
-    } catch (error) {
-      logger.error("Error booking talent:", error);
-      alert("Failed to book talent");
-    } finally {
-      setBookingInProgress(false);
-    }
-  };
-
-  const handleUnbookTalent = async (submission: Submission) => {
-    const booking = bookings.find((b) => b.submissionId === submission.id);
-    if (!booking) return;
-
-    if (!confirm(`Are you sure you want to unbook ${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}?`)) {
-      return;
-    }
-
-    setBookingInProgress(true);
-    try {
-      await deleteBooking(booking.id);
-      await fetchData();
-    } catch (error) {
-      logger.error("Error unbooking talent:", error);
-      alert("Failed to unbook talent");
-    } finally {
-      setBookingInProgress(false);
-    }
-  };
-
-  const getBookingForSubmission = (submissionId: string): Booking | undefined => {
-    return bookings.find((b) => b.submissionId === submissionId);
-  };
 
   const toggleRole = (roleId: string) => {
     setExpandedRoles((prev) => {
@@ -378,11 +285,11 @@ export default function AdminSubmissionsPage() {
     });
   };
 
-  const getStatusBadgeVariant = (status: string): "default" | "success" | "warning" | "danger" => {
+  const getStatusBadgeVariant = (status: string | null): "default" | "success" | "warning" | "danger" => {
     switch (status) {
-      case "selected":
+      case "booked":
         return "success";
-      case "reviewed":
+      case "pinned":
         return "warning";
       case "rejected":
         return "danger";
@@ -391,37 +298,19 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  const getStatusLabel = (status: string): string => {
+  const getStatusLabel = (status: string | null): string => {
     switch (status) {
-      case "pending":
-        return "To Review";
-      case "reviewed":
-        return "Reviewed";
-      case "selected":
-        return "Shortlisted";
+      case "pinned":
+        return "Pinned";
+      case "booked":
+        return "Booked";
       case "rejected":
         return "Rejected";
       default:
-        return status;
+        return "New";
     }
   };
 
-  // Toggle pin status for a submission
-  const handleTogglePin = async (submissionId: string) => {
-    try {
-      const submission = submissions.find((s) => s.id === submissionId);
-      if (!submission) return;
-
-      const newPinnedState = !submission.pinned;
-      await updateDoc(doc(db, "submissions", submissionId), {
-        pinned: newPinnedState,
-      });
-      await fetchData();
-    } catch (error) {
-      logger.error("Error toggling pin:", error);
-      alert("Failed to update pin status");
-    }
-  };
 
   // Toggle checkbox selection for a submission
   const handleToggleSelection = (submissionId: string) => {
@@ -562,16 +451,16 @@ export default function AdminSubmissionsPage() {
                   options={[
                     { value: "all", label: `All Status (${submissions.length})` },
                     {
-                      value: "pending",
-                      label: `To Review (${submissions.filter((s) => s.status === "pending").length})`,
+                      value: "new",
+                      label: `New (${submissions.filter((s) => s.status === null).length})`,
                     },
                     {
-                      value: "reviewed",
-                      label: `Reviewed (${submissions.filter((s) => s.status === "reviewed").length})`,
+                      value: "pinned",
+                      label: `Pinned (${submissions.filter((s) => s.status === "pinned").length})`,
                     },
                     {
-                      value: "selected",
-                      label: `Shortlisted (${submissions.filter((s) => s.status === "selected").length})`,
+                      value: "booked",
+                      label: `Booked (${submissions.filter((s) => s.status === "booked").length})`,
                     },
                     {
                       value: "rejected",
@@ -581,23 +470,6 @@ export default function AdminSubmissionsPage() {
                 />
               </div>
 
-              {/* Pin Filter */}
-              <div className="mt-4 flex items-center gap-2">
-                <input
-                  id="showPinnedOnly"
-                  type="checkbox"
-                  checked={showPinnedOnly}
-                  onChange={(e) => setShowPinnedOnly(e.target.checked)}
-                  className="w-4 h-4 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
-                />
-                <label
-                  htmlFor="showPinnedOnly"
-                  className="text-sm text-secondary cursor-pointer select-none"
-                  style={{ fontFamily: "var(--font-outfit)" }}
-                >
-                  ⭐ Show Pinned Only ({submissions.filter((s) => s.pinned).length})
-                </label>
-              </div>
             </div>
 
             {/* Bulk Action Bar */}
@@ -623,30 +495,23 @@ export default function AdminSubmissionsPage() {
                     <Button
                       variant="outline"
                       className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
-                      onClick={() => handleBulkUpdateStatus("pending")}
+                      onClick={() => handleBulkUpdateStatus("pinned")}
                     >
-                      Mark as To Review
+                      Pin Selected
                     </Button>
                     <Button
                       variant="outline"
                       className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
-                      onClick={() => handleBulkUpdateStatus("reviewed")}
+                      onClick={() => handleBulkUpdateStatus("booked")}
                     >
-                      Mark as Reviewed
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
-                      onClick={() => handleBulkUpdateStatus("selected")}
-                    >
-                      Mark as Shortlisted
+                      Book Selected
                     </Button>
                     <Button
                       variant="outline"
                       className="text-xs px-3 py-1 bg-white text-accent hover:bg-purple-50"
                       onClick={() => handleBulkUpdateStatus("rejected")}
                     >
-                      Mark as Rejected
+                      Reject Selected
                     </Button>
                   </div>
                 </div>
@@ -686,7 +551,7 @@ export default function AdminSubmissionsPage() {
                       selectedSubmission?.id === submission.id
                         ? "border-accent shadow-[0_0_30px_rgba(95,101,196,0.3)]"
                         : "border-accent/20 hover:border-accent/40"
-                    } ${submission.pinned ? "ring-2 ring-yellow-400" : ""}`}
+                    }`}
                   >
                     <div className="flex items-start gap-4">
                       {/* Checkbox */}
@@ -735,18 +600,6 @@ export default function AdminSubmissionsPage() {
                             <Badge variant={getStatusBadgeVariant(submission.status)}>
                               {getStatusLabel(submission.status)}
                             </Badge>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleTogglePin(submission.id);
-                              }}
-                              className={`text-2xl hover:scale-110 transition-transform ${
-                                submission.pinned ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
-                              }`}
-                              title={submission.pinned ? "Unpin submission" : "Pin submission"}
-                            >
-                              {submission.pinned ? "⭐" : "☆"}
-                            </button>
                           </div>
                         </div>
 
@@ -856,7 +709,7 @@ export default function AdminSubmissionsPage() {
                                   selectedSubmission?.id === submission.id
                                     ? "border-accent shadow-[0_0_20px_rgba(95,101,196,0.3)]"
                                     : "border-accent/20 hover:border-accent/40"
-                                } ${submission.pinned ? "ring-2 ring-yellow-400" : ""}`}
+                                }`}
                               >
                                 <div className="flex items-start gap-4">
                                   {/* Checkbox */}
@@ -1034,84 +887,44 @@ export default function AdminSubmissionsPage() {
                   </div>
                 </div>
 
-                {/* Booking Actions */}
+                {/* Actions */}
                 <div className="pt-4 border-t border-accent/20">
                   <h3 className="text-sm font-semibold text-secondary mb-3">Actions</h3>
 
-                  {selectedSubmission.status === "selected" ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <span className="text-2xl">✓</span>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-green-800">Talent Booked</p>
-                          <p className="text-xs text-green-600">This talent has been confirmed for the role</p>
-                        </div>
-                      </div>
-                      <Link href={`/admin/talent/${selectedSubmission.userId}`}>
-                        <Button
-                          variant="outline"
-                          className="text-sm w-full"
-                        >
-                          👤 View Full Profile
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        className="text-sm w-full text-danger"
-                        onClick={() => handleUnbookTalent(selectedSubmission)}
-                        disabled={bookingInProgress}
-                      >
-                        {bookingInProgress ? "Unbooking..." : "Unbook Talent"}
+                  <div className="space-y-3">
+                    <Link href={`/admin/talent/${selectedSubmission.userId}`}>
+                      <Button variant="outline" className="text-sm w-full">
+                        👤 View Full Profile
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <Button
-                        variant="primary"
-                        className="text-sm w-full"
-                        onClick={() => handleBookTalent(selectedSubmission)}
-                        disabled={bookingInProgress || selectedSubmission.status === "rejected"}
-                      >
-                        {bookingInProgress ? "Booking..." : "📋 Book Talent"}
-                      </Button>
+                    </Link>
 
-                      <Link href={`/admin/talent/${selectedSubmission.userId}`}>
+                    <div className="border-t border-accent/20 pt-3">
+                      <p className="text-xs text-secondary-light mb-2">Update Status:</p>
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
-                          variant="outline"
-                          className="text-sm w-full"
+                          variant={selectedSubmission.status === "pinned" ? "primary" : "outline"}
+                          className="text-xs px-2 py-1"
+                          onClick={() => handleUpdateStatus(selectedSubmission.id, "pinned")}
                         >
-                          👤 View Full Profile
+                          Pin
                         </Button>
-                      </Link>
-
-                      <div className="border-t border-accent/20 pt-3">
-                        <p className="text-xs text-secondary-light mb-2">Review Status:</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Button
-                            variant={selectedSubmission.status === "pending" ? "primary" : "outline"}
-                            className="text-xs px-2 py-1"
-                            onClick={() => handleUpdateStatus(selectedSubmission.id, "pending")}
-                          >
-                            To Review
-                          </Button>
-                          <Button
-                            variant={selectedSubmission.status === "reviewed" ? "primary" : "outline"}
-                            className="text-xs px-2 py-1"
-                            onClick={() => handleUpdateStatus(selectedSubmission.id, "reviewed")}
-                          >
-                            Reviewed
-                          </Button>
-                          <Button
-                            variant={selectedSubmission.status === "rejected" ? "primary" : "outline"}
-                            className="text-xs px-2 py-1"
-                            onClick={() => handleUpdateStatus(selectedSubmission.id, "rejected")}
-                          >
-                            Rejected
-                          </Button>
-                        </div>
+                        <Button
+                          variant={selectedSubmission.status === "booked" ? "primary" : "outline"}
+                          className="text-xs px-2 py-1"
+                          onClick={() => handleUpdateStatus(selectedSubmission.id, "booked")}
+                        >
+                          Book
+                        </Button>
+                        <Button
+                          variant={selectedSubmission.status === "rejected" ? "primary" : "outline"}
+                          className="text-xs px-2 py-1"
+                          onClick={() => handleUpdateStatus(selectedSubmission.id, "rejected")}
+                        >
+                          Reject
+                        </Button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ) : (
