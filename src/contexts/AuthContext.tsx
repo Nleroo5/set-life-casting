@@ -59,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const token = await firebaseUser.getIdToken();
           // Store token in cookie with Secure flag (httpOnly would be better but requires server-side API route)
           // Secure flag ensures cookie is only sent over HTTPS
-          document.cookie = `firebase-token=${token}; path=/; max-age=3600; SameSite=Strict; Secure`;
+          // SameSite=Lax allows cookies during authentication flows (safer than Strict for login)
+          document.cookie = `firebase-token=${token}; path=/; max-age=3600; SameSite=Lax; Secure`;
           logger.debug("Token stored in cookie");
 
           // Clear any existing interval before setting a new one
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             try {
               const newToken = await firebaseUser.getIdToken(true); // Force refresh
-              document.cookie = `firebase-token=${newToken}; path=/; max-age=3600; SameSite=Strict; Secure`;
+              document.cookie = `firebase-token=${newToken}; path=/; max-age=3600; SameSite=Lax; Secure`;
             } catch (error) {
               logger.error("Error refreshing token:", error);
               if (tokenRefreshInterval) {
@@ -96,8 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         logger.debug("No user, clearing data");
         setUserData(null);
-        // Clear token cookie on logout (Secure flag required for consistency)
-        document.cookie = "firebase-token=; path=/; max-age=0; Secure";
+        // Clear token cookie on logout
+        document.cookie = "firebase-token=; path=/; max-age=0; SameSite=Lax; Secure";
 
         // Clear token refresh interval on logout
         if (tokenRefreshInterval) {
