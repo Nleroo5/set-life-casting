@@ -752,7 +752,7 @@ export default function TalentDatabasePage() {
                       className="space-y-1 text-sm text-secondary-light"
                       style={{ fontFamily: "var(--font-outfit)" }}
                     >
-                      <p>
+                      <p suppressHydrationWarning>
                         {talent.appearance?.gender || 'N/A'} {age !== null && `• ${age} years`}
                       </p>
                       {(talent.basicInfo?.city || talent.basicInfo?.state) && (
