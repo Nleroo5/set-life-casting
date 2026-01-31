@@ -16,7 +16,11 @@ class Logger {
   private isDevelopment = process.env.NODE_ENV === 'development';
 
   private log(level: LogLevel, message: string, ...args: any[]) {
-    if (!this.isDevelopment) {
+    // TEMPORARY: Enable all logging in production for debugging redirect issue
+    // TODO: Revert this after debugging is complete
+    const enableProductionLogs = true;
+
+    if (!this.isDevelopment && !enableProductionLogs) {
       // In production, only log errors to help with debugging critical issues
       if (level === 'error') {
         // In a real production app, send to error tracking service (Sentry, etc.)
