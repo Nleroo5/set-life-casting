@@ -1,0 +1,258 @@
+/**
+ * Authentication Context - Supabase Implementation
+ *
+ * PURPOSE: Global auth state management for the application
+ * REPLACES: Firebase Auth implementation
+ * PRESERVES: Exact same interface so no other files need updates
+ *
+ * CRITICAL: The interface MUST stay identical:
+ * - Same hook name: useAuth()
+ * - Same return properties: user, userData, isAdmin, loading, signOut
+ * - Same types: UserData interface
+ *
+ * This allows us to swap auth providers without touching other components
+ */
+
+'use client'
+
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/config'
+import { useRouter } from 'next/navigation'
+
+/**
+ * User metadata from public.users table
+ * Contains role and other custom user data
+ */
+interface UserData {
+  id: string
+  email: string
+  role: 'admin' | 'talent'
+  full_name?: string
+  created_at?: string
+  updated_at?: string
+}
+
+/**
+ * Auth context type
+ * This interface is used throughout the app
+ * DO NOT CHANGE without updating all consumers
+ */
+interface AuthContextType {
+  user: User | null                    // Supabase auth user
+  userData: UserData | null            // Custom user data from public.users
+  isAdmin: boolean                     // Convenience flag for role check
+  loading: boolean                     // Loading state during init
+  emailVerified: boolean               // Email verification status
+  signOut: () => Promise<void>         // Sign out function
+}
+
+/**
+ * Default context value (used before auth loads)
+ */
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  userData: null,
+  isAdmin: false,
+  loading: true,
+  emailVerified: false,
+  signOut: async () => {},
+})
+
+/**
+ * Auth Provider Component
+ * Wrap your app with this to provide auth state to all components
+ *
+ * Usage:
+ * <AuthProvider>
+ *   <YourApp />
+ * </AuthProvider>
+ */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  const supabase = createClient()
+
+  /**
+   * Initialize auth state and listen for changes
+   */
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        loadUserData(session.user.id)
+      } else {
+        setLoading(false)
+      }
+    })
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AUTH STATE CHANGE]', event, session?.user?.email)
+
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        // User logged in or session refreshed
+        await loadUserData(session.user.id)
+      } else {
+        // User logged out
+        setUserData(null)
+        setLoading(false)
+      }
+
+      // Handle specific events
+      if (event === 'SIGNED_OUT') {
+        // Clear any local state
+        setUserData(null)
+        // Redirect to home
+        router.push('/')
+      }
+
+      if (event === 'SIGNED_IN') {
+        // Optionally redirect after sign in
+        // (usually handled by login page)
+      }
+    })
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router]) // Include router in deps (safe - router is stable)
+
+  /**
+   * Load user metadata from public.users table
+   *
+   * @param userId - Supabase auth user ID
+   */
+  async function loadUserData(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email, role, full_name, created_at, updated_at')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('[AUTH] Error loading user data:', error)
+        setUserData(null)
+        return
+      }
+
+      if (!data) {
+        console.warn('[AUTH] No user data found for user:', userId)
+        setUserData(null)
+        return
+      }
+
+      setUserData(data as UserData)
+    } catch (error) {
+      console.error('[AUTH] Exception loading user data:', error)
+      setUserData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /**
+   * Sign out current user
+   * Clears Supabase session and local state
+   */
+  async function signOut() {
+    try {
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        console.error('[AUTH] Error signing out:', error)
+        throw error
+      }
+
+      // State will be cleared by onAuthStateChange listener
+      // No need to manually clear here
+    } catch (error) {
+      console.error('[AUTH] Sign out failed:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Compute derived values
+   */
+  const isAdmin = userData?.role === 'admin'
+  const emailVerified = !!user?.email_confirmed_at
+
+  /**
+   * Context value
+   * This is what components get when they call useAuth()
+   */
+  const value: AuthContextType = {
+    user,
+    userData,
+    isAdmin,
+    loading,
+    emailVerified,
+    signOut,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+/**
+ * useAuth Hook
+ *
+ * Access auth state from any component
+ *
+ * Usage:
+ * const { user, userData, isAdmin, loading } = useAuth()
+ *
+ * if (loading) return <div>Loading...</div>
+ * if (!user) return <div>Not logged in</div>
+ * if (isAdmin) return <AdminDashboard />
+ * return <TalentDashboard />
+ */
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+
+  return context
+}
+
+/**
+ * USAGE EXAMPLES:
+ *
+ * 1. In a protected page:
+ *
+ * 'use client'
+ * import { useAuth } from '@/contexts/AuthContext'
+ *
+ * export default function ProtectedPage() {
+ *   const { user, loading, isAdmin } = useAuth()
+ *
+ *   if (loading) return <div>Loading...</div>
+ *   if (!user) return <div>Please log in</div>
+ *
+ *   return <div>Hello {user.email}</div>
+ * }
+ *
+ * 2. Admin-only component:
+ *
+ * const { isAdmin } = useAuth()
+ * if (!isAdmin) return null
+ * return <AdminPanel />
+ *
+ * 3. Sign out button:
+ *
+ * const { signOut } = useAuth()
+ * <button onClick={signOut}>Log Out</button>
+ */

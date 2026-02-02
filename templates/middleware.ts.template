@@ -1,0 +1,176 @@
+/**
+ * Next.js Middleware - Supabase Auth Protection
+ *
+ * PURPOSE: Protect routes based on authentication and role
+ * ROUTES PROTECTED:
+ * - /admin/* - Requires authentication AND admin role
+ * - /dashboard/* - Requires authentication (any role)
+ *
+ * CRITICAL REQUIREMENTS:
+ * 1. Must create Supabase client with proper cookie handling
+ * 2. Must call updateSession() at the end (prevents weird behavior)
+ * 3. Must check both authentication AND authorization (role)
+ *
+ * BASED ON: Supabase Next.js SSR documentation (2026)
+ * https://supabase.com/docs/guides/auth/server-side/creating-a-client
+ */
+
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  /**
+   * STEP 1: Create Supabase client with cookie handling
+   *
+   * CRITICAL: This must be done BEFORE any Supabase auth calls
+   * to ensure cookies are properly read and updated
+   */
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          // Set cookie on request
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          // Update response with new cookie
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          // Remove cookie from request
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          // Update response to remove cookie
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
+  /**
+   * STEP 2: Get authenticated user
+   *
+   * NOTE: getUser() validates JWT on the server
+   * More secure than getSession() which just reads the cookie
+   */
+  const { data: { user } } = await supabase.auth.getUser()
+
+  /**
+   * STEP 3: Protect /admin routes
+   *
+   * Requirements:
+   * 1. User must be authenticated
+   * 2. User must have admin role in public.users table
+   */
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    // Check authentication
+    if (!user) {
+      // Not logged in - redirect to login with return URL
+      const redirectUrl = new URL('/login', request.url)
+      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Check authorization (admin role)
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (error || !userData || userData.role !== 'admin') {
+      // Not admin - redirect to home
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // User is authenticated AND admin - allow access
+  }
+
+  /**
+   * STEP 4: Protect /dashboard routes (any authenticated user)
+   */
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!user) {
+      const redirectUrl = new URL('/login', request.url)
+      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
+  /**
+   * STEP 5: Update session (CRITICAL!)
+   *
+   * From Supabase docs:
+   * "This ensures the user's login session remains active.
+   * Without this, the app will act weird."
+   *
+   * This refreshes the session if needed and updates cookies
+   */
+  await supabase.auth.updateSession()
+
+  return response
+}
+
+/**
+ * Middleware Configuration
+ *
+ * matcher: Only run middleware on these paths
+ * - Protects /admin/* routes
+ * - Protects /dashboard/* routes
+ * - Add more paths as needed
+ *
+ * NOTE: Middleware runs on EVERY request to matched paths
+ * Keep it fast and efficient
+ */
+export const config = {
+  matcher: [
+    '/admin/:path*',
+    '/dashboard/:path*',
+  ],
+}
+
+/**
+ * TESTING CHECKLIST:
+ *
+ * [ ] Unauthenticated user accessing /admin redirects to /login
+ * [ ] Authenticated talent accessing /admin redirects to /
+ * [ ] Authenticated admin can access /admin
+ * [ ] Redirect parameter preserved (/login?redirect=/admin/submissions)
+ * [ ] Session persists across page refreshes
+ * [ ] Session auto-refreshes before expiry
+ * [ ] Logout clears session and blocks access
+ */

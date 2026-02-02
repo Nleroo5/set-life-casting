@@ -1,0 +1,295 @@
+/**
+ * Signup Page - Supabase Implementation
+ *
+ * PURPOSE: User registration with email/password
+ * REPLACES: Firebase createUserWithEmailAndPassword
+ * PRESERVES: Exact same visual design
+ *
+ * NEW FEATURES:
+ * - Creates auth.users record (Supabase Auth)
+ * - Creates public.users record (custom metadata)
+ * - Email verification required
+ * - Role selection (talent/admin)
+ *
+ * DESIGN SYSTEM (DO NOT CHANGE):
+ * - Accent color: #8B5CF6 (purple)
+ * - Font (headings): Galindo
+ * - Font (body): Outfit
+ */
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/config'
+import Link from 'next/link'
+
+export default function SignupPage() {
+  const router = useRouter()
+
+  // Form state
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [role, setRole] = useState<'talent' | 'admin'>('talent')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const supabase = createClient()
+
+  /**
+   * Handle signup form submission
+   *
+   * TWO-STEP PROCESS:
+   * 1. Create auth user (Supabase Auth)
+   * 2. Create user metadata (public.users table)
+   */
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      /**
+       * STEP 1: Create auth user with Supabase Auth
+       */
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // Store metadata in auth.users.raw_user_meta_data
+          data: {
+            full_name: fullName,
+            role: role,
+          },
+          // Email verification is REQUIRED by default
+          // User will receive confirmation email
+        },
+      })
+
+      if (signUpError) {
+        // Handle specific errors
+        if (signUpError.message.includes('already registered')) {
+          setError('This email is already registered. Please log in instead.')
+        } else if (signUpError.message.includes('Password should be')) {
+          setError('Password must be at least 8 characters')
+        } else {
+          setError(signUpError.message)
+        }
+        setLoading(false)
+        return
+      }
+
+      if (!authData.user) {
+        setError('Signup failed. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      /**
+       * STEP 2: Create user record in public.users table
+       *
+       * IMPORTANT: This stores role and other custom metadata
+       * The middleware checks this table for authorization
+       */
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,          // Same as auth.users.id
+          email: authData.user.email!,
+          role: role,                     // 'admin' or 'talent'
+          full_name: fullName || null,
+        })
+
+      if (insertError) {
+        console.error('[SIGNUP] Error creating user record:', insertError)
+
+        // Attempt to delete the auth user since profile creation failed
+        // This prevents orphaned auth users
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id)
+        } catch (cleanupError) {
+          console.error('[SIGNUP] Error cleaning up auth user:', cleanupError)
+        }
+
+        setError('Failed to create user profile. Please contact support.')
+        setLoading(false)
+        return
+      }
+
+      /**
+       * SUCCESS! Show confirmation message and redirect to login
+       */
+      alert(
+        '✓ Account created successfully!\n\n' +
+        'Please check your email to verify your account before logging in.\n\n' +
+        'Check your spam folder if you don\'t see it.'
+      )
+
+      // Redirect to login page
+      router.push('/login')
+    } catch (error) {
+      console.error('[SIGNUP] Unexpected error:', error)
+      setError('An unexpected error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
+        {/* Header */}
+        <div className="text-center">
+          <h2
+            className="text-3xl font-bold text-secondary"
+            style={{ fontFamily: 'var(--font-galindo)' }}
+          >
+            Create Your Account
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">Join as talent or admin</p>
+        </div>
+
+        {/* Signup Form */}
+        <form onSubmit={handleSignup} className="mt-8 space-y-6">
+          {/* Full Name Field */}
+          <div>
+            <label
+              htmlFor="fullName"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              disabled={loading}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="John Doe"
+            />
+          </div>
+
+          {/* Email Field */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="your@email.com"
+            />
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="••••••••"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Must be at least 8 characters
+            </p>
+          </div>
+
+          {/* Role Selection */}
+          <div>
+            <p className="block text-sm font-medium text-gray-700 mb-2">
+              I am signing up as:
+            </p>
+            <div className="space-y-2">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="talent"
+                  checked={role === 'talent'}
+                  onChange={() => setRole('talent')}
+                  disabled={loading}
+                  className="mr-2 text-accent focus:ring-accent disabled:opacity-50"
+                />
+                <span className="text-sm text-gray-700">Talent</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={role === 'admin'}
+                  onChange={() => setRole('admin')}
+                  disabled={loading}
+                  className="mr-2 text-accent focus:ring-accent disabled:opacity-50"
+                />
+                <span className="text-sm text-gray-700">Admin</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-accent text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
+        </form>
+
+        {/* Login Link */}
+        <p className="text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="text-accent hover:underline font-medium">
+            Sign In
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * TESTING CHECKLIST:
+ *
+ * [ ] Visual design matches old signup page exactly
+ * [ ] Can create talent account
+ * [ ] Can create admin account
+ * [ ] Verification email sent
+ * [ ] auth.users record created
+ * [ ] public.users record created with correct role
+ * [ ] Error shown for duplicate email
+ * [ ] Error shown for weak password (< 8 chars)
+ * [ ] Loading state shows during signup
+ * [ ] Form disabled during loading
+ * [ ] Redirected to login after success
+ * [ ] "Sign In" link works
+ */

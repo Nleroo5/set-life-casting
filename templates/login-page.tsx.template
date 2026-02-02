@@ -1,0 +1,227 @@
+/**
+ * Login Page - Supabase Implementation
+ *
+ * PURPOSE: User login with email/password
+ * REPLACES: Firebase signInWithEmailAndPassword
+ * PRESERVES: Exact same visual design (colors, fonts, layout)
+ *
+ * NEW FEATURES:
+ * - Email verification check before allowing login
+ * - Better error messages
+ * - Redirect parameter support (maintained from Firebase version)
+ *
+ * DESIGN SYSTEM (DO NOT CHANGE):
+ * - Accent color: #8B5CF6 (purple)
+ * - Font (headings): Galindo
+ * - Font (body): Outfit
+ * - Input styling: Tailwind focus:ring-2 focus:ring-accent
+ */
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/config'
+import Link from 'next/link'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get redirect parameter (where to go after successful login)
+  const redirect = searchParams.get('redirect') || '/dashboard'
+
+  // Form state
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const supabase = createClient()
+
+  /**
+   * Handle login form submission
+   */
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      // Attempt to sign in with Supabase
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
+        // Handle specific error cases
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password')
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('Please verify your email before logging in')
+        } else {
+          setError(signInError.message)
+        }
+        setLoading(false)
+        return
+      }
+
+      if (!data.user) {
+        setError('Login failed. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      /**
+       * CRITICAL: Check email verification
+       * Block login if email not verified
+       */
+      if (!data.user.email_confirmed_at) {
+        setError('Please verify your email before logging in. Check your inbox.')
+        // Sign out the user since they're not verified
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
+
+      /**
+       * Get user role to determine redirect
+       * Admin → /admin/submissions (or redirect param if admin route)
+       * Talent → /dashboard
+       */
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      // Determine redirect based on role
+      if (userData?.role === 'admin') {
+        // Admin user
+        if (redirect.startsWith('/admin')) {
+          // Redirect to requested admin page
+          router.push(redirect)
+        } else {
+          // Default admin redirect
+          router.push('/admin/submissions')
+        }
+      } else {
+        // Talent user - always go to dashboard
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('[LOGIN] Unexpected error:', error)
+      setError('An unexpected error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
+        {/* Header */}
+        <div className="text-center">
+          <h2
+            className="text-3xl font-bold text-secondary"
+            style={{ fontFamily: 'var(--font-galindo)' }}
+          >
+            Welcome Back
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="mt-8 space-y-6">
+          {/* Email Field */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="your@email.com"
+            />
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="••••••••"
+            />
+            <div className="mt-2 text-right">
+              <Link
+                href="/reset-password"
+                className="text-sm text-accent hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-accent text-white py-2 px-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        {/* Sign Up Link */}
+        <p className="text-center text-sm text-gray-600">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-accent hover:underline font-medium">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * TESTING CHECKLIST:
+ *
+ * [ ] Visual design matches old login page exactly
+ * [ ] Can log in with valid credentials
+ * [ ] Error shown for invalid credentials
+ * [ ] Email verification enforced (unverified users blocked)
+ * [ ] Admin redirected to /admin/submissions
+ * [ ] Talent redirected to /dashboard
+ * [ ] Redirect parameter preserved (?redirect=/admin/roles works)
+ * [ ] Loading state shows during login
+ * [ ] Form disabled during loading
+ * [ ] "Forgot Password" link works
+ * [ ] "Sign Up" link works
+ */
