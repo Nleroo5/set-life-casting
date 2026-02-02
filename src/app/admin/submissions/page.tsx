@@ -163,7 +163,6 @@ export default function AdminSubmissionsPage() {
           status: data.status,
           submittedAt: data.submittedAt.toDate(),
           profileData: data.profileData,
-          pinned: data.pinned || false,
         });
       });
 
@@ -547,93 +546,157 @@ export default function AdminSubmissionsPage() {
                 filteredSubmissions.map((submission) => (
                   <div
                     key={submission.id}
-                    className={`bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 transition-all ${
+                    className={`bg-linear-to-br from-white to-purple-50/30 rounded-xl overflow-hidden border-2 transition-all ${
                       selectedSubmission?.id === submission.id
                         ? "border-accent shadow-[0_0_30px_rgba(95,101,196,0.3)]"
                         : "border-accent/20 hover:border-accent/40"
                     }`}
                   >
-                    <div className="flex items-start gap-4">
-                      {/* Checkbox */}
-                      <div className="flex items-start pt-1">
+                    <div className="flex items-stretch h-[240px]">
+                      {/* Checkbox - Absolute positioned */}
+                      <div className="absolute top-4 left-4 z-10">
                         <input
                           type="checkbox"
                           checked={selectedSubmissionIds.has(submission.id)}
                           onChange={() => handleToggleSelection(submission.id)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
+                          className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer bg-white shadow-sm"
                         />
                       </div>
 
-                      {/* Photo */}
+                      {/* Photo - Left Side (40% width) */}
                       <div
                         onClick={() => setSelectedSubmission(submission)}
-                        className="cursor-pointer"
+                        className="w-[240px] shrink-0 cursor-pointer relative group"
                       >
-                        {submission.profileData.photos?.photos?.[0] && (
-                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
+                        {submission.profileData.photos?.photos?.[0] ? (
+                          <>
                             <Image
                               src={submission.profileData.photos.photos[0].url}
-                              alt="Profile"
-                              width={64}
-                              height={64}
+                              alt={`${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`}
+                              width={240}
+                              height={240}
                               className="w-full h-full object-cover"
                             />
+                            {/* Status Badge Overlay */}
+                            <div className="absolute top-2 right-2">
+                              <Badge variant={getStatusBadgeVariant(submission.status)}>
+                                {getStatusLabel(submission.status)}
+                              </Badge>
+                            </div>
+                            {/* Hover Overlay */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                          </>
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-accent/10 to-purple-100 flex items-center justify-center">
+                            <span className="text-4xl text-accent/40">📷</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Info */}
+                      {/* Info - Right Side (60% width) */}
                       <div
-                        className="flex-1 min-w-0 cursor-pointer"
+                        className="flex-1 p-6 cursor-pointer flex flex-col justify-between"
                         onClick={() => setSelectedSubmission(submission)}
                       >
-                        <div className="flex items-start justify-between gap-2 mb-2">
+                        {/* Top Section - Name and Details */}
+                        <div>
                           <h3
-                            className="text-lg font-bold text-secondary truncate"
+                            className="text-xl font-bold text-secondary mb-2 leading-tight"
                             style={{ fontFamily: "var(--font-galindo)" }}
                           >
                             {submission.profileData.basicInfo?.firstName}{" "}
                             {submission.profileData.basicInfo?.lastName}
                           </h3>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={getStatusBadgeVariant(submission.status)}>
-                              {getStatusLabel(submission.status)}
-                            </Badge>
+
+                          {/* Role and Project */}
+                          <p className="text-sm text-accent font-medium mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
+                            {submission.roleName} • {submission.projectTitle}
+                          </p>
+
+                          {/* Key Casting Criteria */}
+                          <div className="space-y-1">
+                            <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                              <span className="font-semibold text-secondary">
+                                {submission.profileData.appearance?.gender || 'N/A'}
+                                {(() => {
+                                  const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
+                                  return age !== null ? `, ${age}` : '';
+                                })()}
+                              </span>
+                              {submission.profileData.appearance?.height && (
+                                <> • {submission.profileData.appearance.height}</>
+                              )}
+                              {submission.profileData.appearance?.weight && (
+                                <> • {submission.profileData.appearance.weight} lbs</>
+                              )}
+                            </div>
+
+                            {/* Ethnicity and Hair */}
+                            {(submission.profileData.appearance?.ethnicity?.length || submission.profileData.appearance?.hairColor) && (
+                              <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                {submission.profileData.appearance?.ethnicity?.join(", ")}
+                                {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance?.hairColor ? ' • ' : ''}
+                                {submission.profileData.appearance?.hairColor && `${submission.profileData.appearance.hairColor} Hair`}
+                              </div>
+                            )}
+
+                            {/* Location */}
+                            {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
+                              <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                📍 {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        {/* Role and Project */}
-                        <p className="text-sm text-secondary font-medium mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                          {submission.roleName} • {submission.projectTitle}
-                        </p>
-
-                        {/* Key Casting Criteria */}
-                        <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                          {submission.profileData.appearance?.gender || 'N/A'}
-                          {(() => {
-                            const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
-                            return age !== null ? `, ${age}` : '';
-                          })()}
-                          {submission.profileData.appearance?.height ? ` • ${submission.profileData.appearance.height}` : ''}
-                          {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
-                            <> • {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}</>
-                          )}
-                        </div>
-
-                        {/* Ethnicity and Hair */}
-                        {(submission.profileData.appearance?.ethnicity?.length || submission.profileData.appearance?.hairColor) && (
-                          <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                            {submission.profileData.appearance?.ethnicity?.join(", ")}
-                            {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance?.hairColor ? ' • ' : ''}
-                            {submission.profileData.appearance?.hairColor ? `${submission.profileData.appearance.hairColor} Hair` : ''}
+                        {/* Bottom Section - Quick Actions */}
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-accent/10">
+                          <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                            📅 {submission.submittedAt.toLocaleDateString()}
+                          </p>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateStatus(submission.id, "pinned");
+                              }}
+                              className={`px-2 py-1 text-xs rounded transition-colors ${
+                                submission.status === "pinned"
+                                  ? "bg-yellow-100 text-yellow-700 font-semibold"
+                                  : "bg-gray-100 text-gray-600 hover:bg-yellow-50"
+                              }`}
+                            >
+                              Pin
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateStatus(submission.id, "booked");
+                              }}
+                              className={`px-2 py-1 text-xs rounded transition-colors ${
+                                submission.status === "booked"
+                                  ? "bg-green-100 text-green-700 font-semibold"
+                                  : "bg-gray-100 text-gray-600 hover:bg-green-50"
+                              }`}
+                            >
+                              Book
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateStatus(submission.id, "rejected");
+                              }}
+                              className={`px-2 py-1 text-xs rounded transition-colors ${
+                                submission.status === "rejected"
+                                  ? "bg-red-100 text-red-700 font-semibold"
+                                  : "bg-gray-100 text-gray-600 hover:bg-red-50"
+                              }`}
+                            >
+                              Reject
+                            </button>
                           </div>
-                        )}
-
-                        {/* Submission Details */}
-                        <p className="text-xs text-secondary-light mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
-                          📷 {submission.profileData.photos?.photos?.length || 0} photos • 📅 Submitted {submission.submittedAt.toLocaleDateString()}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -705,100 +768,146 @@ export default function AdminSubmissionsPage() {
                             roleWithSubs.submissions.map((submission) => (
                               <div
                                 key={submission.id}
-                                className={`bg-white rounded-lg p-5 border-2 transition-all ${
+                                className={`bg-white rounded-lg overflow-hidden border-2 transition-all ${
                                   selectedSubmission?.id === submission.id
                                     ? "border-accent shadow-[0_0_20px_rgba(95,101,196,0.3)]"
                                     : "border-accent/20 hover:border-accent/40"
                                 }`}
                               >
-                                <div className="flex items-start gap-4">
-                                  {/* Checkbox */}
-                                  <div className="flex items-start pt-1">
+                                <div className="flex items-stretch h-[200px]">
+                                  {/* Checkbox - Absolute positioned */}
+                                  <div className="absolute top-3 left-3 z-10">
                                     <input
                                       type="checkbox"
                                       checked={selectedSubmissionIds.has(submission.id)}
                                       onChange={() => handleToggleSelection(submission.id)}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer"
+                                      className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer bg-white shadow-sm"
                                     />
                                   </div>
 
-                                  {/* Photo */}
+                                  {/* Photo - Left Side */}
                                   <div
                                     onClick={() => setSelectedSubmission(submission)}
-                                    className="cursor-pointer"
+                                    className="w-[200px] shrink-0 cursor-pointer relative group"
                                   >
-                                    {submission.profileData.photos?.photos?.[0] && (
-                                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/30 shrink-0">
+                                    {submission.profileData.photos?.photos?.[0] ? (
+                                      <>
                                         <Image
                                           src={submission.profileData.photos.photos[0].url}
-                                          alt="Profile"
-                                          width={64}
-                                          height={64}
+                                          alt={`${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`}
+                                          width={200}
+                                          height={200}
                                           className="w-full h-full object-cover"
                                         />
+                                        {/* Status Badge Overlay */}
+                                        <div className="absolute top-2 right-2">
+                                          <Badge variant={getStatusBadgeVariant(submission.status)}>
+                                            {getStatusLabel(submission.status)}
+                                          </Badge>
+                                        </div>
+                                        {/* Hover Overlay */}
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                      </>
+                                    ) : (
+                                      <div className="w-full h-full bg-gradient-to-br from-accent/10 to-purple-100 flex items-center justify-center">
+                                        <span className="text-3xl text-accent/40">📷</span>
                                       </div>
                                     )}
                                   </div>
 
-                                  {/* Info */}
+                                  {/* Info - Right Side */}
                                   <div
-                                    className="flex-1 min-w-0 cursor-pointer"
+                                    className="flex-1 p-4 cursor-pointer flex flex-col justify-between"
                                     onClick={() => setSelectedSubmission(submission)}
                                   >
-                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                    <div>
                                       <h4
-                                        className="text-lg font-bold text-secondary truncate"
+                                        className="text-lg font-bold text-secondary mb-1 leading-tight"
                                         style={{ fontFamily: "var(--font-galindo)" }}
                                       >
                                         {submission.profileData.basicInfo?.firstName}{" "}
                                         {submission.profileData.basicInfo?.lastName}
                                       </h4>
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant={getStatusBadgeVariant(submission.status)}>
-                                          {getStatusLabel(submission.status)}
-                                        </Badge>
+
+                                      {/* Key Casting Criteria */}
+                                      <div className="space-y-1">
+                                        <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                          <span className="font-semibold text-secondary">
+                                            {submission.profileData.appearance?.gender || 'N/A'}
+                                            {(() => {
+                                              const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
+                                              return age !== null ? `, ${age}` : '';
+                                            })()}
+                                          </span>
+                                          {submission.profileData.appearance?.height && (
+                                            <> • {submission.profileData.appearance.height}</>
+                                          )}
+                                        </div>
+
+                                        {/* Ethnicity */}
+                                        {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance.ethnicity.length > 0 && (
+                                          <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                            {submission.profileData.appearance?.ethnicity?.join(", ")}
+                                          </div>
+                                        )}
+
+                                        {/* Location */}
+                                        {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
+                                          <div className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                            📍 {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Bottom Section - Quick Actions */}
+                                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-accent/10">
+                                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                        📅 {submission.submittedAt.toLocaleDateString()}
+                                      </p>
+                                      <div className="flex gap-1">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            handleTogglePin(submission.id);
+                                            handleUpdateStatus(submission.id, "pinned");
                                           }}
-                                          className={`text-2xl hover:scale-110 transition-transform ${
-                                            submission.pinned ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "pinned"
+                                              ? "bg-yellow-100 text-yellow-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-yellow-50"
                                           }`}
-                                          title={submission.pinned ? "Unpin submission" : "Pin submission"}
                                         >
-                                          {submission.pinned ? "⭐" : "☆"}
+                                          Pin
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(submission.id, "booked");
+                                          }}
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "booked"
+                                              ? "bg-green-100 text-green-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-green-50"
+                                          }`}
+                                        >
+                                          Book
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(submission.id, "rejected");
+                                          }}
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "rejected"
+                                              ? "bg-red-100 text-red-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-red-50"
+                                          }`}
+                                        >
+                                          Reject
                                         </button>
                                       </div>
                                     </div>
-
-                                    {/* Key Casting Criteria */}
-                                    <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                                      {submission.profileData.appearance?.gender || 'N/A'}
-                                      {(() => {
-                                        const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
-                                        return age !== null ? `, ${age}` : '';
-                                      })()}
-                                      {submission.profileData.appearance?.height ? ` • ${submission.profileData.appearance.height}` : ''}
-                                      {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
-                                        <> • {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}</>
-                                      )}
-                                    </div>
-
-                                    {/* Ethnicity and Hair */}
-                                    {(submission.profileData.appearance?.ethnicity?.length || submission.profileData.appearance?.hairColor) && (
-                                      <div className="text-sm text-secondary-light mb-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                                        {submission.profileData.appearance?.ethnicity?.join(", ")}
-                                        {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance?.hairColor ? ' • ' : ''}
-                                        {submission.profileData.appearance?.hairColor ? `${submission.profileData.appearance.hairColor} Hair` : ''}
-                                      </div>
-                                    )}
-
-                                    {/* Submission Details */}
-                                    <p className="text-xs text-secondary-light mt-2" style={{ fontFamily: "var(--font-outfit)" }}>
-                                      📷 {submission.profileData.photos?.photos?.length || 0} photos • 📅 Submitted {submission.submittedAt.toLocaleDateString()}
-                                    </p>
                                   </div>
                                 </div>
                               </div>
