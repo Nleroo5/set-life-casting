@@ -1,8 +1,8 @@
 # 🎯 CLAUDE: READ THIS BEFORE ANY AUTH WORK
 
-**Last Updated**: 2026-02-04 (Phase 3 Complete)
-**Current Phase**: 4 - Update AuthContext
-**Current Task**: Ready to start Phase 4
+**Last Updated**: 2026-02-04 (Phase 4 Complete)
+**Current Phase**: 5 - Update Login/Signup Pages
+**Current Task**: Ready to start Phase 5
 
 ---
 
@@ -52,21 +52,28 @@ After making ANY change:
   - Admin role verification via public.users table query
   - Build verified successful
   - Checkpoint: AUTH_PHASE3_COMPLETE.md
+- ✅ Phase 4 COMPLETE - Update AuthContext
+  - AuthContext migrated to Supabase hooks
+  - Removed 80+ lines of token refresh logic
+  - Fixed User type compatibility (uid→id, emailVerified→email_confirmed_at)
+  - Updated 9 files for Supabase User type
+  - Build verified successful
+  - Checkpoint: AUTH_PHASE4_COMPLETE.md
 
 ### Current Phase Details
-**Phase**: 4 - Update AuthContext
-**Goal**: Replace Firebase auth hooks with Supabase while maintaining interface
+**Phase**: 5 - Update Login/Signup Pages
+**Goal**: Update authentication UI to use Supabase
 **Status**: Ready to start
 
 ---
 
 ## 🎯 NEXT TASK
 
-**Task ID**: AUTH-001
-**Description**: Update AuthContext to use Supabase hooks
-**Action**: Replace Firebase auth with Supabase in src/contexts/AuthContext.tsx
-**Validation**: AuthContext compiles without errors
-**Progress**: Phase 3 ✅ → Phase 4 Ready to Start
+**Task ID**: LOGIN-001
+**Description**: Update login page to use Supabase
+**Action**: Replace Firebase signIn with supabase.auth.signInWithPassword in src/app/login/page.tsx
+**Validation**: Login page compiles without errors
+**Progress**: Phase 4 ✅ → Phase 5 Ready to Start
 
 ---
 
