@@ -1,61 +1,112 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 /**
  * Middleware for authentication and security headers
  *
  * SECURITY ARCHITECTURE:
- * - This middleware ensures users are authenticated (have a valid Firebase token)
- * - Authorization (admin role checking) is handled by Firestore security rules
- * - This is a professional pattern when Firebase Admin SDK credentials aren't available
+ * - This middleware ensures users are authenticated (have a valid Supabase session)
+ * - Authorization (admin role checking) is enforced at middleware level
+ * - This is a professional pattern using Supabase Auth with RLS
  *
  * Defense-in-Depth Layers:
- * 1. Middleware: Checks for authentication token presence
- * 2. Client-side: useAuth hook redirects non-admins
- * 3. Firestore Rules: Enforces admin role for data access
+ * 1. Middleware: Checks for authentication and admin role
+ * 2. Client-side: useAuth hook provides auth state
+ * 3. Supabase RLS: Enforces admin role for data access
  *
  * References:
- * - https://firebase.google.com/docs/firestore/security/get-started
+ * - https://supabase.com/docs/guides/auth/server-side/nextjs
  * - https://nextjs.org/docs/app/building-your-application/routing/middleware
  */
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  // Protect admin routes - require authentication
-  if (pathname.startsWith('/admin')) {
-    // Get Firebase ID token from cookie
-    const firebaseToken = request.cookies.get('firebase-token')?.value;
+  // Create Supabase client for middleware
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
 
-    // If no token, redirect to login
-    // The client-side auth context will handle admin role verification
-    if (!firebaseToken) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protect /admin routes
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
     }
 
-    // Token exists - allow access
-    // Admin role verification happens via:
-    // 1. Client-side: useAuth hook checks userData.role === 'admin'
-    // 2. Server-side: Firestore rules check role field for data access
-    const response = NextResponse.next();
+    // Check if user is admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-    // Add security headers
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-    response.headers.set('X-Authenticated', 'true');
+    if (userData?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
 
-    return response;
+    // Add security headers for authenticated admin routes
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+    response.headers.set('X-Authenticated', 'true')
   }
 
   // Add security headers to all responses
-  const response = NextResponse.next();
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
 
-  return response;
+  return response
 }
 
 // Configure which routes use this middleware
@@ -64,4 +115,4 @@ export const config = {
     '/admin/:path*',
     '/api/:path*',
   ],
-};
+}
