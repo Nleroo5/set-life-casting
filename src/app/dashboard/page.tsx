@@ -73,7 +73,7 @@ export default function DashboardPage() {
       const submissionsRef = collection(db, "submissions");
       const q = query(
         submissionsRef,
-        where("userId", "==", user.uid)
+        where("userId", "==", user.id)
       );
       const querySnapshot = await getDocs(q);
 
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       setSubmissions(submissionsData);
 
       // Fetch profile
-      const profileDoc = await getDoc(doc(db, "profiles", user.uid));
+      const profileDoc = await getDoc(doc(db, "profiles", user.id));
       if (profileDoc.exists()) {
         const profileData = profileDoc.data() as UserProfile;
         setProfile(profileData);
@@ -119,7 +119,7 @@ export default function DashboardPage() {
       const bookingsRef = collection(db, "bookings");
       const q = query(
         bookingsRef,
-        where("userId", "==", user.uid),
+        where("userId", "==", user.id),
         where("archivedWithProject", "==", true),
         orderBy("updatedAt", "desc"),
         limit(20)
@@ -205,7 +205,7 @@ export default function DashboardPage() {
             >
               Welcome Back,{" "}
               <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {profile?.basicInfo?.firstName || user.displayName || "Talent"}
+                {profile?.basicInfo?.firstName || user.user_metadata?.full_name || null || "Talent"}
               </span>
             </h1>
             <p

@@ -161,7 +161,7 @@ export default function AdminCastingPage() {
       batch.update(projectRef, {
         status: "archived",
         archivedAt: new Date(),
-        archivedBy: user?.uid || "admin",
+        archivedBy: user?.id || "admin",
         updatedAt: new Date(),
       });
 
@@ -279,7 +279,7 @@ export default function AdminCastingPage() {
         return;
       }
 
-      await archiveRole(archiveDialogRole.id, user.uid, archiveReason);
+      await archiveRole(archiveDialogRole.id, user.id, archiveReason);
 
       alert(
         `Role "${archiveDialogRole.name}" archived successfully!\n\n` +

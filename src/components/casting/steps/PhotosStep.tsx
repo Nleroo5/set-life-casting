@@ -104,7 +104,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
     const compressedFile = await compressImage(file);
     const timestamp = Date.now();
-    const storageRef = ref(storage, `photos/${user.uid}/${timestamp}-${slotId}-${file.name}`);
+    const storageRef = ref(storage, `photos/${user.id}/${timestamp}-${slotId}-${file.name}`);
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {

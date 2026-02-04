@@ -1,10 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
-import { getUserData, UserData } from "@/lib/firebase/auth";
+import { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
+
+interface UserData {
+  id: string;
+  email: string;
+  role: "admin" | "talent";
+  full_name?: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -26,112 +32,93 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    // Skip if Firebase auth is not initialized (e.g., during SSR)
-    if (!auth) {
-      setLoading(false);
-      return;
-    }
-
-    let tokenRefreshInterval: NodeJS.Timeout | null = null;
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      logger.debug("Auth state changed", {
-        hasUser: !!firebaseUser,
-        uid: firebaseUser?.uid,
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      logger.debug("Auth initial session", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        uid: session?.user?.id,
       });
 
-      setUser(firebaseUser);
-
-      if (firebaseUser) {
-        try {
-          // ✅ FIX: Fetch user data first before marking as loaded
-          logger.debug("Fetching user data for", firebaseUser.uid);
-          const data = await getUserData(firebaseUser.uid);
-          logger.debug("User data fetched", {
-            hasData: !!data,
-            role: data?.role,
-          });
-          setUserData(data);
-
-          // Get Firebase ID token and store in cookie for server-side verification
-          const token = await firebaseUser.getIdToken();
-          // Store token in cookie with Secure flag (httpOnly would be better but requires server-side API route)
-          // Secure flag ensures cookie is only sent over HTTPS
-          // SameSite=Lax allows cookies during authentication flows (safer than Strict for login)
-          document.cookie = `firebase-token=${token}; path=/; max-age=3600; SameSite=Lax; Secure`;
-          logger.debug("Token stored in cookie");
-
-          // Clear any existing interval before setting a new one
-          if (tokenRefreshInterval) {
-            clearInterval(tokenRefreshInterval);
-          }
-
-          // Refresh token every 50 minutes (tokens expire after 1 hour)
-          tokenRefreshInterval = setInterval(async () => {
-            // ✅ FIX: Prevent race condition - check if user still exists
-            if (!firebaseUser) {
-              if (tokenRefreshInterval) {
-                clearInterval(tokenRefreshInterval);
-                tokenRefreshInterval = null;
-              }
-              return;
-            }
-
-            try {
-              const newToken = await firebaseUser.getIdToken(true); // Force refresh
-              document.cookie = `firebase-token=${newToken}; path=/; max-age=3600; SameSite=Lax; Secure`;
-            } catch (error) {
-              logger.error("Error refreshing token:", error);
-              if (tokenRefreshInterval) {
-                clearInterval(tokenRefreshInterval);
-                tokenRefreshInterval = null;
-              }
-            }
-          }, 50 * 60 * 1000); // 50 minutes
-        } catch (error) {
-          logger.error("Error setting up user session:", error);
-          setUserData(null);
-        }
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserData(session.user.id);
       } else {
-        logger.debug("No user, clearing data");
-        setUserData(null);
-        // Clear token cookie on logout
-        document.cookie = "firebase-token=; path=/; max-age=0; SameSite=Lax; Secure";
-
-        // Clear token refresh interval on logout
-        if (tokenRefreshInterval) {
-          clearInterval(tokenRefreshInterval);
-          tokenRefreshInterval = null;
-        }
+        setLoading(false);
       }
-
-      // ✅ FIX: Set loading to false AFTER all async operations complete
-      logger.debug("Auth loading complete");
-      setLoading(false);
     });
 
-    // Cleanup function
-    return () => {
-      unsubscribe();
-      if (tokenRefreshInterval) {
-        clearInterval(tokenRefreshInterval);
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      logger.debug("Auth state changed", {
+        event: _event,
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        uid: session?.user?.id,
+      });
+
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserData(session.user.id);
+      } else {
+        setUserData(null);
+        setLoading(false);
       }
+    });
+
+    return () => {
+      logger.debug("Auth cleanup - unsubscribing");
+      subscription.unsubscribe();
     };
   }, []);
 
-  const isAdmin = userData?.role === "admin";
+  async function loadUserData(userId: string) {
+    try {
+      logger.debug("Loading user data for", userId);
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, email, role, full_name")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        logger.error("Error loading user data:", error);
+        setUserData(null);
+      } else if (data) {
+        logger.debug("User data loaded", {
+          hasData: !!data,
+          role: data.role,
+        });
+        setUserData(data as UserData);
+      }
+    } catch (error) {
+      logger.error("Error in loadUserData:", error);
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const logout = async () => {
-    if (!auth) throw new Error("Firebase Auth not initialized");
     try {
-      await signOut(auth);
+      logger.debug("Signing out");
+      await supabase.auth.signOut();
+      setUser(null);
+      setUserData(null);
+      logger.debug("Sign out complete");
     } catch (error) {
       logger.error("Error signing out:", error);
       throw error;
     }
   };
+
+  const isAdmin = userData?.role === "admin";
 
   return (
     <AuthContext.Provider value={{ user, userData, loading, isAdmin, logout }}>

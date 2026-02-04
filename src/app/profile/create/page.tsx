@@ -64,7 +64,7 @@ export default function CreateProfilePage() {
       if (!user) return;
 
       try {
-        const profileDoc = await getDoc(doc(db, "profiles", user.uid));
+        const profileDoc = await getDoc(doc(db, "profiles", user.id));
         if (profileDoc.exists()) {
           const profileData = profileDoc.data();
           setFormData({
@@ -85,7 +85,7 @@ export default function CreateProfilePage() {
 
     if (!authLoading && user) {
       // Check email verification before allowing profile creation
-      if (!user.emailVerified) {
+      if (!user.email_confirmed_at) {
         // Allow loading profile for display, but block submission
         // User will see banner to verify email
       }
@@ -116,9 +116,9 @@ export default function CreateProfilePage() {
           try {
             // Build update object with step data (clean undefined values)
             const updateData: Record<string, unknown> = {
-              userId: user.uid,
+              userId: user.id,
               email: user.email,
-              displayName: user.displayName,
+              displayName: user.user_metadata?.full_name || null,
               [stepKey]: cleanDataForFirestore(stepData as Record<string, unknown>),
               updatedAt: new Date(),
             };
@@ -163,7 +163,7 @@ export default function CreateProfilePage() {
             }
 
             await setDoc(
-              doc(db, "profiles", user.uid),
+              doc(db, "profiles", user.id),
               updateData,
               { merge: true }
             );
@@ -209,7 +209,7 @@ export default function CreateProfilePage() {
     }
 
     // ✅ CRITICAL SECURITY: Enforce email verification
-    if (!user.emailVerified) {
+    if (!user.email_confirmed_at) {
       alert("Please verify your email address before submitting your profile. Check your inbox for the verification link.");
       setIsSubmitting(false);
       return;
@@ -285,11 +285,11 @@ export default function CreateProfilePage() {
 
       // Create/update user profile with ALL data structures
       await setDoc(
-        doc(db, "profiles", user.uid),
+        doc(db, "profiles", user.id),
         {
-          userId: user.uid,
+          userId: user.id,
           email: user.email,
-          displayName: user.displayName,
+          displayName: user.user_metadata?.full_name || null,
           // Keep original structure for form editing (clean undefined values)
           basicInfo: formData.basicInfo,
           appearance: formData.appearance,

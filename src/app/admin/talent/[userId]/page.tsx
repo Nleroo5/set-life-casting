@@ -84,7 +84,7 @@ export default function TalentDetailPage() {
     console.log("🔍 TALENT PAGE - Auth flow triggered", {
       authLoading,
       hasUser: !!user,
-      userId: user?.uid,
+      userId: user?.id,
       hasUserData: !!userData,
       userRole: userData?.role,
       isAdmin,
@@ -94,7 +94,7 @@ export default function TalentDetailPage() {
     logger.debug("TalentDetailPage: Auth flow triggered", {
       authLoading,
       hasUser: !!user,
-      userId: user?.uid,
+      userId: user?.id,
       hasUserData: !!userData,
       userRole: userData?.role,
       isAdmin,
@@ -119,23 +119,23 @@ export default function TalentDetailPage() {
     // Wait for userData to load before checking isAdmin
     // This prevents false negative when userData is still being fetched
     if (!userData) {
-      logger.debug("TalentDetailPage: User authenticated but userData not loaded yet, waiting for Firestore...", {
-        userId: user.uid,
+      logger.debug("TalentDetailPage: User authenticated but userData not loaded yet, waiting for Supabase...", {
+        userId: user.id,
         email: user.email,
       });
-      // userData is still loading from Firestore, wait
+      // userData is still loading from Supabase, wait
       return;
     }
 
     // Redirect if not admin (now safe to check since userData exists)
     if (!isAdmin) {
       console.warn("⚠️ TALENT PAGE - NOT ADMIN! Redirecting to /admin", {
-        userId: user.uid,
+        userId: user.id,
         userRole: userData.role,
         redirectUrl: "/admin",
       });
       logger.warn("TalentDetailPage: User is not admin, redirecting to /admin", {
-        userId: user.uid,
+        userId: user.id,
         userRole: userData.role,
         redirectUrl: "/admin",
       });
@@ -145,7 +145,7 @@ export default function TalentDetailPage() {
 
     // Fetch data
     logger.debug("TalentDetailPage: Auth complete, fetching talent data", {
-      userId: user.uid,
+      userId: user.id,
       isAdmin: true,
       talentProfileId: userId,
     });

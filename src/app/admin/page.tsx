@@ -17,7 +17,7 @@ export default function AdminPage() {
       loading,
       hasUser: !!user,
       isAdmin,
-      userId: user?.uid,
+      userId: user?.id,
     });
 
     if (!loading && (!user || !isAdmin)) {
@@ -29,7 +29,7 @@ export default function AdminPage() {
       router.push("/login?redirect=/admin");
     } else if (!loading && user && isAdmin) {
       logger.debug("AdminPage: User authorized, showing admin dashboard", {
-        userId: user.uid,
+        userId: user.id,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

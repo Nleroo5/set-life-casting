@@ -1,3 +1,9 @@
+import * as dotenv from "dotenv";
+import { resolve } from "path";
+
+// Load environment variables from .env.local
+dotenv.config({ path: resolve(__dirname, "../.env.local") });
+
 import { adminDb } from "../src/lib/firebase/admin";
 
 /**

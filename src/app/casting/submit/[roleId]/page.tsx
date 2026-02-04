@@ -94,7 +94,7 @@ export default function SubmitPage() {
 
   // Require email verification before submitting
   useEffect(() => {
-    if (!authLoading && user && !user.emailVerified && !isAdmin) {
+    if (!authLoading && user && !user.email_confirmed_at && !isAdmin) {
       alert("Please verify your email address before submitting for roles. Check your inbox for the verification link.");
       router.push("/dashboard");
     }
@@ -112,7 +112,7 @@ export default function SubmitPage() {
     if (!user) return;
 
     try {
-      const profileDoc = await getDoc(doc(db, "profiles", user.uid));
+      const profileDoc = await getDoc(doc(db, "profiles", user.id));
 
       if (profileDoc.exists()) {
         const profileData = profileDoc.data();
@@ -166,7 +166,7 @@ export default function SubmitPage() {
       const submissionsRef = collection(db, "submissions");
       const q = query(
         submissionsRef,
-        where("userId", "==", user.uid),
+        where("userId", "==", user.id),
         where("roleId", "==", roleId)
       );
 
@@ -253,7 +253,7 @@ export default function SubmitPage() {
       const submissionsRef = collection(db, "submissions");
       const existingSubmissionQuery = query(
         submissionsRef,
-        where("userId", "==", user.uid),
+        where("userId", "==", user.id),
         where("roleId", "==", role.id)
       );
 
@@ -267,11 +267,11 @@ export default function SubmitPage() {
 
       // Create/update user profile
       await setDoc(
-        doc(db, "profiles", user.uid),
+        doc(db, "profiles", user.id),
         {
-          userId: user.uid,
+          userId: user.id,
           email: user.email,
-          displayName: user.displayName,
+          displayName: user.user_metadata?.full_name || null,
           basicInfo: formData.basicInfo,
           appearance: formData.appearance,
           sizes: formData.sizes,
@@ -284,7 +284,7 @@ export default function SubmitPage() {
 
       // Create submission record
       await addDoc(collection(db, "submissions"), {
-        userId: user.uid,
+        userId: user.id,
         roleId: role.id,
         projectId: project.id,
         roleName: role.name,
