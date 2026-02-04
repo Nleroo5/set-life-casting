@@ -218,6 +218,8 @@ export default function TalentDetailPage() {
         const data = doc.data();
         submissionsData.push({
           id: doc.id,
+          roleId: data.roleId,
+          projectId: data.projectId,
           roleName: data.roleName,
           projectTitle: data.projectTitle,
           status: data.status,

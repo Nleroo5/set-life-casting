@@ -24,8 +24,6 @@ import Textarea from "@/components/ui/Textarea";
 import DatePicker from "@/components/ui/DatePicker";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import { getBookingsByProject, deleteBooking } from "@/lib/firebase/bookings";
-import type { Booking } from "@/types/booking";
 import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/firebase/roles";
 import { logger } from "@/lib/logger";
 
@@ -76,7 +74,6 @@ export default function AdminCastingPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
@@ -135,20 +132,7 @@ export default function AdminCastingPage() {
       logger.debug("🔍 DEBUG - Total roles loaded:", rolesData.length);
       logger.debug("🔍 DEBUG - Sample role:", rolesData[0]);
 
-      // Fetch all bookings
-      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
-      const bookingsData: Booking[] = [];
-      bookingsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        bookingsData.push({
-          id: doc.id,
-          ...data,
-          confirmedAt: data.confirmedAt?.toDate?.() || data.confirmedAt,
-          createdAt: data.createdAt?.toDate?.() || data.createdAt,
-          updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
-        } as Booking);
-      });
-      setBookings(bookingsData);
+      // Bookings collection was removed in submission status simplification
     } catch (error) {
       logger.error("Error fetching data:", error);
     } finally {
@@ -242,16 +226,7 @@ export default function AdminCastingPage() {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
 
-    // Check if project has bookings
-    const projectBookings = bookings.filter(b => b.projectId === projectId);
-    if (projectBookings.length > 0) {
-      alert(
-        `Cannot delete project "${project.title}".\n\n` +
-        `This project has ${projectBookings.length} confirmed booking(s).\n\n` +
-        `Please use "Archive Project" instead to preserve all booking records for compliance.`
-      );
-      return;
-    }
+    // Bookings collection removed - no longer checking for bookings
 
     if (!confirm(`Are you sure you want to delete "${project.title}"?\n\nThis will permanently delete all associated roles and submissions.\n\nNote: If this project has any bookings, you should archive it instead.`)) {
       return;
@@ -497,7 +472,7 @@ export default function AdminCastingPage() {
                         </h4>
                         <div className="space-y-2">
                           {projectRoles.map((role) => {
-                            const roleBookings = bookings.filter((b) => b.roleId === role.id);
+                            const roleBookings: any[] = []; // Bookings collection removed
                             return (
                               <div
                                 key={role.id}
