@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { signInWithEmail } from "@/lib/firebase/auth";
+import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { validateRedirectUrl } from "@/lib/utils/redirect";
 import { logger } from "@/lib/logger";
@@ -55,25 +55,35 @@ function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmail(data.email, data.password);
+      const supabase = createClient();
+
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) {
+        logger.error("Login error:", authError);
+        // Supabase error messages are user-friendly by default
+        setError(authError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if email is verified
+      if (!authData.user?.email_confirmed_at) {
+        setError("Please verify your email before logging in. Check your inbox for the verification link.");
+        await supabase.auth.signOut();
+        setIsSubmitting(false);
+        return;
+      }
+
       // Don't redirect here - let the useEffect handle it
       // This prevents race conditions with the isAdmin flag
+      logger.debug("Login successful", { userId: authData.user.id });
     } catch (err: unknown) {
-      logger.error("Login error:", err);
-      if (err && typeof err === "object" && "code" in err) {
-        const errorCode = (err as { code: string }).code;
-        if (errorCode === "auth/invalid-credential") {
-          setError("Invalid email or password");
-        } else if (errorCode === "auth/user-not-found") {
-          setError("No account found with this email");
-        } else if (errorCode === "auth/wrong-password") {
-          setError("Incorrect password");
-        } else {
-          setError("Failed to sign in. Please try again.");
-        }
-      } else {
-        setError("Failed to sign in. Please try again.");
-      }
+      logger.error("Unexpected login error:", err);
+      setError("Failed to sign in. Please try again.");
       setIsSubmitting(false);
     }
   };
