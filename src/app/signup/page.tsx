@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { signUpWithEmail } from "@/lib/firebase/auth";
+import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { validateRedirectUrl } from "@/lib/utils/redirect";
 import { logger } from "@/lib/logger";
@@ -54,23 +54,56 @@ function SignupForm() {
     setIsSubmitting(true);
 
     try {
-      await signUpWithEmail(data.email, data.password, data.fullName);
-      router.push(redirectTo);
-    } catch (err: unknown) {
-      logger.error("Signup error:", err);
-      if (err && typeof err === "object" && "code" in err) {
-        const errorCode = (err as { code: string }).code;
-        if (errorCode === "auth/email-already-in-use") {
-          setError("An account with this email already exists");
-        } else if (errorCode === "auth/weak-password") {
-          setError("Password is too weak. Please use a stronger password");
-        } else {
-          setError("Failed to create account. Please try again.");
-        }
-      } else {
-        setError("Failed to create account. Please try again.");
+      const supabase = createClient();
+
+      // Sign up user with Supabase Auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            role: "talent", // Default role for signup
+          },
+        },
+      });
+
+      if (signUpError) {
+        logger.error("Signup error:", signUpError);
+        setError(signUpError.message);
+        setIsSubmitting(false);
+        return;
       }
-    } finally {
+
+      if (!authData.user) {
+        setError("Failed to create account. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create user record in public.users table
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email,
+          role: "talent",
+          full_name: data.fullName,
+        });
+
+      if (insertError) {
+        logger.error("Error creating user record:", insertError);
+        setError("Failed to create user profile. Please contact support.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Success - show message and redirect to login
+      alert("Account created successfully! Please check your email to verify your account before logging in.");
+      router.push("/login");
+    } catch (err: unknown) {
+      logger.error("Unexpected signup error:", err);
+      setError("Failed to create account. Please try again.");
       setIsSubmitting(false);
     }
   };
