@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
+import { getProfile } from "@/lib/supabase/profiles";
+import { getUserSubmissions } from "@/lib/supabase/submissions";
+import { getRole } from "@/lib/supabase/casting";
+import { createClient } from "@/lib/supabase/config";
 
 interface TalentProfile {
   id: string;
@@ -169,69 +171,94 @@ export default function TalentDetailPage() {
       logger.debug("TalentDetailPage: Starting talent data fetch", { userId });
       setLoading(true);
 
-      // Fetch talent profile
-      const profileDoc = await getDoc(doc(db, "profiles", userId));
+      // Fetch talent profile from Supabase
+      const { data: profileData, error: profileError } = await getProfile(userId);
 
-      if (profileDoc.exists()) {
-        logger.debug("TalentDetailPage: Profile document found", {
+      if (profileError) {
+        logger.error("TalentDetailPage: Error fetching profile", {
           userId,
-          hasBasicInfo: !!profileDoc.data().basicInfo,
-          hasAppearance: !!profileDoc.data().appearance,
+          error: profileError,
+        });
+        setTalent(null);
+      } else if (profileData) {
+        logger.debug("TalentDetailPage: Profile found", {
+          userId,
+          hasBasicInfo: !!profileData.basicInfo,
+          hasAppearance: !!profileData.appearance,
         });
 
-        const data = profileDoc.data();
-
         // Validate critical data before setting talent
-        if (!data.basicInfo || !data.appearance) {
+        if (!profileData.basicInfo || !profileData.appearance) {
           logger.error("TalentDetailPage: Profile missing critical data", {
             userId,
-            hasBasicInfo: !!data.basicInfo,
-            hasAppearance: !!data.appearance,
+            hasBasicInfo: !!profileData.basicInfo,
+            hasAppearance: !!profileData.appearance,
           });
           setTalent(null);
         } else {
           logger.debug("TalentDetailPage: Profile data validated successfully", {
             userId,
-            name: `${data.basicInfo.firstName} ${data.basicInfo.lastName}`,
+            name: `${profileData.basicInfo.firstName} ${profileData.basicInfo.lastName}`,
           });
+
+          // Get admin-specific fields directly from profiles table
+          const supabase = createClient();
+          const { data: adminData } = await supabase
+            .from('profiles')
+            .select('status, admin_tag, admin_notes, created_at')
+            .eq('user_id', userId)
+            .single();
+
           setTalent({
-            id: profileDoc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            status: data.status || "active",
+            id: userId,
+            ...profileData,
+            createdAt: adminData?.created_at ? new Date(adminData.created_at) : new Date(),
+            status: (adminData?.status as "active" | "archived") || "active",
+            adminTag: adminData?.admin_tag as "green" | "yellow" | "red" | null,
+            adminNotes: adminData?.admin_notes || undefined,
           } as TalentProfile);
         }
       } else {
-        logger.warn("TalentDetailPage: Profile document not found in Firestore", {
+        logger.warn("TalentDetailPage: Profile not found in Supabase", {
           userId,
         });
         setTalent(null);
       }
 
-      // Fetch submissions
-      const submissionsRef = collection(db, "submissions");
-      const q = query(submissionsRef, where("userId", "==", userId));
-      const querySnapshot = await getDocs(q);
+      // Fetch submissions from Supabase
+      const { data: submissionsData, error: submissionsError } = await getUserSubmissions(userId);
 
-      const submissionsData: Submission[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        submissionsData.push({
-          id: doc.id,
-          roleId: data.roleId,
-          projectId: data.projectId,
-          roleName: data.roleName,
-          projectTitle: data.projectTitle,
-          status: data.status,
-          submittedAt: data.submittedAt.toDate(),
+      if (submissionsError) {
+        logger.error("TalentDetailPage: Error fetching submissions", {
+          userId,
+          error: submissionsError,
         });
-      });
+        setSubmissions([]);
+      } else if (submissionsData) {
+        // Map submissions data to match the Submission interface
+        const mappedSubmissions: Submission[] = await Promise.all(
+          submissionsData.map(async (submission: any) => {
+            // Fetch role data to get roleName and projectTitle
+            const { data: roleData } = await getRole(submission.role_id, true);
 
-      logger.debug("TalentDetailPage: Submissions fetched", {
-        userId,
-        submissionCount: submissionsData.length,
-      });
-      setSubmissions(submissionsData);
+            return {
+              id: submission.id,
+              roleId: submission.role_id,
+              projectId: submission.project_id,
+              roleName: roleData?.title || 'Unknown Role',
+              projectTitle: (roleData as any)?.projects?.title || 'Unknown Project',
+              status: submission.status,
+              submittedAt: new Date(submission.submitted_at),
+            };
+          })
+        );
+
+        logger.debug("TalentDetailPage: Submissions fetched", {
+          userId,
+          submissionCount: mappedSubmissions.length,
+        });
+        setSubmissions(mappedSubmissions);
+      }
     } catch (error) {
       logger.error("TalentDetailPage: Error fetching talent data", {
         userId,
@@ -258,9 +285,15 @@ export default function TalentDetailPage() {
 
     setIsArchiving(true);
     try {
-      await updateDoc(doc(db, "profiles", userId), {
-        status: newStatus,
-      });
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('user_id', userId);
+
+      if (error) {
+        throw error;
+      }
 
       setTalent({
         ...talent,
@@ -285,9 +318,15 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      await updateDoc(doc(db, "profiles", userId), {
-        adminTag: tag,
-      });
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ admin_tag: tag })
+        .eq('user_id', userId);
+
+      if (error) {
+        throw error;
+      }
 
       setTalent({
         ...talent,
@@ -306,9 +345,15 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      await updateDoc(doc(db, "profiles", userId), {
-        adminNotes: tempNotes,
-      });
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ admin_notes: tempNotes })
+        .eq('user_id', userId);
+
+      if (error) {
+        throw error;
+      }
 
       setTalent({
         ...talent,
