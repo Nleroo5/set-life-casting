@@ -24,7 +24,7 @@ export interface BasicInfo {
 
 export interface Appearance {
   gender?: string
-  ethnicity?: string
+  ethnicity?: string[]
   hairColor?: string
   eyeColor?: string
   age?: number
@@ -131,7 +131,12 @@ function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
   // Map appearance
   if (data.appearance) {
     if (data.appearance.gender !== undefined) row.gender = data.appearance.gender || null
-    if (data.appearance.ethnicity !== undefined) row.ethnicity = data.appearance.ethnicity || null
+    // Convert ethnicity array to single string (take first value)
+    if (data.appearance.ethnicity !== undefined) {
+      row.ethnicity = (Array.isArray(data.appearance.ethnicity) && data.appearance.ethnicity.length > 0)
+        ? data.appearance.ethnicity[0]
+        : null
+    }
     if (data.appearance.hairColor !== undefined) row.hair_color = data.appearance.hairColor || null
     if (data.appearance.eyeColor !== undefined) row.eye_color = data.appearance.eyeColor || null
     if (data.appearance.age !== undefined) row.age = data.appearance.age || null
@@ -186,7 +191,8 @@ function mapRowToProfileData(row: ProfileRow): ProfileData {
     },
     appearance: {
       gender: row.gender || undefined,
-      ethnicity: row.ethnicity || undefined,
+      // Convert single ethnicity string back to array for form compatibility
+      ethnicity: row.ethnicity ? [row.ethnicity] : undefined,
       hairColor: row.hair_color || undefined,
       eyeColor: row.eye_color || undefined,
       age: row.age || undefined,
