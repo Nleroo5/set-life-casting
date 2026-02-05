@@ -21,7 +21,7 @@ export interface ProjectRow {
   director?: string | null
   producer?: string | null
   location?: string | null
-  project_type?: 'film' | 'tv' | 'commercial' | 'theater' | 'web' | 'other' | null
+  project_type?: 'film' | 'tv' | 'commercial' | 'theater' | 'web' | 'vertical short' | 'other' | null
   start_date?: string | null
   end_date?: string | null
   posting_date: string
