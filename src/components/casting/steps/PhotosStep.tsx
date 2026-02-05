@@ -35,11 +35,30 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<PhotosFormData>({
     resolver: zodResolver(photosSchema),
     defaultValues: data,
   });
+
+  // Watch the photos field to debug validation
+  const currentPhotos = watch("photos");
+
+  // Log validation errors whenever they change
+  useEffect(() => {
+    if (errors.photos) {
+      logger.error("❌ PhotosStep validation errors:", errors.photos);
+    }
+  }, [errors]);
+
+  // Log current photos state for debugging
+  useEffect(() => {
+    logger.debug("📸 Current photos state:", {
+      photoCount: currentPhotos?.length || 0,
+      photos: currentPhotos?.map(p => ({ type: p.type, hasUrl: !!p.url })),
+    });
+  }, [currentPhotos]);
 
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>([
     { id: "headshot", type: "headshot", label: "Headshot", required: true },
@@ -209,6 +228,27 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
   };
 
   const onSubmit = (formData: PhotosFormData) => {
+    logger.debug("📸 PhotosStep onSubmit called with formData:", {
+      photoCount: formData.photos?.length || 0,
+      photos: formData.photos?.map(p => ({ type: p.type, hasUrl: !!p.url })),
+      rawFormData: formData
+    });
+
+    // Validate required photos
+    const hasHeadshot = formData.photos?.some(p => p.type === "headshot");
+    const hasFullbody = formData.photos?.some(p => p.type === "fullbody");
+
+    logger.debug("📸 Photo validation:", {
+      hasHeadshot,
+      hasFullbody,
+      totalPhotos: formData.photos?.length || 0
+    });
+
+    if (!hasHeadshot || !hasFullbody) {
+      logger.error("❌ Photo validation failed - missing required photos");
+    }
+
+    logger.debug("📸 Calling onNext to proceed to final step...");
     onNext(formData);
   };
 
@@ -251,7 +291,15 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
         />
 
         {errors.photos && (
-          <p className="text-danger text-sm mt-2">{errors.photos.message}</p>
+          <div className="bg-danger/10 border-2 border-danger rounded-lg p-4 mt-2">
+            <p className="text-danger font-semibold">⚠️ Photo Upload Error:</p>
+            <p className="text-danger text-sm mt-1">
+              {errors.photos.message || "Please check your photo uploads"}
+            </p>
+            <p className="text-danger text-xs mt-2">
+              {JSON.stringify(errors.photos)}
+            </p>
+          </div>
         )}
 
         <div className="flex gap-4 pt-6">
@@ -268,6 +316,14 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
             variant="primary"
             className="flex-1"
             disabled={isUploading}
+            onClick={() => {
+              logger.debug("📸 Submit button clicked", {
+                isUploading,
+                photoCount: photoSlots.filter(s => s.url).length,
+                hasErrors: !!errors.photos,
+                errorMessage: errors.photos?.message,
+              });
+            }}
           >
             {isUploading ? (
               <span className="flex items-center justify-center gap-2">
