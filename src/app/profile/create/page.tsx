@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { getProfile, updateProfileStep, createProfile } from "@/lib/supabase/profiles";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
 import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
 import BasicInfoStep from "@/components/casting/steps/BasicInfoStep";
@@ -29,17 +28,6 @@ const steps = [
   { number: 5, title: "Photos" },
 ];
 
-// Helper function to clean data for Firestore (convert undefined to null)
-function cleanDataForFirestore<T extends Record<string, any>>(data: T): T {
-  const cleaned = { ...data } as any;
-  Object.keys(cleaned).forEach((key) => {
-    if (cleaned[key] === undefined) {
-      cleaned[key] = null;
-    }
-  });
-  return cleaned as T;
-}
-
 export default function CreateProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -64,9 +52,11 @@ export default function CreateProfilePage() {
       if (!user) return;
 
       try {
-        const profileDoc = await getDoc(doc(db, "profiles", user.id));
-        if (profileDoc.exists()) {
-          const profileData = profileDoc.data();
+        const { data: profileData, error } = await getProfile(user.id);
+        if (error) {
+          logger.error("Error loading profile:", error);
+        } else if (profileData) {
+          // Profile exists - populate form
           setFormData({
             basicInfo: profileData.basicInfo || {},
             appearance: profileData.appearance || {},
@@ -111,62 +101,20 @@ export default function CreateProfilePage() {
         };
         setFormData(updatedFormData);
 
-        // Auto-save progress to Firebase
+        // Auto-save progress to Supabase
         if (user) {
           try {
-            // Build update object with step data (clean undefined values)
-            const updateData: Record<string, unknown> = {
-              userId: user.id,
-              email: user.email,
-              displayName: user.user_metadata?.full_name || null,
-              [stepKey]: cleanDataForFirestore(stepData as Record<string, unknown>),
-              updatedAt: new Date(),
-            };
-
-            // ✅ Also update physical field if appearance, sizes, or details changed
-            if (stepKey === "appearance" || stepKey === "sizes" || stepKey === "details") {
-              // Safely access appearance, sizes, and details data
-              const appearanceData = stepKey === "appearance" ? stepData : updatedFormData.appearance || {};
-              const sizesData = stepKey === "sizes" ? stepData : updatedFormData.sizes || {};
-              const detailsData = stepKey === "details" ? stepData : updatedFormData.details || {};
-
-              const physical = {
-                // From appearance
-                gender: appearanceData?.gender ?? null,
-                ethnicity: appearanceData?.ethnicity ?? null,
-                height: appearanceData?.height ?? null,
-                weight: appearanceData?.weight ?? null,
-                hairColor: appearanceData?.hairColor ?? null,
-                hairLength: appearanceData?.hairLength ?? null,
-                eyeColor: appearanceData?.eyeColor ?? null,
-                dateOfBirth: appearanceData?.dateOfBirth ?? null,
-                // From sizes (gender-conditional)
-                shirtSize: sizesData?.shirtSize ?? null,
-                pantWaist: sizesData?.pantWaist ?? null,
-                pantInseam: sizesData?.pantInseam ?? null,
-                dressSize: sizesData?.dressSize ?? null,
-                womensPantSize: sizesData?.womensPantSize ?? null,
-                shoeSize: sizesData?.shoeSize ?? null,
-                // Optional measurements
-                bust: sizesData?.bust ?? null,
-                waist: sizesData?.waist ?? null,
-                hips: sizesData?.hips ?? null,
-                neck: sizesData?.neck ?? null,
-                sleeve: sizesData?.sleeve ?? null,
-                jacketSize: sizesData?.jacketSize ?? null,
-                // From details
-                visibleTattoos: detailsData?.visibleTattoos ?? false,
-                tattoosDescription: detailsData?.tattoosDescription ?? null,
-                facialHair: detailsData?.facialHair ?? null,
-              };
-              updateData.physical = physical;
-            }
-
-            await setDoc(
-              doc(db, "profiles", user.id),
-              updateData,
-              { merge: true }
+            const { error } = await updateProfileStep(
+              user.id,
+              stepKey as 'basicInfo' | 'appearance' | 'sizes' | 'details',
+              stepData
             );
+
+            if (error) {
+              logger.error("Error saving progress:", error);
+            } else {
+              logger.debug(`✅ Auto-saved ${stepKey} to Supabase`);
+            }
           } catch (error) {
             logger.error("Error saving progress:", error);
           }
@@ -249,62 +197,21 @@ export default function CreateProfilePage() {
     logger.debug("Submitting profile with photos:", finalPhotos);
 
     try {
-      // ✅ CRITICAL: Create consolidated "physical" field for easy searching
-      // This combines all searchable physical attributes into one place
-      const physical = {
-        // From appearance
-        gender: formData.appearance?.gender ?? null,
-        ethnicity: formData.appearance?.ethnicity ?? null,
-        height: formData.appearance?.height ?? null,
-        weight: formData.appearance?.weight ?? null,
-        hairColor: formData.appearance?.hairColor ?? null,
-        hairLength: formData.appearance?.hairLength ?? null,
-        eyeColor: formData.appearance?.eyeColor ?? null,
-        dateOfBirth: formData.appearance?.dateOfBirth ?? null,
-        // From sizes (gender-conditional)
-        shirtSize: formData.sizes?.shirtSize ?? null,
-        pantWaist: formData.sizes?.pantWaist ?? null,
-        pantInseam: formData.sizes?.pantInseam ?? null,
-        dressSize: formData.sizes?.dressSize ?? null,
-        womensPantSize: formData.sizes?.womensPantSize ?? null,
-        shoeSize: formData.sizes?.shoeSize ?? null,
-        // Optional measurements
-        bust: formData.sizes?.bust ?? null,
-        waist: formData.sizes?.waist ?? null,
-        hips: formData.sizes?.hips ?? null,
-        neck: formData.sizes?.neck ?? null,
-        sleeve: formData.sizes?.sleeve ?? null,
-        jacketSize: formData.sizes?.jacketSize ?? null,
-        // From details
-        visibleTattoos: formData.details?.visibleTattoos ?? false,
-        tattoosDescription: formData.details?.tattoosDescription ?? null,
-        facialHair: formData.details?.facialHair ?? null,
-      };
+      // Create/update user profile in Supabase
+      const { data, error } = await createProfile(user.id, {
+        basicInfo: formData.basicInfo,
+        appearance: formData.appearance,
+        sizes: formData.sizes,
+        details: formData.details,
+        profileComplete: true,
+        lastStepCompleted: 5,
+      });
 
-      logger.debug("✅ Consolidated physical attributes:", physical);
+      if (error) {
+        throw error;
+      }
 
-      // Create/update user profile with ALL data structures
-      await setDoc(
-        doc(db, "profiles", user.id),
-        {
-          userId: user.id,
-          email: user.email,
-          displayName: user.user_metadata?.full_name || null,
-          // Keep original structure for form editing (clean undefined values)
-          basicInfo: formData.basicInfo,
-          appearance: formData.appearance,
-          sizes: cleanDataForFirestore(formData.sizes as Record<string, unknown>),
-          details: formData.details,
-          photos: finalPhotos,
-          // ✅ NEW: Add consolidated "physical" field for searching & skins export
-          physical: physical,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      );
-
-      logger.debug("✅ Profile successfully saved to Firebase with searchable physical data");
+      logger.debug("✅ Profile successfully saved to Supabase:", data);
 
       // Redirect to dashboard
       router.push("/dashboard");
