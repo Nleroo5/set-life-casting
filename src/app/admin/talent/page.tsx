@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, query, getDocs, where, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { getAllProfiles, ProfileRow } from "@/lib/supabase/profiles";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
@@ -95,26 +94,70 @@ export default function TalentDatabasePage() {
   async function fetchTalents() {
     try {
       setLoading(true);
-      const profilesRef = collection(db, "profiles");
-      const profilesSnapshot = await getDocs(profilesRef);
+      const { data: profilesData, error } = await getAllProfiles();
 
-      const talentsData: TalentProfile[] = [];
-      profilesSnapshot.forEach((doc) => {
-        const data = doc.data();
+      if (error) {
+        logger.error("Error fetching talents:", error);
+        return;
+      }
 
-        // Skip profiles with missing critical data
-        if (!data.basicInfo || !data.appearance) {
-          logger.warn(`Skipping profile ${doc.id} with missing critical data`);
-          return;
-        }
+      if (!profilesData) {
+        setTalents([]);
+        return;
+      }
 
-        talentsData.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          status: data.status || "active",
-        } as TalentProfile);
-      });
+      // Map Supabase flat structure to Firebase nested structure for compatibility
+      const talentsData: TalentProfile[] = profilesData
+        .filter((profile) => {
+          // Skip profiles with missing critical data
+          if (!profile.first_name || !profile.gender) {
+            logger.warn(`Skipping profile ${profile.id} with missing critical data`);
+            return false;
+          }
+          return true;
+        })
+        .map((profile) => ({
+          id: profile.id,
+          basicInfo: {
+            firstName: profile.first_name || "",
+            lastName: profile.last_name || "",
+            email: profile.email || "",
+            phone: profile.phone || "",
+            city: profile.city || "",
+            state: profile.state || "",
+          },
+          appearance: {
+            gender: profile.gender || "",
+            dateOfBirth: profile.date_of_birth || "",
+            ethnicity: profile.ethnicity ? [profile.ethnicity] : [],
+            height: `${profile.height_feet || 0}'${profile.height_inches || 0}"`,
+            weight: profile.weight || 0,
+            hairColor: profile.hair_color || "",
+            hairLength: "", // Not stored in Supabase
+            eyeColor: profile.eye_color || "",
+          },
+          sizes: {
+            shirtSize: "", // Map from profile if needed
+            pantsWaist: 0,
+            pantsInseam: 0,
+            dressSize: profile.dress_size || undefined,
+            suitSize: undefined,
+            shoeSize: profile.shoe_size || "",
+            shoeSizeGender: profile.gender || "",
+          },
+          details: {
+            visibleTattoos: false, // Not stored in Supabase schema
+            tattoosDescription: undefined,
+            piercings: undefined,
+            piercingsDescription: undefined,
+            facialHair: "",
+          },
+          photos: [], // Photos are in separate table - would need JOIN
+          status: "active" as const,
+          adminTag: null,
+          adminNotes: undefined,
+          createdAt: new Date(profile.created_at),
+        }));
 
       // Calculate statistics
       const now = new Date();
