@@ -208,7 +208,13 @@ export default function CreateProfilePage() {
       });
 
       if (error) {
+        logger.error("❌ Supabase createProfile error:", error);
         throw error;
+      }
+
+      if (!data) {
+        logger.error("❌ No data returned from createProfile");
+        throw new Error("Profile creation returned no data");
       }
 
       logger.debug("✅ Profile successfully saved to Supabase:", data);
@@ -216,8 +222,19 @@ export default function CreateProfilePage() {
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (error) {
-      logger.error("Profile creation error:", error);
-      alert("Failed to create profile. Please try again.");
+      logger.error("❌ Profile creation error (full details):", {
+        error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        formData: {
+          hasBasicInfo: !!formData.basicInfo,
+          hasAppearance: !!formData.appearance,
+          hasSizes: !!formData.sizes,
+          hasDetails: !!formData.details,
+          photoCount: finalPhotos?.photos?.length || 0,
+        },
+      });
+      alert(`Failed to create profile: ${error instanceof Error ? error.message : String(error)}\n\nPlease check the console for details.`);
     } finally {
       setIsSubmitting(false);
     }
