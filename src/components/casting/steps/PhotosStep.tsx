@@ -8,8 +8,7 @@ import imageCompression from "browser-image-compression";
 import Button from "@/components/ui/Button";
 import { photosSchema, PhotosFormData } from "@/lib/schemas/casting";
 import { useAuth } from "@/contexts/AuthContext";
-import { storage } from "@/lib/firebase/config";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadPhoto, savePhotoMetadata } from "@/lib/supabase/photos";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
 
@@ -98,20 +97,47 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     }
   };
 
-  const uploadToStorage = async (file: File, slotId: string, retries = 3): Promise<string> => {
+  const uploadToStorage = async (file: File, slotId: string, slotType: "headshot" | "fullbody" | "additional", retries = 3): Promise<string> => {
     if (!user) throw new Error("User not authenticated");
-    if (!storage) throw new Error("Firebase Storage not initialized");
 
     const compressedFile = await compressImage(file);
-    const timestamp = Date.now();
-    const storageRef = ref(storage, `photos/${user.id}/${timestamp}-${slotId}-${file.name}`);
+
+    // Map slot type to photo type for database
+    const photoType = slotType === "additional" ? "portfolio" : slotType;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        await uploadBytes(storageRef, compressedFile);
-        const downloadURL = await getDownloadURL(storageRef);
-        logger.debug(`Successfully uploaded ${slotId} to Firebase Storage:`, downloadURL);
-        return downloadURL;
+        // Upload to Supabase Storage
+        const uploadResult = await uploadPhoto(user.id, compressedFile, photoType);
+
+        if ('error' in uploadResult) {
+          throw uploadResult.error;
+        }
+
+        const { url, path } = uploadResult;
+
+        // Save metadata to database
+        // Note: profile_id will be null for now - it gets linked when profile is created
+        const { error: metadataError } = await savePhotoMetadata(
+          user.id,
+          null, // profile_id - will be linked later
+          {
+            type: photoType,
+            url,
+            storage_path: path,
+            file_name: file.name,
+            file_size: file.size,
+            mime_type: file.type,
+          }
+        );
+
+        if (metadataError) {
+          logger.error('Failed to save photo metadata:', metadataError);
+          // Photo uploaded but metadata failed - continue anyway
+        }
+
+        logger.debug(`Successfully uploaded ${slotId} to Supabase Storage:`, url);
+        return url;
       } catch (error) {
         logger.error(`Upload attempt ${attempt} failed for ${slotId}:`, error);
         if (attempt === retries) {
@@ -131,41 +157,45 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
       const file = acceptedFiles[0];
       const preview = URL.createObjectURL(file);
 
+      // Find the slot to get its type
+      const slot = photoSlots.find(s => s.id === slotId);
+      if (!slot) return;
+
       // Update slot with preview
       setPhotoSlots((prev) =>
-        prev.map((slot) =>
-          slot.id === slotId
-            ? { ...slot, file, preview, uploading: true }
-            : slot
+        prev.map((s) =>
+          s.id === slotId
+            ? { ...s, file, preview, uploading: true }
+            : s
         )
       );
 
       try {
-        // Upload to Firebase Storage
-        const url = await uploadToStorage(file, slotId);
+        // Upload to Supabase Storage
+        const url = await uploadToStorage(file, slotId, slot.type);
 
         // Update slot with URL
         setPhotoSlots((prev) =>
-          prev.map((slot) =>
-            slot.id === slotId
-              ? { ...slot, url, uploading: false }
-              : slot
+          prev.map((s) =>
+            s.id === slotId
+              ? { ...s, url, uploading: false }
+              : s
           )
         );
       } catch (error) {
         logger.error("Upload error:", error);
         // Remove preview on error
         setPhotoSlots((prev) =>
-          prev.map((slot) =>
-            slot.id === slotId
-              ? { ...slot, file: undefined, preview: undefined, uploading: false }
-              : slot
+          prev.map((s) =>
+            s.id === slotId
+              ? { ...s, file: undefined, preview: undefined, uploading: false }
+              : s
           )
         );
         alert("Failed to upload photo. Please try again.");
       }
     },
-    [user, setValue]
+    [user, setValue, photoSlots]
   );
 
   const removePhoto = (slotId: string) => {
