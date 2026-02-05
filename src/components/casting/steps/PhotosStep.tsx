@@ -8,7 +8,7 @@ import imageCompression from "browser-image-compression";
 import Button from "@/components/ui/Button";
 import { photosSchema, PhotosFormData } from "@/lib/schemas/casting";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadPhoto, savePhotoMetadata } from "@/lib/supabase/photos";
+import { uploadPhoto, savePhotoMetadata, getPhotosByUserId, deletePhoto } from "@/lib/supabase/photos";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
 
@@ -26,6 +26,8 @@ interface PhotoSlot {
   file?: File;
   preview?: string;
   url?: string;
+  photoId?: string; // Database photo ID for deletion
+  storagePath?: string; // Storage path for deletion
   uploading?: boolean;
   error?: string;
 }
@@ -74,23 +76,61 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
   // Initialize photoSlots from existing data when editing
   useEffect(() => {
-    if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
-      setPhotoSlots((prev) => {
-        const newSlots = [...prev];
-        data.photos!.forEach((photo) => {
-          const slotIndex = newSlots.findIndex((s) => s.type === photo.type && !s.url);
-          if (slotIndex !== -1) {
-            newSlots[slotIndex] = {
-              ...newSlots[slotIndex],
-              url: photo.url,
-              preview: photo.url,
-            };
-          }
+    const loadExistingPhotos = async () => {
+      // First, try to load from data prop (if provided)
+      if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
+        setPhotoSlots((prev) => {
+          const newSlots = [...prev];
+          data.photos!.forEach((photo) => {
+            const slotIndex = newSlots.findIndex((s) => s.type === photo.type && !s.url);
+            if (slotIndex !== -1) {
+              newSlots[slotIndex] = {
+                ...newSlots[slotIndex],
+                url: photo.url,
+                preview: photo.url,
+              };
+            }
+          });
+          return newSlots;
         });
-        return newSlots;
-      });
-    }
-  }, []);
+      } else if (user) {
+        // If no photos in data prop, fetch from database
+        try {
+          const { data: photos, error } = await getPhotosByUserId(user.id);
+          if (error) {
+            logger.error("Error loading existing photos:", error);
+            return;
+          }
+
+          if (photos && photos.length > 0) {
+            logger.info(`📸 Loaded ${photos.length} existing photos for editing`);
+            setPhotoSlots((prev) => {
+              const newSlots = [...prev];
+              photos.forEach((photo) => {
+                // Map photo type from database to slot type
+                const slotType = photo.type === "portfolio" ? "additional" : photo.type as "headshot" | "fullbody" | "additional";
+                const slotIndex = newSlots.findIndex((s) => s.type === slotType && !s.url);
+                if (slotIndex !== -1) {
+                  newSlots[slotIndex] = {
+                    ...newSlots[slotIndex],
+                    url: photo.url,
+                    preview: photo.url,
+                    photoId: photo.id, // Save database ID for deletion
+                    storagePath: photo.storage_path, // Save storage path for deletion
+                  };
+                }
+              });
+              return newSlots;
+            });
+          }
+        } catch (error) {
+          logger.error("Error loading existing photos:", error);
+        }
+      }
+    };
+
+    loadExistingPhotos();
+  }, [user]); // Re-run if user changes
 
   // Sync photoSlots with form value
   useEffect(() => {
@@ -100,7 +140,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
         url: slot.url!,
         type: slot.type,
       }));
-    setValue("photos", photos, { shouldValidate: true });
+    setValue("photos", photos, { shouldValidate: false });
   }, [photoSlots, setValue]);
 
   const compressImage = async (file: File): Promise<File> => {
@@ -117,7 +157,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     }
   };
 
-  const uploadToStorage = async (file: File, slotId: string, slotType: "headshot" | "fullbody" | "additional", retries = 3): Promise<string> => {
+  const uploadToStorage = async (file: File, slotId: string, slotType: "headshot" | "fullbody" | "additional", retries = 3): Promise<{ url: string; photoId: string; storagePath: string }> => {
     if (!user) throw new Error("User not authenticated");
 
     const compressedFile = await compressImage(file);
@@ -138,7 +178,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
         // Save metadata to database
         // Note: profile_id will be null for now - it gets linked when profile is created
-        const { error: metadataError } = await savePhotoMetadata(
+        const { data: photoData, error: metadataError } = await savePhotoMetadata(
           user.id,
           null, // profile_id - will be linked later
           {
@@ -151,13 +191,13 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
           }
         );
 
-        if (metadataError) {
+        if (metadataError || !photoData) {
           logger.error('Failed to save photo metadata:', metadataError);
-          // Photo uploaded but metadata failed - continue anyway
+          throw new Error('Failed to save photo metadata');
         }
 
         logger.debug(`Successfully uploaded ${slotId} to Supabase Storage:`, url);
-        return url;
+        return { url, photoId: photoData.id, storagePath: path };
       } catch (error) {
         logger.error(`Upload attempt ${attempt} failed for ${slotId}:`, error);
         if (attempt === retries) {
@@ -181,24 +221,35 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
       const slot = photoSlots.find(s => s.id === slotId);
       if (!slot) return;
 
+      // If slot already has a photo in database, delete it first
+      if (slot.photoId && slot.storagePath) {
+        try {
+          await deletePhoto(slot.photoId, slot.storagePath);
+          logger.info(`Deleted old photo ${slot.photoId} before uploading replacement`);
+        } catch (error) {
+          logger.error("Error deleting old photo:", error);
+          // Continue with upload anyway
+        }
+      }
+
       // Update slot with preview
       setPhotoSlots((prev) =>
         prev.map((s) =>
           s.id === slotId
-            ? { ...s, file, preview, uploading: true }
+            ? { ...s, file, preview, uploading: true, photoId: undefined, storagePath: undefined }
             : s
         )
       );
 
       try {
         // Upload to Supabase Storage
-        const url = await uploadToStorage(file, slotId, slot.type);
+        const { url, photoId, storagePath } = await uploadToStorage(file, slotId, slot.type);
 
-        // Update slot with URL and clear any previous error
+        // Update slot with URL, photo ID, and storage path for future deletions
         setPhotoSlots((prev) =>
           prev.map((s) =>
             s.id === slotId
-              ? { ...s, url, uploading: false, error: undefined }
+              ? { ...s, url, photoId, storagePath, uploading: false, error: undefined }
               : s
           )
         );
@@ -218,12 +269,25 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     [user, setValue, photoSlots]
   );
 
-  const removePhoto = (slotId: string) => {
+  const removePhoto = async (slotId: string) => {
+    const slot = photoSlots.find((s) => s.id === slotId);
+
+    // If photo exists in database, delete it
+    if (slot?.photoId && slot?.storagePath) {
+      try {
+        await deletePhoto(slot.photoId, slot.storagePath);
+        logger.info(`Deleted photo ${slot.photoId} from database and storage`);
+      } catch (error) {
+        logger.error("Error deleting photo:", error);
+        // Continue anyway - clear from UI even if delete fails
+      }
+    }
+
     setPhotoSlots((prev) =>
-      prev.map((slot) =>
-        slot.id === slotId
-          ? { ...slot, file: undefined, preview: undefined, url: undefined, error: undefined }
-          : slot
+      prev.map((s) =>
+        s.id === slotId
+          ? { ...s, file: undefined, preview: undefined, url: undefined, photoId: undefined, storagePath: undefined, error: undefined }
+          : s
       )
     );
   };
@@ -243,13 +307,13 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
     try {
       // Retry upload
-      const url = await uploadToStorage(slot.file, slotId, slot.type);
+      const { url, photoId, storagePath } = await uploadToStorage(slot.file, slotId, slot.type);
 
-      // Update slot with URL
+      // Update slot with URL, photo ID, and storage path
       setPhotoSlots((prev) =>
         prev.map((s) =>
           s.id === slotId
-            ? { ...s, url, uploading: false, error: undefined }
+            ? { ...s, url, photoId, storagePath, uploading: false, error: undefined }
             : s
         )
       );
