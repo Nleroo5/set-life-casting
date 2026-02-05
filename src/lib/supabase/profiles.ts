@@ -25,27 +25,36 @@ export interface BasicInfo {
 export interface Appearance {
   gender?: string
   ethnicity?: string[]
+  height?: string // Format: "5'10""
+  weight?: number
   hairColor?: string
+  hairLength?: string
   eyeColor?: string
   age?: number
   dateOfBirth?: string
 }
 
 export interface Sizes {
-  heightFeet?: number
-  heightInches?: number
-  weight?: number
+  shirtSize?: string
+  pantWaist?: number
+  pantInseam?: number
+  womensPantSize?: string
+  bust?: number
   chest?: string
   waist?: string
   hips?: string
   inseam?: string
   neck?: string
   sleeve?: string
+  jacketSize?: string
   dressSize?: string
   shoeSize?: string
 }
 
 export interface Details {
+  visibleTattoos?: boolean
+  tattoosDescription?: string
+  facialHair?: string
   bio?: string
   experience?: string
   training?: string
@@ -81,6 +90,7 @@ export interface ProfileRow {
   gender?: string | null
   ethnicity?: string | null
   hair_color?: string | null
+  hair_length?: string | null
   eye_color?: string | null
   age?: number | null
   date_of_birth?: string | null
@@ -88,15 +98,24 @@ export interface ProfileRow {
   height_feet?: number | null
   height_inches?: number | null
   weight?: number | null
+  shirt_size?: string | null
+  pant_waist?: number | null
+  pant_inseam?: number | null
+  womens_pant_size?: string | null
+  bust?: number | null
   chest?: string | null
   waist?: string | null
   hips?: string | null
   inseam?: string | null
   neck?: string | null
   sleeve?: string | null
+  jacket_size?: string | null
   dress_size?: string | null
   shoe_size?: string | null
   // Details
+  visible_tattoos?: boolean | null
+  tattoos_description?: string | null
+  facial_hair?: string | null
   bio?: string | null
   experience?: string | null
   training?: string | null
@@ -107,6 +126,10 @@ export interface ProfileRow {
   // Status
   profile_complete?: boolean
   last_step_completed?: number
+  // Admin fields
+  status?: string | null
+  admin_tag?: string | null
+  admin_notes?: string | null
   // Timestamps
   created_at: string
   updated_at: string
@@ -131,13 +154,26 @@ function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
   // Map appearance
   if (data.appearance) {
     if (data.appearance.gender !== undefined) row.gender = data.appearance.gender || null
-    // Convert ethnicity array to single string (take first value)
+    // Convert ethnicity array to comma-separated string to preserve all selections
     if (data.appearance.ethnicity !== undefined) {
       row.ethnicity = (Array.isArray(data.appearance.ethnicity) && data.appearance.ethnicity.length > 0)
-        ? data.appearance.ethnicity[0]
+        ? data.appearance.ethnicity.join(', ')
         : null
     }
+    // Parse height string (e.g., "5'10"") into feet and inches
+    if (data.appearance.height !== undefined) {
+      const heightMatch = data.appearance.height?.match(/(\d+)'(\d+)"?/)
+      if (heightMatch) {
+        row.height_feet = parseInt(heightMatch[1])
+        row.height_inches = parseInt(heightMatch[2])
+      } else {
+        row.height_feet = null
+        row.height_inches = null
+      }
+    }
+    if (data.appearance.weight !== undefined) row.weight = data.appearance.weight || null
     if (data.appearance.hairColor !== undefined) row.hair_color = data.appearance.hairColor || null
+    if (data.appearance.hairLength !== undefined) row.hair_length = data.appearance.hairLength || null
     if (data.appearance.eyeColor !== undefined) row.eye_color = data.appearance.eyeColor || null
     if (data.appearance.age !== undefined) row.age = data.appearance.age || null
     if (data.appearance.dateOfBirth !== undefined) row.date_of_birth = data.appearance.dateOfBirth || null
@@ -145,21 +181,27 @@ function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
 
   // Map sizes
   if (data.sizes) {
-    if (data.sizes.heightFeet !== undefined) row.height_feet = data.sizes.heightFeet || null
-    if (data.sizes.heightInches !== undefined) row.height_inches = data.sizes.heightInches || null
-    if (data.sizes.weight !== undefined) row.weight = data.sizes.weight || null
+    if (data.sizes.shirtSize !== undefined) row.shirt_size = data.sizes.shirtSize || null
+    if (data.sizes.pantWaist !== undefined) row.pant_waist = data.sizes.pantWaist || null
+    if (data.sizes.pantInseam !== undefined) row.pant_inseam = data.sizes.pantInseam || null
+    if (data.sizes.womensPantSize !== undefined) row.womens_pant_size = data.sizes.womensPantSize || null
+    if (data.sizes.bust !== undefined) row.bust = data.sizes.bust || null
     if (data.sizes.chest !== undefined) row.chest = data.sizes.chest || null
     if (data.sizes.waist !== undefined) row.waist = data.sizes.waist || null
     if (data.sizes.hips !== undefined) row.hips = data.sizes.hips || null
     if (data.sizes.inseam !== undefined) row.inseam = data.sizes.inseam || null
     if (data.sizes.neck !== undefined) row.neck = data.sizes.neck || null
     if (data.sizes.sleeve !== undefined) row.sleeve = data.sizes.sleeve || null
+    if (data.sizes.jacketSize !== undefined) row.jacket_size = data.sizes.jacketSize || null
     if (data.sizes.dressSize !== undefined) row.dress_size = data.sizes.dressSize || null
     if (data.sizes.shoeSize !== undefined) row.shoe_size = data.sizes.shoeSize || null
   }
 
   // Map details
   if (data.details) {
+    if (data.details.visibleTattoos !== undefined) row.visible_tattoos = data.details.visibleTattoos ?? null
+    if (data.details.tattoosDescription !== undefined) row.tattoos_description = data.details.tattoosDescription || null
+    if (data.details.facialHair !== undefined) row.facial_hair = data.details.facialHair || null
     if (data.details.bio !== undefined) row.bio = data.details.bio || null
     if (data.details.experience !== undefined) row.experience = data.details.experience || null
     if (data.details.training !== undefined) row.training = data.details.training || null
@@ -191,27 +233,41 @@ function mapRowToProfileData(row: ProfileRow): ProfileData {
     },
     appearance: {
       gender: row.gender || undefined,
-      // Convert single ethnicity string back to array for form compatibility
-      ethnicity: row.ethnicity ? [row.ethnicity] : undefined,
+      // Convert comma-separated ethnicity string back to array for form compatibility
+      ethnicity: row.ethnicity
+        ? row.ethnicity.split(', ').map(e => e.trim()).filter(Boolean)
+        : undefined,
+      // Convert height_feet and height_inches to height string format (e.g., "5'10"")
+      height: (row.height_feet !== null && row.height_feet !== undefined && row.height_inches !== null && row.height_inches !== undefined)
+        ? `${row.height_feet}'${row.height_inches}"`
+        : undefined,
+      weight: row.weight !== null && row.weight !== undefined ? row.weight : undefined,
       hairColor: row.hair_color || undefined,
+      hairLength: row.hair_length || undefined,
       eyeColor: row.eye_color || undefined,
       age: row.age || undefined,
       dateOfBirth: row.date_of_birth || undefined,
     },
     sizes: {
-      heightFeet: row.height_feet || undefined,
-      heightInches: row.height_inches || undefined,
-      weight: row.weight || undefined,
+      shirtSize: row.shirt_size || undefined,
+      pantWaist: row.pant_waist || undefined,
+      pantInseam: row.pant_inseam || undefined,
+      womensPantSize: row.womens_pant_size || undefined,
+      bust: row.bust || undefined,
       chest: row.chest || undefined,
       waist: row.waist || undefined,
       hips: row.hips || undefined,
       inseam: row.inseam || undefined,
       neck: row.neck || undefined,
       sleeve: row.sleeve || undefined,
+      jacketSize: row.jacket_size || undefined,
       dressSize: row.dress_size || undefined,
       shoeSize: row.shoe_size || undefined,
     },
     details: {
+      visibleTattoos: row.visible_tattoos ?? undefined,
+      tattoosDescription: row.tattoos_description || undefined,
+      facialHair: row.facial_hair || undefined,
       bio: row.bio || undefined,
       experience: row.experience || undefined,
       training: row.training || undefined,

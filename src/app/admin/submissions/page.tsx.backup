@@ -708,7 +708,7 @@ export default function AdminSubmissionsPage() {
                             <img
                               src={photoUrl}
                               alt={`${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-100 to-pink-100">
@@ -899,7 +899,7 @@ export default function AdminSubmissionsPage() {
                                   <img
                                     src={photoUrl}
                                     alt={`${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-100 to-pink-100">
@@ -967,6 +967,262 @@ export default function AdminSubmissionsPage() {
                   </div>
                 );
               })
+            )}
+          </div>
+
+          {/* Right Sidebar - Submission Details */}
+          <div className="lg:col-span-1">
+            {selectedSubmission ? (
+              <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent/20 sticky top-6">
+                <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-12 border-2 border-accent/20 text-center">
+                  <p className="text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                    No roles found for this project
+                  </p>
+                </div>
+              ) : (
+                rolesWithSubmissions.map((roleWithSubs) => {
+                  const isRoleExpanded = expandedRoles.has(roleWithSubs.role.id);
+
+                  return (
+                    <div
+                      key={roleWithSubs.role.id}
+                      className="bg-linear-to-br from-white to-purple-50/30 rounded-xl border-2 border-accent/20 overflow-hidden"
+                    >
+                      {/* Role Header */}
+                      <div
+                        className="p-6 cursor-pointer hover:bg-purple-50/50 transition-colors"
+                        onClick={() => toggleRole(roleWithSubs.role.id)}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3
+                              className="text-xl font-bold text-secondary mb-2"
+                              style={{ fontFamily: "var(--font-galindo)" }}
+                            >
+                              {roleWithSubs.role.name}
+                            </h3>
+                            <div className="flex flex-wrap gap-3 text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                              <span>📍 {roleWithSubs.role.location}</span>
+                              <span>📅 {roleWithSubs.role.date}</span>
+                              <span>💰 {roleWithSubs.role.rate}</span>
+                              <span>👥 {roleWithSubs.submissions.length} submission{roleWithSubs.submissions.length !== 1 ? "s" : ""}</span>
+                            </div>
+                            {roleWithSubs.role.requirements && (
+                              <p className="mt-2 text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                <span className="font-semibold text-accent">Requirements:</span> {roleWithSubs.role.requirements}
+                              </p>
+                            )}
+                          </div>
+                          <button className="text-accent hover:text-accent-dark transition-colors">
+                            <svg
+                              className={`w-6 h-6 transition-transform ${isRoleExpanded ? "rotate-180" : ""}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Submissions (shown when role is expanded) */}
+                      {isRoleExpanded && (
+                        <div className="px-6 pb-6 space-y-3">
+                          {roleWithSubs.submissions.length === 0 ? (
+                            <div className="text-center py-6 text-secondary-light text-sm" style={{ fontFamily: "var(--font-outfit)" }}>
+                              No submissions for this role yet
+                            </div>
+                          ) : (
+                            roleWithSubs.submissions.map((submission) => (
+                              <div
+                                key={submission.id}
+                                className={`bg-white rounded-lg overflow-hidden border-2 transition-all ${
+                                  selectedSubmission?.id === submission.id
+                                    ? "border-accent shadow-[0_0_20px_rgba(95,101,196,0.3)]"
+                                    : "border-accent/20 hover:border-accent/40"
+                                }`}
+                              >
+                                <div className="flex items-stretch h-[200px]">
+                                  {/* Checkbox - Absolute positioned */}
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedSubmissionIds.has(submission.id)}
+                                      onChange={() => handleToggleSelection(submission.id)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-5 h-5 text-accent border-accent/30 rounded focus:ring-2 focus:ring-accent cursor-pointer bg-white shadow-sm"
+                                    />
+                                  </div>
+
+                                  {/* Photo - Left Side */}
+                                  <div
+                                    onClick={() => setSelectedSubmission(submission)}
+                                    className="w-[200px] shrink-0 cursor-pointer relative group"
+                                  >
+                                    {submission.profileData.photos?.photos?.[0] ? (
+                                      <>
+                                        <Image
+                                          src={submission.profileData.photos.photos[0].url}
+                                          alt={`${submission.profileData.basicInfo?.firstName} ${submission.profileData.basicInfo?.lastName}`}
+                                          width={200}
+                                          height={200}
+                                          className="w-full h-full object-cover"
+                                        />
+                                        {/* Status Badge Overlay */}
+                                        <div className="absolute top-2 right-2">
+                                          <Badge variant={getStatusBadgeVariant(submission.status)}>
+                                            {getStatusLabel(submission.status)}
+                                          </Badge>
+                                        </div>
+                                        {/* Hover Overlay */}
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                      </>
+                                    ) : (
+                                      <div className="w-full h-full bg-gradient-to-br from-accent/10 to-purple-100 flex items-center justify-center">
+                                        <span className="text-3xl text-accent/40">📷</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Info - Right Side */}
+                                  <div
+                                    className="flex-1 p-4 cursor-pointer flex flex-col justify-between"
+                                    onClick={() => setSelectedSubmission(submission)}
+                                  >
+                                    <div>
+                                      <h4
+                                        className="text-lg font-bold text-secondary mb-1 leading-tight"
+                                        style={{ fontFamily: "var(--font-galindo)" }}
+                                      >
+                                        {submission.profileData.basicInfo?.firstName}{" "}
+                                        {submission.profileData.basicInfo?.lastName}
+                                      </h4>
+
+                                      {/* Key Casting Criteria */}
+                                      <div className="space-y-1">
+                                        <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                          <span className="font-semibold text-secondary">
+                                            {submission.profileData.appearance?.gender || 'N/A'}
+                                            {(() => {
+                                              const age = calculateAge(submission.profileData.appearance?.dateOfBirth);
+                                              return age !== null ? `, ${age}` : '';
+                                            })()}
+                                          </span>
+                                          {submission.profileData.appearance?.height && (
+                                            <> • {submission.profileData.appearance.height}</>
+                                          )}
+                                        </div>
+
+                                        {/* Ethnicity */}
+                                        {submission.profileData.appearance?.ethnicity?.length && submission.profileData.appearance.ethnicity.length > 0 && (
+                                          <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                            {submission.profileData.appearance?.ethnicity?.join(", ")}
+                                          </div>
+                                        )}
+
+                                        {/* Location */}
+                                        {(submission.profileData.basicInfo?.city || submission.profileData.basicInfo?.state) && (
+                                          <div className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                            📍 {submission.profileData.basicInfo?.city}{submission.profileData.basicInfo?.city && submission.profileData.basicInfo?.state ? ', ' : ''}{submission.profileData.basicInfo?.state}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Bottom Section - Quick Actions */}
+                                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-accent/10">
+                                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                                        📅 {submission.submittedAt.toLocaleDateString()}
+                                      </p>
+                                      <div className="flex gap-1">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(submission.id, "pinned");
+                                          }}
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "pinned"
+                                              ? "bg-yellow-100 text-yellow-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-yellow-50"
+                                          }`}
+                                        >
+                                          Pin
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(submission.id, "booked");
+                                          }}
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "booked"
+                                              ? "bg-green-100 text-green-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-green-50"
+                                          }`}
+                                        >
+                                          Book
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleUpdateStatus(submission.id, "rejected");
+                                          }}
+                                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                                            submission.status === "rejected"
+                                              ? "bg-red-100 text-red-700 font-semibold"
+                                              : "bg-gray-100 text-gray-600 hover:bg-red-50"
+                                          }`}
+                                        >
+                                          Reject
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )
+            )}
+
+            {/* Pagination Controls */}
+            {totalCount > PAGE_SIZE && (
+              <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent/20">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Showing {((page - 1) * PAGE_SIZE) + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} submissions
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="text-sm px-3 py-1"
+                    >
+                      ← Previous
+                    </Button>
+
+                    <div className="text-sm text-secondary font-medium px-3" style={{ fontFamily: "var(--font-outfit)" }}>
+                      Page {page} of {Math.ceil(totalCount / PAGE_SIZE)}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => p + 1)}
+                      disabled={page * PAGE_SIZE >= totalCount}
+                      className="text-sm px-3 py-1"
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 

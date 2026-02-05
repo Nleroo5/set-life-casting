@@ -2,19 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  writeBatch,
-} from "firebase/firestore";
-import { db, storage } from "@/lib/firebase/config";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -24,9 +11,23 @@ import Textarea from "@/components/ui/Textarea";
 import DatePicker from "@/components/ui/DatePicker";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/firebase/roles";
+import {
+  getProjects,
+  getRoles,
+  createProject,
+  updateProject,
+  deleteProject,
+  createRole,
+  updateRole as updateRoleInDb,
+  deleteRole,
+  type ProjectRow,
+  type RoleRow
+} from "@/lib/supabase/casting";
+import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/supabase/roles";
+import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 
+// UI-facing interfaces (keep Firebase schema for compatibility)
 interface Project {
   id: string;
   title: string;
@@ -52,6 +53,117 @@ interface Role {
   archivedAt?: Date;
   archivedBy?: string;
   archiveReason?: string;
+}
+
+// Adapter functions to convert between Supabase schema and UI schema
+function projectRowToProject(row: ProjectRow): Project {
+  return {
+    id: row.id,
+    title: row.title,
+    type: mapProjectType(row.project_type),
+    shootDateStart: row.start_date || "",
+    shootDateEnd: row.end_date || "",
+    status: mapProjectStatus(row.status),
+  };
+}
+
+function projectToProjectRow(project: Partial<Project>): Partial<ProjectRow> {
+  return {
+    title: project.title,
+    project_type: mapProjectTypeToSupabase(project.type),
+    start_date: project.shootDateStart,
+    end_date: project.shootDateEnd,
+    status: mapProjectStatusToSupabase(project.status),
+  };
+}
+
+function roleRowToRole(row: RoleRow): Role {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    name: row.title,
+    requirements: row.description || "",
+    rate: row.pay_rate || "",
+    bookingDates: row.shoot_dates ? row.shoot_dates.split(",").map(d => d.trim()) : [""],
+    location: row.shoot_location || "",
+    bookingStatus: mapRoleStatus(row.status),
+    additionalNotes: row.pay_details || "",
+    referenceImageUrl: "", // Reference images not in current schema
+    archivedWithProject: row.status === "archived",
+    archivedIndividually: row.status === "archived",
+  };
+}
+
+function roleToRoleRow(role: Partial<Role>, projectId?: string): Partial<RoleRow> {
+  return {
+    project_id: projectId || role.projectId,
+    title: role.name,
+    description: role.requirements,
+    pay_rate: role.rate,
+    shoot_dates: role.bookingDates?.filter(d => d).join(", "),
+    shoot_location: role.location,
+    status: mapRoleStatusToSupabase(role.bookingStatus),
+    pay_details: role.additionalNotes,
+  };
+}
+
+// Type mapping functions
+function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "music-video" | "event" {
+  switch (type) {
+    case "film": return "film";
+    case "tv": return "tv";
+    case "commercial": return "commercial";
+    case "web": return "music-video";
+    case "theater": return "event";
+    default: return "film";
+  }
+}
+
+function mapProjectTypeToSupabase(type: string | undefined): "film" | "tv" | "commercial" | "theater" | "web" | "other" {
+  switch (type) {
+    case "film": return "film";
+    case "tv": return "tv";
+    case "commercial": return "commercial";
+    case "music-video": return "web";
+    case "event": return "theater";
+    default: return "film";
+  }
+}
+
+function mapProjectStatus(status: string): "booking" | "booked" | "archived" {
+  switch (status) {
+    case "active": return "booking";
+    case "closed": return "booked";
+    case "archived": return "archived";
+    default: return "booking";
+  }
+}
+
+function mapProjectStatusToSupabase(status: string | undefined): "active" | "closed" | "archived" {
+  switch (status) {
+    case "booking": return "active";
+    case "booked": return "closed";
+    case "archived": return "archived";
+    default: return "active";
+  }
+}
+
+function mapRoleStatus(status: string): "booking" | "booked" {
+  switch (status) {
+    case "open": return "booking";
+    case "closed": return "booked";
+    case "filled": return "booked";
+    case "archived": return "booked";
+    default: return "booking";
+  }
+}
+
+function mapRoleStatusToSupabase(status: string | undefined): "open" | "closed" | "filled" | "archived" {
+  switch (status) {
+    case "booking": return "open";
+    case "booked": return "closed";
+    default: return "open";
+  }
 }
 
 interface RoleFormData {
@@ -93,44 +205,23 @@ export default function AdminCastingPage() {
 
   async function fetchData() {
     try {
-      // Fetch projects
-      const projectsSnapshot = await getDocs(collection(db, "projects"));
-      const projectsData: Project[] = [];
-      projectsSnapshot.forEach((doc) => {
-        projectsData.push({ id: doc.id, ...doc.data() } as Project);
-      });
-      setProjects(projectsData);
+      // Fetch projects from Supabase
+      const { data: projectsData, error: projectsError } = await getProjects();
+      if (projectsError) throw projectsError;
 
-      // Fetch roles
-      const rolesSnapshot = await getDocs(collection(db, "roles"));
-      const rolesData: Role[] = [];
-      rolesSnapshot.forEach((doc) => {
-        const roleData = doc.data() as any;
+      const mappedProjects = (projectsData || []).map(projectRowToProject);
+      setProjects(mappedProjects);
 
-        // Migrate old single date to bookingDates array if needed
-        if (roleData.date && !roleData.bookingDates) {
-          const { date, ...restRole } = roleData;
-          rolesData.push({
-            id: doc.id,
-            ...restRole,
-            bookingDates: [date] // Convert single date to array
-          } as Role);
-        } else if (roleData.bookingDates && Array.isArray(roleData.bookingDates)) {
-          rolesData.push({ id: doc.id, ...roleData } as Role);
-        } else {
-          // Fallback: ensure bookingDates exists
-          rolesData.push({
-            id: doc.id,
-            ...roleData,
-            bookingDates: roleData.date ? [roleData.date] : [""]
-          } as Role);
-        }
-      });
-      setRoles(rolesData);
+      // Fetch roles from Supabase
+      const { data: rolesData, error: rolesError } = await getRoles();
+      if (rolesError) throw rolesError;
+
+      const mappedRoles = (rolesData || []).map(roleRowToRole);
+      setRoles(mappedRoles);
 
       // DEBUG: Log roles to check archive flags
-      logger.debug("🔍 DEBUG - Total roles loaded:", rolesData.length);
-      logger.debug("🔍 DEBUG - Sample role:", rolesData[0]);
+      logger.debug("🔍 DEBUG - Total roles loaded:", mappedRoles.length);
+      logger.debug("🔍 DEBUG - Sample role:", mappedRoles[0]);
 
       // Bookings collection was removed in submission status simplification
     } catch (error) {
@@ -151,56 +242,61 @@ export default function AdminCastingPage() {
     try {
       logger.debug(`🔍 Starting archive process for project: ${project.title}`);
 
-      const batch = writeBatch(db);
+      const supabase = createClient();
       let rolesCount = 0;
       let bookingsCount = 0;
       let submissionsCount = 0;
 
       // Update project status to archived
-      const projectRef = doc(db, "projects", projectId);
-      batch.update(projectRef, {
+      const { error: projectError } = await updateProject(projectId, {
         status: "archived",
-        archivedAt: new Date(),
-        archivedBy: user?.id || "admin",
-        updatedAt: new Date(),
+        updated_at: new Date().toISOString(),
       });
+
+      if (projectError) throw projectError;
 
       // Mark all roles as archived
-      const rolesQuery = query(collection(db, "roles"), where("projectId", "==", projectId));
-      const rolesSnapshot = await getDocs(rolesQuery);
-      rolesSnapshot.docs.forEach((roleDoc) => {
-        batch.update(roleDoc.ref, {
-          archivedWithProject: true,
-          updatedAt: new Date(),
-        });
-        rolesCount++;
-      });
+      const { data: projectRoles, error: rolesError } = await getRoles({ projectId });
+      if (rolesError) throw rolesError;
 
-      // Mark all bookings as archived and completed
-      const bookingsQuery = query(collection(db, "bookings"), where("projectId", "==", projectId));
-      const bookingsSnapshot = await getDocs(bookingsQuery);
-      bookingsSnapshot.docs.forEach((bookingDoc) => {
-        batch.update(bookingDoc.ref, {
-          status: "completed",
-          archivedWithProject: true,
-          updatedAt: new Date(),
-        });
-        bookingsCount++;
-      });
+      for (const role of projectRoles || []) {
+        await updateRoleInDb(role.id, { status: "archived" });
+        rolesCount++;
+      }
+
+      // Mark all bookings as archived and completed (if bookings table exists)
+      try {
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from("bookings")
+          .update({
+            status: "completed",
+            archived_with_project: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("project_id", projectId)
+          .select();
+
+        if (!bookingsError && bookingsData) {
+          bookingsCount = bookingsData.length;
+        }
+      } catch (error) {
+        // Bookings table may not exist
+        logger.warn("Bookings update skipped (table may not exist)");
+      }
 
       // Mark all submissions as archived
-      const submissionsQuery = query(collection(db, "submissions"), where("projectId", "==", projectId));
-      const submissionsSnapshot = await getDocs(submissionsQuery);
-      submissionsSnapshot.docs.forEach((submissionDoc) => {
-        batch.update(submissionDoc.ref, {
-          status: "archived",
-          archivedWithProject: true,
-          updatedAt: new Date(),
-        });
-        submissionsCount++;
-      });
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from("submissions")
+        .update({
+          status: "archived" as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("project_id", projectId)
+        .select();
 
-      await batch.commit();
+      if (!submissionsError && submissionsData) {
+        submissionsCount = submissionsData.length;
+      }
 
       logger.debug(`✅ Archived project: ${project.title}`);
       logger.debug(`  - ${rolesCount} roles archived`);
@@ -233,20 +329,9 @@ export default function AdminCastingPage() {
     }
 
     try {
-      // Delete associated roles
-      const rolesQuery = query(collection(db, "roles"), where("projectId", "==", projectId));
-      const rolesSnapshot = await getDocs(rolesQuery);
-      const deletePromises = rolesSnapshot.docs.map((doc) => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
-
-      // Delete submissions
-      const submissionsQuery = query(collection(db, "submissions"), where("projectId", "==", projectId));
-      const submissionsSnapshot = await getDocs(submissionsQuery);
-      const deleteSubmissionsPromises = submissionsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
-      await Promise.all(deleteSubmissionsPromises);
-
-      // Delete project
-      await deleteDoc(doc(db, "projects", projectId));
+      // Delete project (CASCADE will handle roles and submissions)
+      const { error } = await deleteProject(projectId);
+      if (error) throw error;
 
       logger.debug(`✅ Deleted project: ${project.title}`);
       await fetchData();
@@ -789,7 +874,7 @@ function ProjectForm({
   };
 
   const handleFileUpload = async (index: number, file: File) => {
-    if (!file || !storage) return;
+    if (!file) return;
 
     // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'application/pdf'];
@@ -807,19 +892,30 @@ function ProjectForm({
     try {
       setUploadingFiles(prev => ({ ...prev, [index]: true }));
 
+      const supabase = createClient();
+
       // Create a unique filename
       const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
       const filename = `role-references/${timestamp}_${file.name}`;
-      const storageRef = ref(storage, filename);
 
-      // Upload file
-      await uploadBytes(storageRef, file);
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filename, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-      // Get download URL
-      const downloadURL = await getDownloadURL(storageRef);
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filename);
 
       // Update role with image URL
-      updateRole(index, 'referenceImageUrl', downloadURL);
+      updateRole(index, 'referenceImageUrl', urlData.publicUrl);
 
       logger.debug(`✅ File uploaded successfully for role ${index + 1}`);
     } catch (error) {
@@ -840,12 +936,11 @@ function ProjectForm({
 
     setIsSubmitting(true);
     try {
-      const batch = writeBatch(db);
-
       if (project) {
-        // Update project
-        const projectRef = doc(db, "projects", project.id);
-        batch.update(projectRef, data);
+        // Update existing project
+        const projectUpdate = projectToProjectRow(data);
+        const { error: projectError } = await updateProject(project.id, projectUpdate);
+        if (projectError) throw projectError;
 
         // Track existing role IDs to identify deletions
         const existingRoleIds = new Set(existingRoles.map((r) => r.id));
@@ -855,56 +950,38 @@ function ProjectForm({
         const rolesToDelete = Array.from(existingRoleIds).filter(
           (id) => !currentRoleIds.has(id)
         );
-        rolesToDelete.forEach((roleId) => {
-          batch.delete(doc(db, "roles", roleId));
-        });
+        for (const roleId of rolesToDelete) {
+          const { error } = await deleteRole(roleId);
+          if (error) throw error;
+        }
 
         // Update existing roles and create new ones
-        roles.forEach((role) => {
-          const roleData = {
-            name: role.name,
-            requirements: role.requirements,
-            rate: role.rate,
-            bookingDates: role.bookingDates,
-            location: role.location,
-            bookingStatus: role.bookingStatus,
-            additionalNotes: role.additionalNotes || "",
-            referenceImageUrl: role.referenceImageUrl || "",
-            projectId: project.id,
-          };
+        for (const role of roles) {
+          const roleData = roleToRoleRow(role, project.id);
 
           if (role.id) {
             // Update existing role (preserves role ID)
-            batch.update(doc(db, "roles", role.id), roleData);
+            const { error } = await updateRoleInDb(role.id, roleData);
+            if (error) throw error;
           } else {
             // Create new role
-            const newRoleRef = doc(collection(db, "roles"));
-            batch.set(newRoleRef, roleData);
+            const { error } = await createRole(roleData as any);
+            if (error) throw error;
           }
-        });
-
-        await batch.commit();
+        }
       } else {
         // Create new project
-        const projectRef = await addDoc(collection(db, "projects"), data);
+        const projectData = projectToProjectRow(data);
+        const { data: newProject, error: projectError } = await createProject(projectData);
+        if (projectError) throw projectError;
+        if (!newProject) throw new Error("Failed to create project");
 
         // Add roles
-        const roleBatch = writeBatch(db);
-        roles.forEach((role) => {
-          const roleRef = doc(collection(db, "roles"));
-          roleBatch.set(roleRef, {
-            name: role.name,
-            requirements: role.requirements,
-            rate: role.rate,
-            bookingDates: role.bookingDates,
-            location: role.location,
-            bookingStatus: role.bookingStatus,
-            additionalNotes: role.additionalNotes || "",
-            referenceImageUrl: role.referenceImageUrl || "",
-            projectId: projectRef.id,
-          });
-        });
-        await roleBatch.commit();
+        for (const role of roles) {
+          const roleData = roleToRoleRow(role, newProject.id);
+          const { error } = await createRole(roleData as any);
+          if (error) throw error;
+        }
       }
 
       onSave();

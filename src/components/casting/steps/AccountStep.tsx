@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { signUpWithEmail, signInWithEmail, signInAsGuest } from "@/lib/firebase/auth";
+import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AccountStepProps {
@@ -30,8 +30,9 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     setLoading(true);
     setError("");
     try {
-      await signInAsGuest();
-      onNext();
+      // Supabase doesn't have anonymous auth by default
+      // For now, disable guest mode or implement a workaround
+      setError("Guest sign-in is temporarily disabled. Please create an account to continue.");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to continue as guest";
       setError(message);
@@ -45,7 +46,34 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     setLoading(true);
     setError("");
     try {
-      await signUpWithEmail(email, password, displayName);
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Create user record in users table
+      if (data.user) {
+        const { error: userError } = await supabase.from("users").insert({
+          id: data.user.id,
+          email: data.user.email,
+          display_name: displayName,
+          role: "talent",
+          is_guest: false,
+        });
+
+        if (userError) {
+          console.error("Error creating user record:", userError);
+        }
+      }
+
       onNext();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to create account";
@@ -60,7 +88,14 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     setLoading(true);
     setError("");
     try {
-      await signInWithEmail(email, password);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
       onNext();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to sign in";
@@ -108,6 +143,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
             </p>
           </div>
 
+          {/* Guest mode disabled - Supabase doesn't have anonymous auth by default
           <div
             className="bg-linear-to-br from-white to-blue-50/30 rounded-xl p-6 border-2 border-gray-300 cursor-pointer hover:border-accent hover:shadow-lg transition-all duration-300"
             onClick={handleGuestSignIn}
@@ -125,6 +161,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
               Submit quickly without creating an account (one-time submission)
             </p>
           </div>
+          */}
 
           <div className="text-center pt-4">
             <button

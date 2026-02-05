@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { collection, query, where, getDocs, writeBatch, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import Link from "next/link";
-import { restoreRole } from "@/lib/firebase/roles";
 import { logger } from "@/lib/logger";
+import { getProjects, getRoles, updateProject, updateRole, type ProjectRow, type RoleRow } from "@/lib/supabase/casting";
+import { restoreRole } from "@/lib/supabase/roles";
+import { createClient } from "@/lib/supabase/config";
 
 interface ArchivedProject {
   id: string;
@@ -42,6 +42,36 @@ interface ArchivedRole {
   submissionCount: number;
 }
 
+// Schema adapter functions
+function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "music-video" | "event" {
+  switch (type) {
+    case "film": return "film";
+    case "tv": return "tv";
+    case "commercial": return "commercial";
+    case "web": return "music-video";
+    case "theater": return "event";
+    default: return "film";
+  }
+}
+
+function mapProjectStatus(status: string): "booking" | "booked" | "archived" {
+  switch (status) {
+    case "active": return "booking";
+    case "closed": return "booked";
+    case "archived": return "archived";
+    default: return "booking";
+  }
+}
+
+function mapProjectStatusToSupabase(status: string | undefined): "active" | "closed" | "archived" {
+  switch (status) {
+    case "booking": return "active";
+    case "booked": return "closed";
+    case "archived": return "archived";
+    default: return "active";
+  }
+}
+
 export default function ArchivePage() {
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -65,46 +95,46 @@ export default function ArchivePage() {
   const fetchArchivedProjects = async () => {
     try {
       setLoading(true);
+      const supabase = createClient();
 
       // Fetch archived projects
-      const projectsQuery = query(
-        collection(db, "projects"),
-        where("status", "==", "archived")
-      );
-      const projectsSnapshot = await getDocs(projectsQuery);
+      const { data: projectsData, error: projectsError } = await getProjects({ status: "archived" });
+
+      if (projectsError) {
+        throw projectsError;
+      }
 
       const projects = await Promise.all(
-        projectsSnapshot.docs.map(async (projectDoc) => {
-          const projectData = projectDoc.data();
-
+        (projectsData || []).map(async (projectRow) => {
           // Count bookings
-          const bookingsQuery = query(
-            collection(db, "bookings"),
-            where("projectId", "==", projectDoc.id)
-          );
-          const bookingsSnapshot = await getDocs(bookingsQuery);
+          const { count: bookingCount } = await supabase
+            .from("bookings")
+            .select("*", { count: "exact", head: true })
+            .eq("project_id", projectRow.id);
 
           // Count roles
-          const rolesQuery = query(
-            collection(db, "roles"),
-            where("projectId", "==", projectDoc.id)
-          );
-          const rolesSnapshot = await getDocs(rolesQuery);
+          const { data: rolesData } = await getRoles({ projectId: projectRow.id });
+          const roleCount = rolesData?.length || 0;
 
           // Count submissions
-          const submissionsQuery = query(
-            collection(db, "submissions"),
-            where("projectId", "==", projectDoc.id)
-          );
-          const submissionsSnapshot = await getDocs(submissionsQuery);
+          const { count: submissionCount } = await supabase
+            .from("submissions")
+            .select("*", { count: "exact", head: true })
+            .eq("project_id", projectRow.id);
 
           return {
-            id: projectDoc.id,
-            ...projectData,
-            archivedAt: projectData.archivedAt?.toDate?.() || projectData.archivedAt,
-            bookingCount: bookingsSnapshot.size,
-            roleCount: rolesSnapshot.size,
-            submissionCount: submissionsSnapshot.size,
+            id: projectRow.id,
+            title: projectRow.title,
+            type: mapProjectType(projectRow.project_type),
+            shootDateStart: projectRow.start_date || "",
+            shootDateEnd: projectRow.end_date || "",
+            status: "archived" as const,
+            archivedAt: projectRow.updated_at ? new Date(projectRow.updated_at) : undefined,
+            archivedBy: undefined, // Not stored in current schema
+            completionNotes: undefined, // Not stored in current schema
+            bookingCount: bookingCount || 0,
+            roleCount: roleCount,
+            submissionCount: submissionCount || 0,
           } as ArchivedProject;
         })
       );
@@ -118,56 +148,58 @@ export default function ArchivePage() {
 
       setArchivedProjects(projects);
 
-      // Fetch individually archived roles
-      const rolesQuery = query(
-        collection(db, "roles"),
-        where("archivedIndividually", "==", true)
-      );
-      const rolesSnapshot = await getDocs(rolesQuery);
+      // Fetch individually archived roles (roles with status 'archived' but project not archived)
+      const { data: allRolesData } = await getRoles({ status: "archived" });
 
       const roles = await Promise.all(
-        rolesSnapshot.docs.map(async (roleDoc) => {
-          const roleData = roleDoc.data();
-
+        (allRolesData || []).map(async (roleRow) => {
           // Get project info
-          const projectDoc = await getDocs(
-            query(collection(db, "projects"), where("__name__", "==", roleData.projectId))
-          );
-          const projectData = projectDoc.docs[0]?.data();
+          const { data: projectData } = await supabase
+            .from("projects")
+            .select("*")
+            .eq("id", roleRow.project_id)
+            .single();
+
+          // Only include if project is NOT archived (individually archived roles)
+          if (projectData?.status === "archived") {
+            return null;
+          }
 
           // Count submissions
-          const submissionsQuery = query(
-            collection(db, "submissions"),
-            where("roleId", "==", roleDoc.id)
-          );
-          const submissionsSnapshot = await getDocs(submissionsQuery);
+          const { count: submissionCount } = await supabase
+            .from("submissions")
+            .select("*", { count: "exact", head: true })
+            .eq("role_id", roleRow.id);
 
           return {
-            id: roleDoc.id,
-            projectId: roleData.projectId,
+            id: roleRow.id,
+            projectId: roleRow.project_id,
             projectTitle: projectData?.title || "Unknown Project",
-            projectStatus: projectData?.status || "booking",
-            name: roleData.name,
-            requirements: roleData.requirements,
-            rate: roleData.rate,
-            date: roleData.date,
-            location: roleData.location,
-            archivedAt: roleData.archivedAt?.toDate?.() || roleData.archivedAt,
-            archivedBy: roleData.archivedBy,
-            archiveReason: roleData.archiveReason || "",
-            submissionCount: submissionsSnapshot.size,
+            projectStatus: mapProjectStatus(projectData?.status || "active"),
+            name: roleRow.title,
+            requirements: roleRow.description || "",
+            rate: roleRow.pay_rate || "",
+            date: roleRow.shoot_dates || "",
+            location: roleRow.shoot_location || "",
+            archivedAt: roleRow.updated_at ? new Date(roleRow.updated_at) : undefined,
+            archivedBy: undefined, // Not stored in current schema
+            archiveReason: undefined, // Not stored in current schema
+            submissionCount: submissionCount || 0,
           } as ArchivedRole;
         })
       );
 
+      // Filter out null entries (roles archived with project)
+      const individuallyArchivedRoles = roles.filter((r): r is ArchivedRole => r !== null);
+
       // Sort by archived date (newest first)
-      roles.sort((a, b) => {
+      individuallyArchivedRoles.sort((a, b) => {
         const dateA = a.archivedAt instanceof Date ? a.archivedAt.getTime() : 0;
         const dateB = b.archivedAt instanceof Date ? b.archivedAt.getTime() : 0;
         return dateB - dateA;
       });
 
-      setArchivedRoles(roles);
+      setArchivedRoles(individuallyArchivedRoles);
     } catch (error) {
       logger.error("Error fetching archived data:", error);
       alert("Failed to load archived data");
@@ -195,69 +227,80 @@ export default function ArchivePage() {
       setRestoring(projectId);
       logger.debug(`🔄 Starting restore process for project: ${project.title}`);
 
-      const batch = writeBatch(db);
+      const supabase = createClient();
 
-      // Update project status back to "booked"
-      const projectRef = doc(db, "projects", projectId);
-      batch.update(projectRef, {
-        status: "booked",
-        updatedAt: new Date(),
-        // Keep archivedAt and archivedBy for historical record
+      // Update project status back to "closed" (booked)
+      const { error: projectError } = await updateProject(projectId, {
+        status: "closed", // "booked" in UI terms
       });
+
+      if (projectError) {
+        throw projectError;
+      }
 
       // Restore all roles
-      const rolesQuery = query(
-        collection(db, "roles"),
-        where("projectId", "==", projectId)
-      );
-      const rolesSnapshot = await getDocs(rolesQuery);
-      rolesSnapshot.docs.forEach((roleDoc) => {
-        batch.update(roleDoc.ref, {
-          archivedWithProject: false,
-          updatedAt: new Date(),
-        });
-      });
+      const { data: rolesData } = await getRoles({ projectId });
+
+      if (rolesData) {
+        for (const role of rolesData) {
+          await updateRole(role.id, {
+            status: "open", // Restore to open status
+          });
+        }
+      }
 
       // Restore all bookings (back to "confirmed" status)
-      const bookingsQuery = query(
-        collection(db, "bookings"),
-        where("projectId", "==", projectId)
-      );
-      const bookingsSnapshot = await getDocs(bookingsQuery);
-      bookingsSnapshot.docs.forEach((bookingDoc) => {
-        batch.update(bookingDoc.ref, {
-          status: "confirmed",
-          archivedWithProject: false,
-          updatedAt: new Date(),
-        });
-      });
+      const { data: bookingsData } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("project_id", projectId);
 
-      // Restore all submissions (back to "accepted" status)
-      const submissionsQuery = query(
-        collection(db, "submissions"),
-        where("projectId", "==", projectId)
-      );
-      const submissionsSnapshot = await getDocs(submissionsQuery);
-      submissionsSnapshot.docs.forEach((submissionDoc) => {
-        batch.update(submissionDoc.ref, {
-          status: "selected",
-          archivedWithProject: false,
-          updatedAt: new Date(),
-        });
-      });
+      if (bookingsData) {
+        for (const booking of bookingsData) {
+          await supabase
+            .from("bookings")
+            .update({
+              status: "confirmed",
+              archived_with_project: false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", booking.id);
+        }
+      }
 
-      await batch.commit();
+      // Restore all submissions (back to null status)
+      const { data: submissionsData } = await supabase
+        .from("submissions")
+        .select("id")
+        .eq("project_id", projectId);
+
+      if (submissionsData) {
+        for (const submission of submissionsData) {
+          await supabase
+            .from("submissions")
+            .update({
+              status: null,
+              archived_with_project: false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", submission.id);
+        }
+      }
+
+      const roleCount = rolesData?.length || 0;
+      const bookingCount = bookingsData?.length || 0;
+      const submissionCount = submissionsData?.length || 0;
 
       logger.debug(`✅ Restored project: ${project.title}`);
-      logger.debug(`  - ${rolesSnapshot.size} roles restored`);
-      logger.debug(`  - ${bookingsSnapshot.size} bookings reactivated`);
-      logger.debug(`  - ${submissionsSnapshot.size} submissions restored`);
+      logger.debug(`  - ${roleCount} roles restored`);
+      logger.debug(`  - ${bookingCount} bookings reactivated`);
+      logger.debug(`  - ${submissionCount} submissions restored`);
 
       alert(
         `Project "${project.title}" restored successfully!\n\n` +
-        `• ${rolesSnapshot.size} roles restored\n` +
-        `• ${bookingsSnapshot.size} bookings reactivated\n` +
-        `• ${submissionsSnapshot.size} submissions restored\n\n` +
+        `• ${roleCount} roles restored\n` +
+        `• ${bookingCount} bookings reactivated\n` +
+        `• ${submissionCount} submissions restored\n\n` +
         `The project is now active again.`
       );
 

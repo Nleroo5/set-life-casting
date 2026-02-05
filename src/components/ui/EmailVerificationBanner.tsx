@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-// import { resendVerificationEmail } from "@/lib/firebase/auth";  // TODO: Update for Supabase in Phase 5
+import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "./Button";
 import { logger } from "@/lib/logger";
@@ -17,16 +17,22 @@ export default function EmailVerificationBanner() {
   }
 
   const handleResend = async () => {
-    if (!user) return;
+    if (!user || !user.email) return;
 
     setSending(true);
     setMessage("");
 
     try {
-      // TODO: Implement Supabase email resend in Phase 5
-      // await resendVerificationEmail(user);
-      setMessage("Email verification will be available after Phase 5 migration.");
-      logger.info("Email verification resend requested - not yet implemented for Supabase");
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+      });
+
+      if (error) throw error;
+
+      setMessage("Verification email sent! Check your inbox.");
+      logger.info("Email verification resent successfully");
     } catch (error) {
       logger.error("Error sending verification email:", error);
       setMessage("Failed to send email. Please try again later.");

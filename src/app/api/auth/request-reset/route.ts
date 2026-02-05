@@ -1,14 +1,13 @@
 /**
- * Firebase Native Password Reset API
+ * Supabase Password Reset API
  *
- * Uses Firebase's built-in sendPasswordResetEmail - no Admin SDK required!
- * More secure and simpler than custom token implementation.
+ * Uses Supabase's built-in resetPasswordForEmail.
+ * Sends password reset email with redirect to reset page.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { sendPasswordResetEmail } from "firebase/auth";
 import { z } from "zod";
-import { auth } from "@/lib/firebase/config";
+import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 
 // Email validation schema
@@ -32,21 +31,19 @@ export async function POST(request: NextRequest) {
 
     const { email } = validation.data;
 
-    // Check if Firebase Auth is initialized
-    if (!auth) {
-      return NextResponse.json(
-        { error: "Authentication not initialized" },
-        { status: 500 }
-      );
-    }
-
-    // Send password reset email using Firebase's built-in function
+    // Send password reset email using Supabase's built-in function
     // This handles everything: email validation, template, security, etc.
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL;
-    await sendPasswordResetEmail(auth, email.toLowerCase(), {
-      url: `${appUrl}/login`,
-      handleCodeInApp: false,
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
+      redirectTo: `${appUrl}/auth/reset-password`,
     });
+
+    // Log any errors but don't expose them to the user
+    if (error) {
+      logger.error("Supabase password reset error:", error);
+    }
 
     // For security, always return success (don't reveal if email exists)
     return NextResponse.json({

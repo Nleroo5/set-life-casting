@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { getOpenRoles, type RoleRow, type ProjectRow } from "@/lib/supabase/casting";
 import { useAuth } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
 
+// Legacy interface for UI compatibility
 interface Project {
   id: string;
   title: string;
@@ -20,6 +20,7 @@ interface Project {
   status: "booking" | "booked" | "archived";
 }
 
+// Legacy interface for UI compatibility
 interface Role {
   id: string;
   projectId: string;
@@ -39,6 +40,84 @@ interface RoleWithProject extends Role {
   project: Project;
 }
 
+// Adapter functions to convert Supabase schema to legacy format
+function adaptProjectRow(row: ProjectRow): Project {
+  return {
+    id: row.id,
+    title: row.title,
+    type: mapProjectType(row.project_type),
+    shootDateStart: row.start_date || "",
+    shootDateEnd: row.end_date || "",
+    status: mapProjectStatus(row.status),
+  };
+}
+
+function adaptRoleRow(row: RoleRow, project: ProjectRow): RoleWithProject {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    name: row.title,
+    requirements: row.description || "",
+    rate: row.pay_rate || "TBD",
+    bookingDates: row.shoot_dates ? [row.shoot_dates] : [],
+    location: row.shoot_location || project.location || "TBD",
+    bookingStatus: mapRoleStatus(row.status),
+    additionalNotes: row.pay_details,
+    archivedWithProject: false,
+    archivedIndividually: false,
+    project: adaptProjectRow(project),
+  };
+}
+
+function mapProjectType(
+  type: ProjectRow["project_type"]
+): Project["type"] {
+  switch (type) {
+    case "film":
+      return "film";
+    case "tv":
+      return "tv";
+    case "commercial":
+      return "commercial";
+    case "theater":
+      return "event";
+    case "web":
+      return "music-video";
+    default:
+      return "film";
+  }
+}
+
+function mapProjectStatus(
+  status: ProjectRow["status"]
+): Project["status"] {
+  switch (status) {
+    case "active":
+      return "booking";
+    case "closed":
+      return "booked";
+    case "archived":
+      return "archived";
+    default:
+      return "archived";
+  }
+}
+
+function mapRoleStatus(
+  status: RoleRow["status"]
+): Role["bookingStatus"] {
+  switch (status) {
+    case "open":
+      return "booking";
+    case "closed":
+    case "filled":
+    case "archived":
+      return "booked";
+    default:
+      return "booked";
+  }
+}
+
 export default function CastingPage() {
   const { isAdmin } = useAuth();
   const [roles, setRoles] = useState<RoleWithProject[]>([]);
@@ -55,42 +134,38 @@ export default function CastingPage() {
     try {
       setLoading(true);
 
-      // Fetch booking projects (not booked or archived)
-      const projectsRef = collection(db, "projects");
-      const projectsQuery = query(projectsRef, where("status", "==", "booking"));
-      const projectsSnapshot = await getDocs(projectsQuery);
+      // Fetch open roles with active, public projects
+      const { data, error } = await getOpenRoles();
 
-      const projects: Record<string, Project> = {};
-      projectsSnapshot.forEach((doc) => {
-        projects[doc.id] = { id: doc.id, ...doc.data() } as Project;
-      });
+      if (error) {
+        logger.error("Error fetching roles:", error);
+        setRoles([]);
+        return;
+      }
 
-      // Fetch all roles
-      const rolesRef = collection(db, "roles");
-      const rolesSnapshot = await getDocs(rolesRef);
+      if (!data) {
+        setRoles([]);
+        return;
+      }
 
-      const rolesData: RoleWithProject[] = [];
-      rolesSnapshot.forEach((doc) => {
-        const roleData = { id: doc.id, ...doc.data() } as Role;
-        const project = projects[roleData.projectId];
+      // Adapt Supabase rows to legacy format
+      const rolesData: RoleWithProject[] = data
+        .map((item: any) => {
+          const role = item as RoleRow;
+          const project = item.projects as ProjectRow;
 
-        // Only include roles that are:
-        // 1. From active projects (status === "booking")
-        // 2. Not archived with project (archivedWithProject !== true)
-        // 3. Not archived individually (archivedIndividually !== true)
-        if (project &&
-            !roleData.archivedWithProject &&
-            !roleData.archivedIndividually) {
-          rolesData.push({
-            ...roleData,
-            project,
-          });
-        }
-      });
+          if (!project) {
+            return null;
+          }
+
+          return adaptRoleRow(role, project);
+        })
+        .filter((role): role is RoleWithProject => role !== null);
 
       setRoles(rolesData);
     } catch (error) {
       logger.error("Error fetching roles:", error);
+      setRoles([]);
     } finally {
       setLoading(false);
     }

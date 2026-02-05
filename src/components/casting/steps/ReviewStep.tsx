@@ -176,7 +176,7 @@ export default function ReviewStep({
         {/* Photos */}
         <ReviewSection title="Photos">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {photos.photos.map((photo, index) => (
+            {photos?.photos?.map((photo, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-accent/30">
                 <Image
                   src={photo.url}

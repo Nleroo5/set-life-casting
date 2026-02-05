@@ -3,10 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAllProfiles, ProfileRow } from "@/lib/supabase/profiles";
+import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { logger } from "@/lib/logger";
+
+const supabase = createClient();
 
 interface TalentProfile {
   id: string;
@@ -94,6 +97,27 @@ export default function TalentDatabasePage() {
   async function fetchTalents() {
     try {
       setLoading(true);
+
+      // Check current user context
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      logger.info(`[TALENT PAGE DEBUG] Current user:`, {
+        userId: currentUser?.id,
+        email: currentUser?.email,
+      });
+
+      // Check if current user has admin role
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .eq('id', currentUser?.id)
+        .single();
+
+      logger.info(`[TALENT PAGE DEBUG] User data from database:`, userData);
+
+      if (!userData || userData.role !== 'admin') {
+        logger.error(`[TALENT PAGE DEBUG] CRITICAL: User is not admin! Role: ${userData?.role}`);
+      }
+
       const { data: profilesData, error } = await getAllProfiles();
 
       if (error) {
@@ -106,6 +130,66 @@ export default function TalentDatabasePage() {
         return;
       }
 
+      // DEBUG: Check what admin fields we got from database
+      logger.info(`[TALENT PAGE DEBUG] Sample profile data from DB:`, {
+        totalProfiles: profilesData.length,
+        sampleProfile: profilesData[0],
+        hasStatus: !!profilesData[0]?.status,
+        hasAdminTag: !!profilesData[0]?.admin_tag,
+        hasAdminNotes: !!profilesData[0]?.admin_notes,
+        statusValue: profilesData[0]?.status,
+        adminTagValue: profilesData[0]?.admin_tag,
+        adminNotesValue: profilesData[0]?.admin_notes,
+      });
+
+      // Fetch photos for all profiles in bulk to avoid N+1 queries
+      const userIds = profilesData.map(p => p.user_id).filter(Boolean);
+      logger.info(`[TALENT PAGE DEBUG] Fetching photos for ${userIds.length} users`);
+      logger.info(`[TALENT PAGE DEBUG] User IDs:`, userIds.slice(0, 3)); // Log first 3 IDs
+
+      const { data: allPhotos, error: photosError } = await supabase
+        .from('photos')
+        .select('*')
+        .in('user_id', userIds);
+
+      logger.info(`[TALENT PAGE DEBUG] Photos query result:`, {
+        photosCount: allPhotos?.length || 0,
+        photosError: photosError,
+        samplePhoto: allPhotos?.[0],
+      });
+
+      if (photosError) {
+        logger.error(`[TALENT PAGE DEBUG] Photos query error:`, photosError);
+      }
+
+      // TEST: Try to fetch a single photo to test RLS
+      const { data: testPhoto, error: testError } = await supabase
+        .from('photos')
+        .select('*')
+        .limit(1);
+
+      logger.info(`[TALENT PAGE DEBUG] Single photo test query:`, {
+        success: !!testPhoto,
+        count: testPhoto?.length || 0,
+        error: testError,
+      });
+
+      // Group photos by user_id for quick lookup
+      const photosByUserId: Record<string, any[]> = {};
+      (allPhotos || []).forEach(photo => {
+        if (photo.user_id) {
+          if (!photosByUserId[photo.user_id]) {
+            photosByUserId[photo.user_id] = [];
+          }
+          photosByUserId[photo.user_id].push(photo);
+        }
+      });
+
+      logger.info(`[TALENT PAGE DEBUG] Grouped photos by user:`, {
+        totalUsers: Object.keys(photosByUserId).length,
+        sampleUserPhotos: photosByUserId[userIds[0]]?.length || 0,
+      });
+
       // Map Supabase flat structure to Firebase nested structure for compatibility
       const talentsData: TalentProfile[] = profilesData
         .filter((profile) => {
@@ -117,7 +201,7 @@ export default function TalentDatabasePage() {
           return true;
         })
         .map((profile) => ({
-          id: profile.id,
+          id: profile.user_id,  // Use user_id for detail page URL
           basicInfo: {
             firstName: profile.first_name || "",
             lastName: profile.last_name || "",
@@ -133,31 +217,43 @@ export default function TalentDatabasePage() {
             height: `${profile.height_feet || 0}'${profile.height_inches || 0}"`,
             weight: profile.weight || 0,
             hairColor: profile.hair_color || "",
-            hairLength: "", // Not stored in Supabase
+            hairLength: profile.hair_length || "",
             eyeColor: profile.eye_color || "",
           },
           sizes: {
-            shirtSize: "", // Map from profile if needed
-            pantsWaist: 0,
-            pantsInseam: 0,
+            shirtSize: profile.shirt_size || "",
+            pantsWaist: profile.pant_waist || 0,
+            pantsInseam: profile.pant_inseam || 0,
             dressSize: profile.dress_size || undefined,
             suitSize: undefined,
             shoeSize: profile.shoe_size || "",
             shoeSizeGender: profile.gender || "",
           },
           details: {
-            visibleTattoos: false, // Not stored in Supabase schema
-            tattoosDescription: undefined,
+            visibleTattoos: profile.visible_tattoos || false,
+            tattoosDescription: profile.tattoos_description || undefined,
             piercings: undefined,
             piercingsDescription: undefined,
-            facialHair: "",
+            facialHair: profile.facial_hair || "",
           },
-          photos: [], // Photos are in separate table - would need JOIN
-          status: "active" as const,
-          adminTag: null,
-          adminNotes: undefined,
+          photos: (photosByUserId[profile.user_id] || []).map(p => ({ url: p.url, type: p.type })),
+          status: (profile.status as "active" | "archived") || "active",
+          adminTag: profile.admin_tag as "green" | "yellow" | "red" | null,
+          adminNotes: profile.admin_notes || undefined,
           createdAt: new Date(profile.created_at),
         }));
+
+      // DEBUG: Check mapped talent data
+      logger.info(`[TALENT PAGE DEBUG] Mapped talent data:`, {
+        totalTalents: talentsData.length,
+        sampleTalent: {
+          id: talentsData[0]?.id,
+          firstName: talentsData[0]?.basicInfo.firstName,
+          status: talentsData[0]?.status,
+          adminTag: talentsData[0]?.adminTag,
+          hasAdminNotes: !!talentsData[0]?.adminNotes,
+        }
+      });
 
       // Calculate statistics
       const now = new Date();

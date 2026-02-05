@@ -1,23 +1,20 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 
 /**
  * Password Reset Page
  *
- * Uses Firebase's native confirmPasswordReset - no Admin SDK required!
- * The 'oobCode' parameter comes from Firebase's password reset email.
+ * Uses Supabase's auth.updateUser for password reset.
+ * Supabase automatically creates a session when user clicks reset link.
  */
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const oobCode = searchParams.get("oobCode"); // Firebase's reset code from email
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,29 +25,29 @@ function ResetPasswordForm() {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    if (!oobCode) {
-      setError("Invalid reset link. Please request a new password reset.");
-      setVerifying(false);
-      return;
-    }
+    // Verify that user has a valid session (from clicking reset link)
+    verifySession();
+  }, []);
 
-    // Verify the reset code is valid
-    verifyResetCode();
-  }, [oobCode]);
-
-  const verifyResetCode = async () => {
-    if (!oobCode || !auth) return;
-
+  const verifySession = async () => {
     try {
       setVerifying(true);
       setError("");
 
-      // Verify the password reset code and get the user's email
-      const email = await verifyPasswordResetCode(auth, oobCode);
-      setUserEmail(email);
+      const supabase = createClient();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        setError("Invalid or expired reset link. Please request a new password reset.");
+        setVerifying(false);
+        return;
+      }
+
+      // Store user email for display
+      setUserEmail(session.user.email || "");
       setVerifying(false);
     } catch (err: unknown) {
-      logger.error("Password reset code verification error:", err);
+      logger.error("Password reset session verification error:", err);
       setError("Invalid or expired reset link. Please request a new password reset.");
       setVerifying(false);
     }
@@ -71,16 +68,19 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (!oobCode || !auth) {
-      setError("Invalid reset link");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // Complete the password reset using Firebase's native function
-      await confirmPasswordReset(auth, oobCode, newPassword);
+      const supabase = createClient();
+
+      // Update the user's password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
 
       // Password was successfully updated
       setSuccess(true);
@@ -92,13 +92,11 @@ function ResetPasswordForm() {
     } catch (err: unknown) {
       logger.error("Password reset error:", err);
 
-      if (err && typeof err === "object" && "code" in err) {
-        const errorCode = (err as { code: string }).code;
-        if (errorCode === "auth/expired-action-code") {
+      if (err && typeof err === "object" && "message" in err) {
+        const errorMessage = (err as { message: string }).message.toLowerCase();
+        if (errorMessage.includes("session") || errorMessage.includes("expired")) {
           setError("Reset link has expired. Please request a new one.");
-        } else if (errorCode === "auth/invalid-action-code") {
-          setError("Invalid reset link. Please request a new one.");
-        } else if (errorCode === "auth/weak-password") {
+        } else if (errorMessage.includes("weak") || errorMessage.includes("password")) {
           setError("Password is too weak. Please use a stronger password.");
         } else {
           setError("Failed to reset password. Please try again.");

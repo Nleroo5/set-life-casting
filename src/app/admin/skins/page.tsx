@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
@@ -12,6 +10,9 @@ import Badge from "@/components/ui/Badge";
 import * as XLSX from "exceljs";
 import type { Booking } from "@/types/booking";
 import { logger } from "@/lib/logger";
+import { getProjects } from "@/lib/supabase/casting";
+import { getRoles } from "@/lib/supabase/casting";
+import { getBookedSubmissions } from "@/lib/supabase/submissions";
 
 interface Project {
   id: string;
@@ -105,11 +106,25 @@ export default function SkinsBuilderPage() {
 
   async function fetchProjects() {
     try {
-      const projectsSnapshot = await getDocs(collection(db, "projects"));
-      const projectsList = projectsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const { data, error } = await getProjects();
+
+      if (error) {
+        logger.error("Error fetching projects:", error);
+        return;
+      }
+
+      if (!data) {
+        setProjects([]);
+        return;
+      }
+
+      // Transform Supabase schema to expected format
+      const projectsList = data.map((project) => ({
+        id: project.id,
+        title: project.title,
+        shootDates: project.start_date || "",
       })) as Project[];
+
       setProjects(projectsList);
     } catch (error) {
       logger.error("Error fetching projects:", error);
@@ -120,15 +135,27 @@ export default function SkinsBuilderPage() {
     if (!selectedProjectId) return;
 
     try {
-      const rolesQuery = query(
-        collection(db, "roles"),
-        where("projectId", "==", selectedProjectId)
-      );
-      const rolesSnapshot = await getDocs(rolesQuery);
-      const rolesList = rolesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const { data, error } = await getRoles({ projectId: selectedProjectId });
+
+      if (error) {
+        logger.error("Error fetching roles:", error);
+        return;
+      }
+
+      if (!data) {
+        setRoles([]);
+        return;
+      }
+
+      // Transform Supabase schema to expected format
+      const rolesList = data.map((role) => ({
+        id: role.id,
+        name: role.title, // Supabase uses 'title', UI expects 'name'
+        rate: role.pay_rate || "",
+        date: role.shoot_dates || "",
+        location: role.shoot_location || "",
       })) as Role[];
+
       setRoles(rolesList);
     } catch (error) {
       logger.error("Error fetching roles:", error);
@@ -139,24 +166,78 @@ export default function SkinsBuilderPage() {
     if (!selectedProjectId) return;
 
     try {
-      // Fetch all bookings for the project
-      // Note: Booking status values are "pending", "confirmed", "tentative", "cancelled", "completed"
-      // NOT "booked" - that's a project/role status
-      const bookingsQuery = query(
-        collection(db, "bookings"),
-        where("projectId", "==", selectedProjectId)
-      );
-      const bookingsSnapshot = await getDocs(bookingsQuery);
-      const bookingsList = bookingsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Booking[];
+      // Fetch booked submissions (replaces bookings collection)
+      const { data, error } = await getBookedSubmissions(selectedProjectId);
 
-      // Filter out cancelled bookings
-      const activeBookings = bookingsList.filter(b => b.status !== "cancelled");
+      if (error) {
+        logger.error("Error fetching booked submissions:", error);
+        return;
+      }
 
-      logger.debug(`✅ Fetched ${activeBookings.length} active bookings for project`);
-      setBookings(activeBookings);
+      if (!data) {
+        setBookings([]);
+        return;
+      }
+
+      // Transform Supabase submissions to booking format with talentProfile
+      const bookingsList = data.map((submission: any) => {
+        const profile = submission.profiles;
+
+        // Build talentProfile object matching expected structure
+        const talentProfile = {
+          basicInfo: {
+            firstName: profile.first_name || "",
+            lastName: profile.last_name || "",
+            email: profile.email || "",
+            phone: profile.phone || "",
+            dateOfBirth: profile.date_of_birth || "",
+            location: profile.city && profile.state ? `${profile.city}, ${profile.state}` : "",
+          },
+          physical: {
+            gender: profile.gender || "",
+            ethnicity: profile.ethnicity ? (Array.isArray(profile.ethnicity) ? profile.ethnicity : [profile.ethnicity]) : [],
+            height: profile.height_feet && profile.height_inches ? `${profile.height_feet}'${profile.height_inches}"` : "",
+            weight: profile.weight ? String(profile.weight) : "",
+            hairColor: profile.hair_color || "",
+            eyeColor: profile.eye_color || "",
+            tattoos: profile.has_tattoos || false,
+          },
+          wardrobe: {
+            gender: profile.gender || "",
+            shirtSize: profile.shirt_size || undefined,
+            pantWaist: profile.pant_waist || undefined,
+            pantInseam: profile.pant_inseam || undefined,
+            dressSize: profile.dress_size || undefined,
+            womensPantSize: profile.womens_pant_size || undefined,
+            shoeSize: profile.shoe_size || undefined,
+            bust: profile.bust || undefined,
+            waist: profile.waist || undefined,
+            hips: profile.hips || undefined,
+            neck: profile.neck || undefined,
+            sleeve: profile.sleeve || undefined,
+            jacketSize: profile.jacket_size || undefined,
+          },
+          experience: {
+            actingExperience: profile.acting_experience || false,
+            comfortable: profile.comfortable_with || [],
+            specialSkills: profile.special_skills || [],
+          },
+        };
+
+        // Return booking-like object
+        return {
+          id: submission.id,
+          submissionId: submission.id,
+          userId: submission.user_id,
+          roleId: submission.role_id,
+          projectId: submission.project_id,
+          status: "confirmed", // Booked submissions are confirmed
+          talentProfile: talentProfile,
+        } as Booking;
+      });
+
+      logger.debug(`✅ Fetched ${bookingsList.length} booked submissions for project`);
+      setBookings(bookingsList);
     } catch (error) {
       logger.error("Error fetching bookings:", error);
     }

@@ -11,7 +11,8 @@ import { logger } from "@/lib/logger";
 import { getProfile } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
 import { getRole } from "@/lib/supabase/casting";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/config";
+import { getPhotosByUserId } from "@/lib/supabase/photos";
 
 interface TalentProfile {
   id: string;
@@ -201,16 +202,23 @@ export default function TalentDetailPage() {
             name: `${profileData.basicInfo.firstName} ${profileData.basicInfo.lastName}`,
           });
 
-          // Get admin-specific fields directly from profiles table using service role
-          const { data: adminData } = await supabaseAdmin
+          // Get admin-specific fields from profiles table (admin RLS policy allows this)
+          const supabase = createClient();
+          const { data: adminData } = await supabase
             .from('profiles')
             .select('status, admin_tag, admin_notes, created_at')
             .eq('user_id', userId)
             .single();
 
+          // Fetch photos for this talent
+          const { data: photosData } = await getPhotosByUserId(userId);
+
           setTalent({
             id: userId,
             ...profileData,
+            photos: {
+              photos: (photosData || []).map(p => ({ url: p.url, type: p.type }))
+            },
             createdAt: adminData?.created_at ? new Date(adminData.created_at) : new Date(),
             status: (adminData?.status as "active" | "archived") || "active",
             adminTag: adminData?.admin_tag as "green" | "yellow" | "red" | null,
@@ -284,7 +292,8 @@ export default function TalentDetailPage() {
 
     setIsArchiving(true);
     try {
-      const { error } = await supabaseAdmin
+      const supabase = createClient();
+      const { error } = await supabase
         .from('profiles')
         .update({ status: newStatus })
         .eq('user_id', userId);
@@ -316,7 +325,8 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      const { error } = await supabaseAdmin
+      const supabase = createClient();
+      const { error } = await supabase
         .from('profiles')
         .update({ admin_tag: tag })
         .eq('user_id', userId);
@@ -342,7 +352,8 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      const { error } = await supabaseAdmin
+      const supabase = createClient();
+      const { error } = await supabase
         .from('profiles')
         .update({ admin_notes: tempNotes })
         .eq('user_id', userId);

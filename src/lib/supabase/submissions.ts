@@ -6,10 +6,12 @@
  *
  * Created: 2026-02-04
  * Part of: Firebase to Supabase Migration
+ *
+ * NOTE: supabaseAdmin is imported inside functions that need it (not at module level)
+ * to avoid errors when this file is imported in client components
  */
 
 import { createClient } from './config'
-import { supabaseAdmin } from './admin'
 
 /**
  * Submission status type (simplified 3-status system)
@@ -110,6 +112,8 @@ export async function updateSubmissionStatus(
   submissionId: string,
   status: SubmissionStatus
 ) {
+  const { supabaseAdmin } = await import('./admin')
+
   const updates: any = { status, updated_at: new Date().toISOString() }
 
   // Set timestamps based on status
@@ -146,6 +150,8 @@ export async function updateSubmissionNotes(
   submissionId: string,
   notes: string
 ) {
+  const { supabaseAdmin } = await import('./admin')
+
   const { data, error } = await supabaseAdmin
     .from('submissions')
     .update({ admin_notes: notes, updated_at: new Date().toISOString() })
@@ -250,8 +256,10 @@ export async function getAllSubmissions(filters?: {
   limit?: number
   offset?: number
 }): Promise<{ data: any[] | null; error: any; count?: number }> {
-  // Use service role client for admin operations (bypasses RLS)
-  let query = supabaseAdmin
+  const supabase = createClient()
+
+  // Use regular client with admin RLS policies
+  let query = supabase
     .from('submissions')
     .select(`
       *,
@@ -270,7 +278,9 @@ export async function getAllSubmissions(filters?: {
         ethnicity,
         hair_color,
         eye_color,
-        date_of_birth
+        date_of_birth,
+        admin_tag,
+        admin_notes
       )
     `, { count: 'exact' }) // Get total count for pagination
 
@@ -404,6 +414,8 @@ export async function bulkUpdateSubmissionStatus(
   submissionIds: string[],
   status: SubmissionStatus
 ) {
+  const { supabaseAdmin } = await import('./admin')
+
   const updates: any = { status, updated_at: new Date().toISOString() }
 
   // Set timestamps based on status
@@ -425,4 +437,70 @@ export async function bulkUpdateSubmissionStatus(
     .select()
 
   return { data: data as SubmissionRow[] | null, error }
+}
+
+/**
+ * Get booked submissions for a project (for skins export)
+ *
+ * Returns submissions with status='booked' and full profile data
+ * Replaces Firebase bookings collection
+ *
+ * @param projectId - Project ID
+ * @returns Array of booked submissions with full profile data
+ */
+export async function getBookedSubmissions(projectId: string) {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .select(`
+      *,
+      profiles!inner (
+        first_name,
+        last_name,
+        email,
+        phone,
+        city,
+        state,
+        gender,
+        age,
+        height_feet,
+        height_inches,
+        weight,
+        ethnicity,
+        hair_color,
+        eye_color,
+        date_of_birth,
+        shirt_size,
+        pant_waist,
+        pant_inseam,
+        dress_size,
+        womens_pant_size,
+        shoe_size,
+        bust,
+        waist,
+        hips,
+        neck,
+        sleeve,
+        jacket_size,
+        has_tattoos,
+        acting_experience,
+        comfortable_with,
+        special_skills,
+        available_dates,
+        conflicts
+      ),
+      roles!inner (
+        id,
+        title,
+        pay_rate,
+        shoot_dates,
+        shoot_location
+      )
+    `)
+    .eq('project_id', projectId)
+    .eq('status', 'booked')
+    .order('submitted_at', { ascending: false })
+
+  return { data: data as any[] | null, error }
 }
