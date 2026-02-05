@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { collection, query, where, getDocs, orderBy, doc, getDoc, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { getProfile } from "@/lib/supabase/profiles";
+import { getUserSubmissions } from "@/lib/supabase/submissions";
+import { getRole } from "@/lib/supabase/casting";
 import { useAuth } from "@/contexts/AuthContext";
 import { signOut } from "@/lib/firebase/auth";
 import Button from "@/components/ui/Button";
@@ -69,41 +70,59 @@ export default function DashboardPage() {
     setHasFetched(true);
 
     try {
-      // Fetch submissions
-      const submissionsRef = collection(db, "submissions");
-      const q = query(
-        submissionsRef,
-        where("userId", "==", user.id)
-      );
-      const querySnapshot = await getDocs(q);
+      // Fetch profile from Supabase
+      const { data: profileData, error: profileError } = await getProfile(user.id);
 
-      const submissionsData: Submission[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        // Only show submissions for active roles (not archived with project or individually)
-        if (!data.archivedWithProject && !data.archivedIndividually) {
-          submissionsData.push({
-            id: doc.id,
-            roleId: data.roleId,
-            projectId: data.projectId,
-            roleName: data.roleName,
-            projectTitle: data.projectTitle,
-            status: data.status,
-            submittedAt: data.submittedAt.toDate(),
-          });
-        }
-      });
-      setSubmissions(submissionsData);
+      if (profileError) {
+        logger.error("Error fetching profile:", profileError);
+      }
 
-      // Fetch profile
-      const profileDoc = await getDoc(doc(db, "profiles", user.id));
-      if (profileDoc.exists()) {
-        const profileData = profileDoc.data() as UserProfile;
-        setProfile(profileData);
-      } else {
+      if (!profileData || !profileData.basicInfo) {
         // No profile found - redirect to create profile
         router.push("/profile/create");
         return;
+      }
+
+      // Convert Supabase profile structure to dashboard UserProfile interface
+      setProfile({
+        basicInfo: profileData.basicInfo,
+        appearance: {
+          height: profileData.appearance?.heightFeet && profileData.appearance?.heightInches
+            ? `${profileData.appearance.heightFeet}'${profileData.appearance.heightInches}"`
+            : undefined,
+          weight: profileData.appearance?.weight,
+          hairColor: profileData.appearance?.hairColor,
+          eyeColor: profileData.appearance?.eyeColor,
+        },
+        photos: profileData.photos || { photos: [] },
+      });
+
+      // Fetch submissions from Supabase
+      const { data: submissionsData, error: submissionsError } = await getUserSubmissions(user.id);
+
+      if (submissionsError) {
+        logger.error("Error fetching submissions:", submissionsError);
+        setSubmissions([]);
+      } else if (submissionsData) {
+        // Map submissions data and fetch role details for each
+        const mappedSubmissions: Submission[] = await Promise.all(
+          submissionsData.map(async (submission: any) => {
+            // Fetch role data to get roleName and projectTitle
+            const { data: roleData } = await getRole(submission.role_id, true);
+
+            return {
+              id: submission.id,
+              roleId: submission.role_id,
+              projectId: submission.project_id,
+              roleName: roleData?.title || 'Unknown Role',
+              projectTitle: (roleData as any)?.projects?.title || 'Unknown Project',
+              status: submission.status,
+              submittedAt: new Date(submission.submitted_at),
+            };
+          })
+        );
+
+        setSubmissions(mappedSubmissions);
       }
     } catch (error) {
       logger.error("Error fetching user data:", error);
@@ -116,32 +135,14 @@ export default function DashboardPage() {
     if (!user) return;
 
     try {
-      const bookingsRef = collection(db, "bookings");
-      const q = query(
-        bookingsRef,
-        where("userId", "==", user.id),
-        where("archivedWithProject", "==", true),
-        orderBy("updatedAt", "desc"),
-        limit(20)
-      );
-
-      const querySnapshot = await getDocs(q);
+      // TODO: Bookings feature not migrated to Supabase yet
+      // For now, just set empty array
       const bookings: Array<{
         id: string;
         roleName: string;
         projectTitle: string;
         updatedAt: Date | undefined;
       }> = [];
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        bookings.push({
-          id: doc.id,
-          roleName: data.roleName,
-          projectTitle: data.projectTitle,
-          updatedAt: data.updatedAt?.toDate(),
-        });
-      });
 
       setPastBookings(bookings);
     } catch (error) {
