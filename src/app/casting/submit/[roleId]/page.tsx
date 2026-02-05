@@ -124,33 +124,35 @@ export default function SubmitPage() {
 
       if (profileData) {
         // Check if profile has all required data
+        // Note: Photos are stored separately and not part of ProfileData
         const hasCompleteProfile =
           profileData.basicInfo &&
           profileData.appearance &&
           profileData.sizes &&
-          profileData.details &&
-          profileData.photos;
+          profileData.details;
 
         if (hasCompleteProfile) {
-          // Load existing profile data
+          // Load existing profile data (photos fetched separately)
+          // Note: Type casting due to mismatch between ProfileData and FormData interfaces
           setFormData({
             basicInfo: profileData.basicInfo || {},
             appearance: profileData.appearance || {},
             sizes: profileData.sizes || {},
             details: profileData.details || {},
-            photos: profileData.photos || {},
-          });
+            photos: {}, // Photos are fetched separately from photos table
+          } as any);
           setHasExistingProfile(true);
           setCurrentStep(7); // Skip directly to review
         } else {
           // Incomplete profile, start from step 2
+          // Note: Type casting due to mismatch between ProfileData and FormData interfaces
           setFormData({
             basicInfo: profileData.basicInfo || {},
             appearance: profileData.appearance || {},
             sizes: profileData.sizes || {},
             details: profileData.details || {},
-            photos: profileData.photos || {},
-          });
+            photos: {}, // Photos are fetched separately from photos table
+          } as any);
           setCurrentStep(2);
         }
       } else if (currentStep === 1) {
@@ -238,11 +240,12 @@ export default function SubmitPage() {
 
     try {
       // Create/update user profile in Supabase
+      // Note: Type casting formData due to interface mismatches
       const { data: profileResult, error: profileError } = await createProfile(user.id, {
         basicInfo: formData.basicInfo,
         appearance: formData.appearance,
-        sizes: formData.sizes,
-        details: formData.details,
+        sizes: formData.sizes as any,
+        details: formData.details as any,
         profileComplete: true,
         lastStepCompleted: 7,
       });

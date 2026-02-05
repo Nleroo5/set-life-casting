@@ -109,6 +109,8 @@ interface RoleWithSubmissions {
 
 type FilterStatus = "all" | "new" | "pinned" | "booked" | "rejected";
 
+const PAGE_SIZE = 50; // Load 50 submissions per page
+
 export default function AdminSubmissionsPage() {
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -123,6 +125,10 @@ export default function AdminSubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
       router.push("/login?redirect=/admin/submissions");
@@ -130,7 +136,7 @@ export default function AdminSubmissionsPage() {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, isAdmin]);
+  }, [authLoading, user, isAdmin, page]); // Refetch when page changes
 
   async function fetchData() {
     try {
@@ -169,11 +175,16 @@ export default function AdminSubmissionsPage() {
         })) as Role[]);
       }
 
-      // ✅ FIX: Fetch all submissions with profile data (single query with JOIN)
-      const { data: submissionsData, error: submissionsError } = await getAllSubmissions({
+      // ✅ FIX: Fetch all submissions with profile data (single query with JOIN + pagination)
+      const { data: submissionsData, error: submissionsError, count } = await getAllSubmissions({
         orderBy: 'submitted_at',
         order: 'desc',
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
       });
+
+      // Update total count for pagination UI
+      setTotalCount(count || 0);
 
       if (submissionsError) {
         logger.error("Error fetching submissions:", submissionsError);
@@ -1003,6 +1014,41 @@ export default function AdminSubmissionsPage() {
                   );
                 })
               )
+            )}
+
+            {/* Pagination Controls */}
+            {totalCount > PAGE_SIZE && (
+              <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-accent/20">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
+                    Showing {((page - 1) * PAGE_SIZE) + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} submissions
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="text-sm px-3 py-1"
+                    >
+                      ← Previous
+                    </Button>
+
+                    <div className="text-sm text-secondary font-medium px-3" style={{ fontFamily: "var(--font-outfit)" }}>
+                      Page {page} of {Math.ceil(totalCount / PAGE_SIZE)}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage(p => p + 1)}
+                      disabled={page * PAGE_SIZE >= totalCount}
+                      className="text-sm px-3 py-1"
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
