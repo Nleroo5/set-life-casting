@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { getProfile, createProfile } from "@/lib/supabase/profiles";
+import { getRole, getProject } from "@/lib/supabase/casting";
+import { createSubmission } from "@/lib/supabase/submissions";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
 import AccountStep from "@/components/casting/steps/AccountStep";
 import BasicInfoStep from "@/components/casting/steps/BasicInfoStep";
@@ -104,19 +105,24 @@ export default function SubmitPage() {
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
       checkExistingProfile();
-      checkExistingSubmission();
     }
-  }, [authLoading, user, isAdmin, roleId]);
+  }, [authLoading, user, isAdmin]);
 
   async function checkExistingProfile() {
     if (!user) return;
 
     try {
-      const profileDoc = await getDoc(doc(db, "profiles", user.id));
+      const { data: profileData, error } = await getProfile(user.id);
 
-      if (profileDoc.exists()) {
-        const profileData = profileDoc.data();
+      if (error) {
+        logger.error("Error loading profile:", error);
+        if (currentStep === 1) {
+          setCurrentStep(2);
+        }
+        return;
+      }
 
+      if (profileData) {
         // Check if profile has all required data
         const hasCompleteProfile =
           profileData.basicInfo &&
@@ -159,45 +165,27 @@ export default function SubmitPage() {
     }
   }
 
-  async function checkExistingSubmission() {
-    if (!user || !roleId) return;
-
-    try {
-      const submissionsRef = collection(db, "submissions");
-      const q = query(
-        submissionsRef,
-        where("userId", "==", user.id),
-        where("roleId", "==", roleId)
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        // User has already submitted for this role
-        alert("You have already submitted for this role. Redirecting to your dashboard.");
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      logger.error("Error checking existing submission:", error);
-      // Don't block the user if the check fails - better UX
-    }
-  }
+  // Duplicate submission prevention is handled by database UNIQUE constraint
+  // on (user_id, role_id) in Supabase submissions table
 
   async function fetchRoleData() {
     try {
-      const roleDoc = await getDoc(doc(db, "roles", roleId));
-      if (!roleDoc.exists()) {
+      const { data: roleData, error: roleError } = await getRole(roleId, true);
+
+      if (roleError || !roleData) {
+        logger.error("Error fetching role:", roleError);
         router.push("/casting");
         return;
       }
 
-      const roleData = { id: roleDoc.id, ...roleDoc.data() } as Role;
-      setRole(roleData);
+      setRole(roleData as any); // Cast to Role interface (old Firebase structure)
 
-      // Fetch project
-      const projectDoc = await getDoc(doc(db, "projects", roleData.projectId));
-      if (projectDoc.exists()) {
-        setProject({ id: projectDoc.id, ...projectDoc.data() } as Project);
+      // Get project data
+      if ((roleData as any).project_id) {
+        const { data: projectData, error: projectError } = await getProject((roleData as any).project_id);
+        if (projectData && !projectError) {
+          setProject(projectData as any); // Cast to Project interface
+        }
       }
     } catch (error) {
       logger.error("Error fetching role:", error);
@@ -249,56 +237,52 @@ export default function SubmitPage() {
     }
 
     try {
-      // DUPLICATE PREVENTION: Check if user has already submitted for this role
-      const submissionsRef = collection(db, "submissions");
-      const existingSubmissionQuery = query(
-        submissionsRef,
-        where("userId", "==", user.id),
-        where("roleId", "==", role.id)
-      );
+      // Create/update user profile in Supabase
+      const { data: profileResult, error: profileError } = await createProfile(user.id, {
+        basicInfo: formData.basicInfo,
+        appearance: formData.appearance,
+        sizes: formData.sizes,
+        details: formData.details,
+        profileComplete: true,
+        lastStepCompleted: 7,
+      });
 
-      const existingSubmissions = await getDocs(existingSubmissionQuery);
-
-      if (!existingSubmissions.empty) {
-        alert("You have already submitted for this role.");
-        router.push("/dashboard");
-        return;
+      if (profileError) {
+        logger.error("Profile creation error:", profileError);
+        throw new Error("Failed to save profile");
       }
 
-      // Create/update user profile
-      await setDoc(
-        doc(db, "profiles", user.id),
-        {
-          userId: user.id,
-          email: user.email,
-          displayName: user.user_metadata?.full_name || null,
-          basicInfo: formData.basicInfo,
-          appearance: formData.appearance,
-          sizes: formData.sizes,
-          details: formData.details,
-          photos: formData.photos,
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      );
+      if (!profileResult) {
+        throw new Error("Profile creation returned no data");
+      }
+
+      const profileId = profileResult.id;
 
       // Create submission record
-      await addDoc(collection(db, "submissions"), {
-        userId: user.id,
-        roleId: role.id,
-        projectId: project.id,
-        roleName: role.name,
-        projectTitle: project.title,
-        status: null,
-        submittedAt: new Date(),
-        profileData: {
-          basicInfo: formData.basicInfo,
-          appearance: formData.appearance,
-          sizes: formData.sizes,
-          details: formData.details,
-          photos: formData.photos,
-        },
-      });
+      // Note: Database UNIQUE constraint on (user_id, role_id) prevents duplicates
+      const { error: submissionError } = await createSubmission(
+        user.id,
+        profileId,
+        role.id,
+        project.id,
+        {
+          preferred_contact: 'email',
+        }
+      );
+
+      if (submissionError) {
+        // Check for PostgreSQL unique violation (duplicate submission)
+        if ((submissionError as any).code === '23505') {
+          alert("You have already submitted for this role.");
+          router.push("/dashboard");
+          return;
+        }
+
+        logger.error("Submission error:", submissionError);
+        throw new Error("Failed to create submission");
+      }
+
+      logger.debug("✅ Submission created successfully");
 
       // Redirect to success page
       router.push("/casting/success");
