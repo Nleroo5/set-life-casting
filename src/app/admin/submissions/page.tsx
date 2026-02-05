@@ -2,15 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  query,
-  orderBy,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -18,6 +9,9 @@ import Select from "@/components/ui/Select";
 import Link from "next/link";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
+import { getAllSubmissions, updateSubmissionStatus, bulkUpdateSubmissionStatus } from "@/lib/supabase/submissions";
+import { getProjects, getRoles } from "@/lib/supabase/casting";
+import { getPhotos } from "@/lib/supabase/photos";
 
 interface ProfileBasicInfo {
   firstName?: string;
@@ -140,49 +134,126 @@ export default function AdminSubmissionsPage() {
 
   async function fetchData() {
     try {
-      // Fetch all submissions
-      const submissionsQuery = query(collection(db, "submissions"), orderBy("submittedAt", "desc"));
-      const submissionsSnapshot = await getDocs(submissionsQuery);
-      const submissionsData: Submission[] = [];
-      submissionsSnapshot.forEach((doc) => {
-        const data = doc.data();
-
-        // Skip submissions with missing or invalid profile data
-        if (!data.profileData || !data.profileData.basicInfo) {
-          logger.warn(`Skipping submission ${doc.id} with invalid profile data`);
-          return;
-        }
-
-        submissionsData.push({
-          id: doc.id,
-          userId: data.userId,
-          roleId: data.roleId,
-          projectId: data.projectId,
-          roleName: data.roleName,
-          projectTitle: data.projectTitle,
-          status: data.status,
-          submittedAt: data.submittedAt.toDate(),
-          profileData: data.profileData,
-        });
+      // Fetch all submissions with profile data from Supabase
+      const { data: submissionsData, error: submissionsError } = await getAllSubmissions({
+        orderBy: 'submitted_at',
+        order: 'desc',
       });
+
+      if (submissionsError) {
+        logger.error("Error fetching submissions:", submissionsError);
+        setSubmissions([]);
+      } else if (submissionsData) {
+        // Fetch photos for each submission to include in profileData
+        const submissionsWithPhotos = await Promise.all(
+          submissionsData.map(async (sub: any) => {
+            // Skip submissions with missing profile data
+            if (!sub.profiles || !sub.profiles.first_name) {
+              logger.warn(`Skipping submission ${sub.id} with invalid profile data`);
+              return null;
+            }
+
+            // Fetch photos for this user
+            const { data: photosData } = await getPhotos(sub.profile_id);
+            const photos = photosData || [];
+
+            // Fetch role and project data
+            const { data: rolesData } = await getRoles({ projectId: sub.project_id });
+            const role = rolesData?.find((r: any) => r.id === sub.role_id);
+
+            const { data: projectsData } = await getProjects();
+            const project = projectsData?.find((p: any) => p.id === sub.project_id);
+
+            // Map flat Supabase structure to nested Firebase structure
+            return {
+              id: sub.id,
+              userId: sub.user_id,
+              roleId: sub.role_id,
+              projectId: sub.project_id,
+              roleName: role?.title || 'Unknown Role',
+              projectTitle: project?.title || 'Unknown Project',
+              status: sub.status,
+              submittedAt: new Date(sub.submitted_at),
+              profileData: {
+                basicInfo: {
+                  firstName: sub.profiles.first_name || '',
+                  lastName: sub.profiles.last_name || '',
+                  email: sub.profiles.email || '',
+                  phone: sub.profiles.phone || '',
+                  city: sub.profiles.city || '',
+                  state: sub.profiles.state || '',
+                },
+                appearance: {
+                  gender: sub.profiles.gender || '',
+                  dateOfBirth: sub.profiles.date_of_birth || '',
+                  ethnicity: sub.profiles.ethnicity ? [sub.profiles.ethnicity] : [],
+                  height: sub.profiles.height_feet && sub.profiles.height_inches
+                    ? `${sub.profiles.height_feet}'${sub.profiles.height_inches}"`
+                    : '',
+                  weight: sub.profiles.weight || 0,
+                  hairColor: sub.profiles.hair_color || '',
+                  hairLength: '',
+                  eyeColor: sub.profiles.eye_color || '',
+                },
+                sizes: {
+                  shirtSize: '',
+                  pantsWaist: 0,
+                  pantsInseam: 0,
+                  shoeSize: '',
+                  shoeSizeGender: '',
+                },
+                details: {
+                  visibleTattoos: false,
+                  facialHair: '',
+                },
+                photos: {
+                  photos: photos.map(photo => ({
+                    url: photo.url,
+                    type: photo.type,
+                  })),
+                },
+              },
+            } as Submission;
+          })
+        );
+
+        // Filter out null entries (skipped submissions)
+        setSubmissions(submissionsWithPhotos.filter(s => s !== null) as Submission[]);
+      }
 
       // Fetch all projects
-      const projectsSnapshot = await getDocs(collection(db, "projects"));
-      const projectsData: Project[] = [];
-      projectsSnapshot.forEach((doc) => {
-        projectsData.push({ id: doc.id, ...doc.data() } as Project);
-      });
+      const { data: projectsData, error: projectsError } = await getProjects();
+      if (projectsError) {
+        logger.error("Error fetching projects:", projectsError);
+        setProjects([]);
+      } else if (projectsData) {
+        setProjects(projectsData.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          type: p.type,
+          shootDateStart: p.shoot_date_start || '',
+          shootDateEnd: p.shoot_date_end || '',
+          status: p.status,
+        })) as Project[]);
+      }
 
       // Fetch all roles
-      const rolesSnapshot = await getDocs(collection(db, "roles"));
-      const rolesData: Role[] = [];
-      rolesSnapshot.forEach((doc) => {
-        rolesData.push({ id: doc.id, ...doc.data() } as Role);
-      });
-
-      setSubmissions(submissionsData);
-      setProjects(projectsData);
-      setRoles(rolesData);
+      const { data: rolesData, error: rolesError } = await getRoles();
+      if (rolesError) {
+        logger.error("Error fetching roles:", rolesError);
+        setRoles([]);
+      } else if (rolesData) {
+        setRoles(rolesData.map((r: any) => ({
+          id: r.id,
+          projectId: r.project_id,
+          name: r.title,
+          requirements: r.requirements || '',
+          rate: r.rate || '',
+          date: r.shoot_date || '',
+          location: r.location || '',
+          bookingStatus: r.booking_status || 'booking',
+        })) as Role[]);
+      }
     } catch (error) {
       logger.error("Error fetching data:", error);
     } finally {
@@ -261,9 +332,15 @@ export default function AdminSubmissionsPage() {
 
   const handleUpdateStatus = async (submissionId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, "submissions", submissionId), {
-        status: newStatus,
-      });
+      const { error } = await updateSubmissionStatus(
+        submissionId,
+        newStatus as "pinned" | "booked" | "rejected" | null
+      );
+
+      if (error) {
+        throw error;
+      }
+
       await fetchData();
     } catch (error) {
       logger.error("Error updating status:", error);
@@ -347,10 +424,15 @@ export default function AdminSubmissionsPage() {
     }
 
     try {
-      const updatePromises = Array.from(selectedSubmissionIds).map((id) =>
-        updateDoc(doc(db, "submissions", id), { status: newStatus })
+      const { error } = await bulkUpdateSubmissionStatus(
+        Array.from(selectedSubmissionIds),
+        newStatus as "pinned" | "booked" | "rejected" | null
       );
-      await Promise.all(updatePromises);
+
+      if (error) {
+        throw error;
+      }
+
       await fetchData();
       setSelectedSubmissionIds(new Set()); // Clear selection after bulk update
       alert(`Successfully updated ${selectedSubmissionIds.size} submission(s)`);
