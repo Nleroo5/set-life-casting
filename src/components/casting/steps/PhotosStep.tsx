@@ -87,7 +87,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     const options = {
       maxSizeMB: 1,
       maxWidthOrHeight: 1920,
-      useWebWorker: true,
+      useWebWorker: false, // Disabled to avoid CSP issues with dynamic script loading
     };
     try {
       return await imageCompression(file, options);
