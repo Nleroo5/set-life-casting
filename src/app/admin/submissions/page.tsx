@@ -11,7 +11,7 @@ import Image from "next/image";
 import { logger } from "@/lib/logger";
 import { getAllSubmissions, updateSubmissionStatus, bulkUpdateSubmissionStatus } from "@/lib/supabase/submissions";
 import { getProjects, getRoles } from "@/lib/supabase/casting";
-import { getPhotos } from "@/lib/supabase/photos";
+import { getPhotosByProfileIds } from "@/lib/supabase/photos";
 
 interface ProfileBasicInfo {
   firstName?: string;
@@ -134,7 +134,42 @@ export default function AdminSubmissionsPage() {
 
   async function fetchData() {
     try {
-      // Fetch all submissions with profile data from Supabase
+      setLoading(true);
+
+      // ✅ FIX: Fetch projects and roles ONCE (not N times inside loop)
+      const { data: projectsData, error: projectsError } = await getProjects();
+      if (projectsError) {
+        logger.error("Error fetching projects:", projectsError);
+        setProjects([]);
+      } else if (projectsData) {
+        setProjects(projectsData.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          type: p.type,
+          shootDateStart: p.shoot_date_start || '',
+          shootDateEnd: p.shoot_date_end || '',
+          status: p.status,
+        })) as Project[]);
+      }
+
+      const { data: rolesData, error: rolesError } = await getRoles();
+      if (rolesError) {
+        logger.error("Error fetching roles:", rolesError);
+        setRoles([]);
+      } else if (rolesData) {
+        setRoles(rolesData.map((r: any) => ({
+          id: r.id,
+          projectId: r.project_id,
+          name: r.title,
+          requirements: r.requirements || '',
+          rate: r.rate || '',
+          date: r.shoot_date || '',
+          location: r.location || '',
+          bookingStatus: r.booking_status || 'booking',
+        })) as Role[]);
+      }
+
+      // ✅ FIX: Fetch all submissions with profile data (single query with JOIN)
       const { data: submissionsData, error: submissionsError } = await getAllSubmissions({
         orderBy: 'submitted_at',
         order: 'desc',
@@ -143,28 +178,25 @@ export default function AdminSubmissionsPage() {
       if (submissionsError) {
         logger.error("Error fetching submissions:", submissionsError);
         setSubmissions([]);
-      } else if (submissionsData) {
-        // Fetch photos for each submission to include in profileData
-        const submissionsWithPhotos = await Promise.all(
-          submissionsData.map(async (sub: any) => {
-            // Skip submissions with missing profile data
-            if (!sub.profiles || !sub.profiles.first_name) {
-              logger.warn(`Skipping submission ${sub.id} with invalid profile data`);
-              return null;
-            }
+      } else if (submissionsData && submissionsData.length > 0) {
+        // ✅ FIX: Batch fetch photos for ALL profiles (1 query instead of N)
+        const profileIds = submissionsData
+          .map((sub: any) => sub.profile_id)
+          .filter(Boolean);
 
-            // Fetch photos for this user
-            const { data: photosData } = await getPhotos(sub.profile_id);
-            const photos = photosData || [];
+        const { data: photosMap } = await getPhotosByProfileIds(profileIds);
 
-            // Fetch role and project data
-            const { data: rolesData } = await getRoles({ projectId: sub.project_id });
+        // ✅ FIX: Map data in-memory (no more database queries)
+        const mapped = submissionsData
+          .filter((sub: any) => sub.profiles && sub.profiles.first_name) // Skip invalid profiles
+          .map((sub: any) => {
+            // Find role and project from already-fetched data
             const role = rolesData?.find((r: any) => r.id === sub.role_id);
-
-            const { data: projectsData } = await getProjects();
             const project = projectsData?.find((p: any) => p.id === sub.project_id);
 
-            // Map flat Supabase structure to nested Firebase structure
+            // Get photos for this profile from batch-fetched map
+            const photos = photosMap?.[sub.profile_id] || [];
+
             return {
               id: sub.id,
               userId: sub.user_id,
@@ -214,48 +246,18 @@ export default function AdminSubmissionsPage() {
                 },
               },
             } as Submission;
-          })
-        );
+          });
 
-        // Filter out null entries (skipped submissions)
-        setSubmissions(submissionsWithPhotos.filter(s => s !== null) as Submission[]);
-      }
-
-      // Fetch all projects
-      const { data: projectsData, error: projectsError } = await getProjects();
-      if (projectsError) {
-        logger.error("Error fetching projects:", projectsError);
-        setProjects([]);
-      } else if (projectsData) {
-        setProjects(projectsData.map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          type: p.type,
-          shootDateStart: p.shoot_date_start || '',
-          shootDateEnd: p.shoot_date_end || '',
-          status: p.status,
-        })) as Project[]);
-      }
-
-      // Fetch all roles
-      const { data: rolesData, error: rolesError } = await getRoles();
-      if (rolesError) {
-        logger.error("Error fetching roles:", rolesError);
-        setRoles([]);
-      } else if (rolesData) {
-        setRoles(rolesData.map((r: any) => ({
-          id: r.id,
-          projectId: r.project_id,
-          name: r.title,
-          requirements: r.requirements || '',
-          rate: r.rate || '',
-          date: r.shoot_date || '',
-          location: r.location || '',
-          bookingStatus: r.booking_status || 'booking',
-        })) as Role[]);
+        setSubmissions(mapped);
+        logger.debug(`✅ Loaded ${mapped.length} submissions with optimized queries`);
+      } else {
+        setSubmissions([]);
       }
     } catch (error) {
       logger.error("Error fetching data:", error);
+      setSubmissions([]);
+      setProjects([]);
+      setRoles([]);
     } finally {
       setLoading(false);
     }

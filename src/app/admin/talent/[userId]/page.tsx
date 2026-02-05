@@ -11,7 +11,7 @@ import { logger } from "@/lib/logger";
 import { getProfile } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
 import { getRole } from "@/lib/supabase/casting";
-import { createClient } from "@/lib/supabase/config";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 interface TalentProfile {
   id: string;
@@ -201,9 +201,8 @@ export default function TalentDetailPage() {
             name: `${profileData.basicInfo.firstName} ${profileData.basicInfo.lastName}`,
           });
 
-          // Get admin-specific fields directly from profiles table
-          const supabase = createClient();
-          const { data: adminData } = await supabase
+          // Get admin-specific fields directly from profiles table using service role
+          const { data: adminData } = await supabaseAdmin
             .from('profiles')
             .select('status, admin_tag, admin_notes, created_at')
             .eq('user_id', userId)
@@ -285,8 +284,7 @@ export default function TalentDetailPage() {
 
     setIsArchiving(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('profiles')
         .update({ status: newStatus })
         .eq('user_id', userId);
@@ -318,8 +316,7 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('profiles')
         .update({ admin_tag: tag })
         .eq('user_id', userId);
@@ -345,8 +342,7 @@ export default function TalentDetailPage() {
 
     setIsSavingTag(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('profiles')
         .update({ admin_notes: tempNotes })
         .eq('user_id', userId);

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile, updateProfileStep, createProfile } from "@/lib/supabase/profiles";
+import { linkPhotosToProfile } from "@/lib/supabase/photos";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
 import EmailVerificationBanner from "@/components/ui/EmailVerificationBanner";
 import BasicInfoStep from "@/components/casting/steps/BasicInfoStep";
@@ -48,11 +49,17 @@ export default function CreateProfilePage() {
 
   // Load existing profile data on mount
   useEffect(() => {
+    let isMounted = true;
+
     const loadProfile = async () => {
       if (!user) return;
 
       try {
         const { data: profileData, error } = await getProfile(user.id);
+
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+
         if (error) {
           logger.error("Error loading profile:", error);
         } else if (profileData) {
@@ -67,9 +74,13 @@ export default function CreateProfilePage() {
           setIsEditing(true); // Profile exists, so this is an edit
         }
       } catch (error) {
-        logger.error("Error loading profile:", error);
+        if (isMounted) {
+          logger.error("Error loading profile:", error);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -83,6 +94,11 @@ export default function CreateProfilePage() {
     } else if (!authLoading && !user) {
       router.push("/login?redirect=/profile/create");
     }
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [authLoading, user, router]);
 
   // Scroll to top when step changes
@@ -95,14 +111,14 @@ export default function CreateProfilePage() {
     if (stepData) {
       const stepKey = getCurrentStepKey();
       if (stepKey) {
-        const updatedFormData = {
-          ...formData,
+        // Use consistent updater function pattern
+        setFormData((prev) => ({
+          ...prev,
           [stepKey]: stepData,
-        };
-        setFormData(updatedFormData);
+        }));
 
-        // Auto-save progress to Supabase
-        if (user) {
+        // Auto-save progress to Supabase (not for photos - they're already saved)
+        if (user && stepKey !== 'photos') {
           try {
             const { error } = await updateProfileStep(
               user.id,
@@ -111,21 +127,22 @@ export default function CreateProfilePage() {
             );
 
             if (error) {
-              logger.error("Error saving progress:", error);
+              logger.error("❌ Auto-save failed:", error);
+              // Show user-friendly notification
+              console.warn("⚠️ Your changes were not saved automatically. Please try again.");
             } else {
               logger.debug(`✅ Auto-saved ${stepKey} to Supabase`);
             }
           } catch (error) {
-            logger.error("Error saving progress:", error);
+            logger.error("❌ Auto-save error:", error);
+            console.warn("⚠️ Your changes were not saved automatically. Please try again.");
           }
         }
       }
     }
 
-    if (currentStep === 5) {
-      // Last step - submit the profile
-      handleSubmit();
-    } else {
+    // Move to next step (photos step handles submission directly)
+    if (currentStep < 5) {
       setCurrentStep((prev) => Math.min(prev + 1, 5));
     }
   };
@@ -219,6 +236,17 @@ export default function CreateProfilePage() {
 
       logger.debug("✅ Profile successfully saved to Supabase:", data);
 
+      // Link photos to the newly created profile
+      const { data: linkedPhotos, error: linkError } = await linkPhotosToProfile(user.id, data.id);
+
+      if (linkError) {
+        logger.error("❌ Failed to link photos to profile:", linkError);
+        // Continue anyway - photos exist but not linked to profile
+        // User can re-submit or admin can fix manually
+      } else {
+        logger.debug(`✅ Successfully linked ${linkedPhotos?.length || 0} photos to profile`);
+      }
+
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (error) {
@@ -234,7 +262,26 @@ export default function CreateProfilePage() {
           photoCount: finalPhotos?.photos?.length || 0,
         },
       });
-      alert(`Failed to create profile: ${error instanceof Error ? error.message : String(error)}\n\nPlease check the console for details.`);
+
+      // User-friendly error messages
+      let userMessage = "Unable to save your profile. ";
+
+      if (error instanceof Error) {
+        // Check for specific error types
+        if (error.message.includes("network") || error.message.includes("fetch")) {
+          userMessage += "Please check your internet connection and try again.";
+        } else if (error.message.includes("email")) {
+          userMessage += "There's an issue with your email. Please verify your email address.";
+        } else if (error.message.includes("photo")) {
+          userMessage += "There's an issue with your photos. Please re-upload them.";
+        } else {
+          userMessage += "Please try again or contact support if the problem persists.";
+        }
+      } else {
+        userMessage += "Please try again or contact support if the problem persists.";
+      }
+
+      alert(userMessage);
     } finally {
       setIsSubmitting(false);
     }

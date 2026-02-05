@@ -27,6 +27,7 @@ interface PhotoSlot {
   preview?: string;
   url?: string;
   uploading?: boolean;
+  error?: string;
 }
 
 export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps) {
@@ -193,25 +194,25 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
         // Upload to Supabase Storage
         const url = await uploadToStorage(file, slotId, slot.type);
 
-        // Update slot with URL
+        // Update slot with URL and clear any previous error
         setPhotoSlots((prev) =>
           prev.map((s) =>
             s.id === slotId
-              ? { ...s, url, uploading: false }
+              ? { ...s, url, uploading: false, error: undefined }
               : s
           )
         );
       } catch (error) {
         logger.error("Upload error:", error);
-        // Remove preview on error
+        // Keep preview and file but set error state for retry
+        const errorMessage = error instanceof Error ? error.message : "Upload failed";
         setPhotoSlots((prev) =>
           prev.map((s) =>
             s.id === slotId
-              ? { ...s, file: undefined, preview: undefined, uploading: false }
+              ? { ...s, uploading: false, error: errorMessage }
               : s
           )
         );
-        alert("Failed to upload photo. Please try again.");
       }
     },
     [user, setValue, photoSlots]
@@ -221,10 +222,48 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     setPhotoSlots((prev) =>
       prev.map((slot) =>
         slot.id === slotId
-          ? { ...slot, file: undefined, preview: undefined, url: undefined }
+          ? { ...slot, file: undefined, preview: undefined, url: undefined, error: undefined }
           : slot
       )
     );
+  };
+
+  const retryUpload = async (slotId: string) => {
+    const slot = photoSlots.find((s) => s.id === slotId);
+    if (!slot || !slot.file) return;
+
+    // Clear error and set uploading state
+    setPhotoSlots((prev) =>
+      prev.map((s) =>
+        s.id === slotId
+          ? { ...s, uploading: true, error: undefined }
+          : s
+      )
+    );
+
+    try {
+      // Retry upload
+      const url = await uploadToStorage(slot.file, slotId, slot.type);
+
+      // Update slot with URL
+      setPhotoSlots((prev) =>
+        prev.map((s) =>
+          s.id === slotId
+            ? { ...s, url, uploading: false, error: undefined }
+            : s
+        )
+      );
+    } catch (error) {
+      logger.error("Retry upload error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      setPhotoSlots((prev) =>
+        prev.map((s) =>
+          s.id === slotId
+            ? { ...s, uploading: false, error: errorMessage }
+            : s
+        )
+      );
+    }
   };
 
   const onSubmit = (formData: PhotosFormData) => {
@@ -284,6 +323,7 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
                   slot={slot}
                   onDrop={(files) => handleFileDrop(files, slot.id)}
                   onRemove={() => removePhoto(slot.id)}
+                  onRetry={() => retryUpload(slot.id)}
                 />
               ))}
             </div>
@@ -344,9 +384,10 @@ interface PhotoUploadSlotProps {
   slot: PhotoSlot;
   onDrop: (files: File[]) => void;
   onRemove: () => void;
+  onRetry: () => void;
 }
 
-function PhotoUploadSlot({ slot, onDrop, onRemove }: PhotoUploadSlotProps) {
+function PhotoUploadSlot({ slot, onDrop, onRemove, onRetry }: PhotoUploadSlotProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -444,7 +485,20 @@ function PhotoUploadSlot({ slot, onDrop, onRemove }: PhotoUploadSlotProps) {
                     Uploading and compressing...
                   </p>
                 )}
-                {slot.url && (
+                {slot.error && (
+                  <div className="mt-1">
+                    <p className="text-xs text-danger">✗ {slot.error}</p>
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="text-xs text-accent hover:text-accent-dark underline mt-1"
+                      disabled={slot.uploading}
+                    >
+                      Retry upload
+                    </button>
+                  </div>
+                )}
+                {slot.url && !slot.error && (
                   <p className="text-xs text-success mt-1">✓ Uploaded</p>
                 )}
               </div>

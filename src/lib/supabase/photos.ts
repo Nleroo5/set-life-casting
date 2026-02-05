@@ -165,6 +165,59 @@ export async function getPhotosByUserId(userId: string) {
 }
 
 /**
+ * Get photos for multiple profiles in one query (batch fetch)
+ *
+ * Prevents N+1 query problem when loading many submissions
+ * Returns photos grouped by profile_id
+ *
+ * @param profileIds - Array of profile IDs
+ * @returns Map of profile_id -> photos[]
+ *
+ * Example usage:
+ * ```
+ * const profileIds = submissions.map(s => s.profile_id);
+ * const { data: photosMap } = await getPhotosByProfileIds(profileIds);
+ * const photosForProfile = photosMap['profile-id-123'];
+ * ```
+ */
+export async function getPhotosByProfileIds(
+  profileIds: string[]
+): Promise<{ data: Record<string, PhotoRow[]> | null; error: any }> {
+  const supabase = createClient()
+
+  // Filter out null/undefined values
+  const validProfileIds = profileIds.filter(Boolean)
+
+  if (validProfileIds.length === 0) {
+    return { data: {}, error: null }
+  }
+
+  const { data, error } = await supabase
+    .from('photos')
+    .select('*')
+    .in('profile_id', validProfileIds)
+    .order('display_order', { ascending: true })
+
+  if (error || !data) {
+    return { data: null, error }
+  }
+
+  // Group photos by profile_id
+  const grouped = data.reduce((acc, photo) => {
+    const profileId = photo.profile_id
+    if (!profileId) return acc
+
+    if (!acc[profileId]) {
+      acc[profileId] = []
+    }
+    acc[profileId].push(photo)
+    return acc
+  }, {} as Record<string, PhotoRow[]>)
+
+  return { data: grouped, error: null }
+}
+
+/**
  * Delete photo (both from storage and database)
  *
  * @param photoId - Photo database ID
@@ -214,6 +267,28 @@ export async function updatePhotoDisplayOrder(
     .single()
 
   return { data: data as PhotoRow | null, error }
+}
+
+/**
+ * Link photos to a profile after profile creation
+ *
+ * Updates all photos for a user to set the profile_id
+ * Called after profile is successfully created
+ *
+ * @param userId - User ID
+ * @param profileId - Profile ID to link photos to
+ */
+export async function linkPhotosToProfile(userId: string, profileId: string) {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('photos')
+    .update({ profile_id: profileId })
+    .eq('user_id', userId)
+    .is('profile_id', null) // Only update photos not yet linked
+    .select()
+
+  return { data: data as PhotoRow[] | null, error }
 }
 
 /**
