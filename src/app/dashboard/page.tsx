@@ -6,8 +6,8 @@ import Image from "next/image";
 import { getProfile } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
 import { getRole } from "@/lib/supabase/casting";
+import { getPhotosByUserId } from "@/lib/supabase/photos";
 import { useAuth } from "@/contexts/AuthContext";
-import { signOut } from "@/lib/firebase/auth";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
@@ -46,7 +46,7 @@ interface UserProfile {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading, logout } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pastBookings, setPastBookings] = useState<any[]>([]);
@@ -78,23 +78,38 @@ export default function DashboardPage() {
       }
 
       if (!profileData || !profileData.basicInfo) {
-        // No profile found - redirect to create profile
-        router.push("/profile/create");
+        // No profile found - redirect to create profile (admins don't need profiles)
+        if (!isAdmin) {
+          router.push("/profile/create");
+        }
         return;
       }
 
+      // Fetch photos from photos table
+      const { data: photosData, error: photosError } = await getPhotosByUserId(user.id);
+
+      if (photosError) {
+        logger.error("Error fetching photos:", photosError);
+      }
+
       // Convert Supabase profile structure to dashboard UserProfile interface
+      // Note: heightFeet, heightInches, and weight are in sizes object (not appearance)
       setProfile({
         basicInfo: profileData.basicInfo,
         appearance: {
-          height: profileData.appearance?.heightFeet && profileData.appearance?.heightInches
-            ? `${profileData.appearance.heightFeet}'${profileData.appearance.heightInches}"`
+          height: profileData.sizes?.heightFeet && profileData.sizes?.heightInches
+            ? `${profileData.sizes.heightFeet}'${profileData.sizes.heightInches}"`
             : undefined,
-          weight: profileData.appearance?.weight,
+          weight: profileData.sizes?.weight,
           hairColor: profileData.appearance?.hairColor,
           eyeColor: profileData.appearance?.eyeColor,
         },
-        photos: profileData.photos || { photos: [] },
+        photos: {
+          photos: photosData?.map(photo => ({
+            url: photo.url,
+            type: photo.type
+          })) || []
+        }
       });
 
       // Fetch submissions from Supabase
@@ -152,7 +167,7 @@ export default function DashboardPage() {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await logout();
       router.push("/");
     } catch (error) {
       logger.error("Sign out error:", error);
