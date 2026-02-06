@@ -8,49 +8,15 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
-import { getProfile } from "@/lib/supabase/profiles";
+import { getProfile, type ProfileData } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
 import { getRole } from "@/lib/supabase/casting";
 import { createClient } from "@/lib/supabase/config";
 import { getPhotosByUserId } from "@/lib/supabase/photos";
 
-interface TalentProfile {
+interface TalentProfile extends ProfileData {
   id: string;
-  basicInfo: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    city: string;
-    state: string;
-  };
-  appearance: {
-    gender: string;
-    dateOfBirth: string;
-    ethnicity: string[];
-    height: string;
-    weight: number;
-    hairColor: string;
-    hairLength: string;
-    eyeColor: string;
-  };
-  sizes: {
-    shirtSize: string;
-    pantsWaist: number;
-    pantsInseam: number;
-    dressSize?: string;
-    suitSize?: string;
-    shoeSize: string;
-    shoeSizeGender: string;
-  };
-  details: {
-    visibleTattoos: boolean;
-    tattoosDescription?: string;
-    piercings?: boolean;
-    piercingsDescription?: string;
-    facialHair: string;
-  };
-  photos: Array<{ url: string; type: string }>;
+  photos: { photos: Array<{ url: string; type: string }> };
   status?: "active" | "archived";
   adminTag?: "green" | "yellow" | "red" | null;
   adminNotes?: string;
@@ -794,22 +760,22 @@ export default function TalentDetailPage() {
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <DetailItem label="Shirt Size" value={talent.sizes?.shirtSize || 'N/A'} />
-                {(talent.sizes?.pantsWaist || talent.sizes?.pantsInseam) && (
+                {(talent.sizes?.pantWaist || talent.sizes?.pantInseam) && (
                   <DetailItem
                     label="Pants"
-                    value={`Waist: ${talent.sizes?.pantsWaist || 'N/A'}" / Inseam: ${talent.sizes?.pantsInseam || 'N/A'}"`}
+                    value={`Waist: ${talent.sizes?.pantWaist || 'N/A'}" / Inseam: ${talent.sizes?.pantInseam || 'N/A'}"`}
                   />
                 )}
                 {talent.sizes?.dressSize && (
                   <DetailItem label="Dress Size" value={talent.sizes.dressSize} />
                 )}
-                {talent.sizes?.suitSize && (
-                  <DetailItem label="Suit Size" value={talent.sizes.suitSize} />
+                {talent.sizes?.jacketSize && (
+                  <DetailItem label="Jacket Size" value={talent.sizes.jacketSize} />
                 )}
-                {(talent.sizes?.shoeSize || talent.sizes?.shoeSizeGender) && (
+                {talent.sizes?.shoeSize && (
                   <DetailItem
                     label="Shoe Size"
-                    value={`${talent.sizes?.shoeSize || 'N/A'} (${talent.sizes?.shoeSizeGender || 'N/A'})`}
+                    value={talent.sizes?.shoeSize || 'N/A'}
                   />
                 )}
               </div>
@@ -835,16 +801,7 @@ export default function TalentDetailPage() {
                       value={talent.details.tattoosDescription}
                     />
                   )}
-                <DetailItem
-                  label="Piercings (other than ears)"
-                  value={talent.details?.piercings ? "Yes" : "No"}
-                />
-                {talent.details?.piercings && talent.details?.piercingsDescription && (
-                  <DetailItem
-                    label="Piercings Description"
-                    value={talent.details.piercingsDescription}
-                  />
-                )}
+                {/* Piercings field not currently in schema */}
                 <DetailItem label="Facial Hair" value={talent.details?.facialHair || 'N/A'} />
               </div>
             </div>

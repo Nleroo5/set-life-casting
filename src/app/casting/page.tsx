@@ -62,7 +62,7 @@ function adaptRoleRow(row: RoleRow, project: ProjectRow): RoleWithProject {
     bookingDates: row.shoot_dates ? [row.shoot_dates] : [],
     location: row.shoot_location || project.location || "TBD",
     bookingStatus: mapRoleStatus(row.status),
-    additionalNotes: row.pay_details,
+    additionalNotes: row.pay_details || undefined,
     archivedWithProject: false,
     archivedIndividually: false,
     project: adaptProjectRow(project),

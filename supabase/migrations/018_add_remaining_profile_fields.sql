@@ -27,7 +27,7 @@ ALTER TABLE public.profiles
 -- ADD COLUMN COMMENTS
 -- ============================================================================
 
-COMMENT ON COLUMN public.profiles.womens_pant_size IS 'Women\'s pant size (e.g., 0, 2, 4, 6, 8, 10, 12, 14)';
+COMMENT ON COLUMN public.profiles.womens_pant_size IS 'Women''s pant size (e.g., 0, 2, 4, 6, 8, 10, 12, 14)';
 COMMENT ON COLUMN public.profiles.bust IS 'Bust measurement in inches (for women)';
 COMMENT ON COLUMN public.profiles.jacket_size IS 'Jacket/Blazer size (e.g., 36R, 38L, 40S)';
 

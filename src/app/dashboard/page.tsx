@@ -93,14 +93,11 @@ export default function DashboardPage() {
       }
 
       // Convert Supabase profile structure to dashboard UserProfile interface
-      // Note: heightFeet, heightInches, and weight are in sizes object (not appearance)
       setProfile({
         basicInfo: profileData.basicInfo,
         appearance: {
-          height: profileData.sizes?.heightFeet && profileData.sizes?.heightInches
-            ? `${profileData.sizes.heightFeet}'${profileData.sizes.heightInches}"`
-            : undefined,
-          weight: profileData.sizes?.weight,
+          height: profileData.appearance?.height,
+          weight: profileData.appearance?.weight,
           hairColor: profileData.appearance?.hairColor,
           eyeColor: profileData.appearance?.eyeColor,
         },
