@@ -1,51 +1,32 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
 
+/**
+ * Admin Layout - Loading Gate Only
+ *
+ * Authentication and authorization are handled entirely by middleware.ts
+ * which runs server-side on every request to /admin/* routes.
+ *
+ * This layout ONLY shows a loading spinner while the client-side
+ * AuthContext resolves, preventing a flash of unauthenticated content.
+ *
+ * WHY NO CLIENT-SIDE REDIRECTS:
+ * Next.js remounts all client components (including layouts) when
+ * navigating between dynamic segments (e.g., /admin/talent → /admin/talent/[userId]).
+ * This resets all useRef values and re-fires all useEffect hooks, causing
+ * race conditions with auth state that trigger false redirects.
+ * See: https://github.com/vercel/next.js/issues/49553
+ */
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userData, isAdmin, loading } = useAuth();
-  const router = useRouter();
-  const routerRef = useRef(router);
-  routerRef.current = router;
+  const { user, isAdmin, loading } = useAuth();
 
-  // Track if user was ever confirmed admin in this session
-  // Survives re-renders but not full page reloads
-  const confirmedAdmin = useRef(false);
-  if (isAdmin) {
-    confirmedAdmin.current = true;
-  }
-
-  useEffect(() => {
-    // Don't redirect while auth is still loading
-    if (loading) return;
-
-    // If already confirmed admin, never redirect
-    if (confirmedAdmin.current) return;
-
-    // Not authenticated
-    if (!user) {
-      routerRef.current.push(`/login?redirect=${window.location.pathname}`);
-      return;
-    }
-
-    // Wait for userData to load before checking admin status
-    if (!userData) return;
-
-    // Authenticated but not admin
-    if (!isAdmin) {
-      routerRef.current.push("/");
-      return;
-    }
-  }, [loading, user, userData, isAdmin]);
-
-  // Show loading spinner until auth is fully resolved
-  if (loading || !user || (!confirmedAdmin.current && !isAdmin)) {
+  // Show loading spinner until auth context has resolved
+  if (loading || !user || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
