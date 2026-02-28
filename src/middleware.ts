@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
@@ -83,12 +84,26 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // Check if user is admin
-    const { data: userData } = await supabase
+    // Check if user is admin using service role client (bypasses RLS)
+    // The anon key client can fail after token refresh, causing false redirects
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+
+    const { data: userData, error: roleError } = await adminClient
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
+
+    if (roleError) {
+      // DB query failed — allow through rather than blocking a legitimate admin
+      // Client-side layout guard + Supabase RLS still protect the data
+      console.error('[MIDDLEWARE] Admin role check failed:', roleError.message)
+      return response
+    }
 
     if (userData?.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url))

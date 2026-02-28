@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
@@ -74,8 +72,6 @@ function mapProjectStatusToSupabase(status: string | undefined): "active" | "clo
 }
 
 export default function ArchivePage() {
-  const router = useRouter();
-  const { user, isAdmin, loading: authLoading } = useAuth();
   const [archivedProjects, setArchivedProjects] = useState<ArchivedProject[]>([]);
   const [archivedRoles, setArchivedRoles] = useState<ArchivedRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,15 +79,9 @@ export default function ArchivePage() {
   const [restoringRole, setRestoringRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.push("/login?redirect=/admin/archive");
-      return;
-    }
-    if (user && isAdmin) {
-      fetchArchivedProjects();
-    }
+    fetchArchivedProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, isAdmin]);
+  }, []);
 
   const fetchArchivedProjects = async () => {
     try {
@@ -316,7 +306,7 @@ export default function ArchivePage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -327,10 +317,6 @@ export default function ArchivePage() {
         </div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (

@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
@@ -47,8 +45,6 @@ interface SkinHeader {
 }
 
 export default function SkinsBuilderPage() {
-  const router = useRouter();
-  const { user, isAdmin } = useAuth();
 
   // Projects and roles for selection
   const [projects, setProjects] = useState<Project[]>([]);
@@ -73,14 +69,6 @@ export default function SkinsBuilderPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [isExporting, setIsExporting] = useState(false);
-
-  // Check admin access
-  useEffect(() => {
-    if (!isAdmin) {
-      router.push("/admin");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
 
   // Fetch projects
   useEffect(() => {
@@ -546,10 +534,6 @@ export default function SkinsBuilderPage() {
     } finally {
       setIsExporting(false);
     }
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (

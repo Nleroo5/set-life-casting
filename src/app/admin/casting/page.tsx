@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -176,8 +175,7 @@ interface RoleFormData {
 type ViewMode = "projects" | "new-project" | "edit-project";
 
 export default function AdminCastingPage() {
-  const router = useRouter();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -190,13 +188,9 @@ export default function AdminCastingPage() {
   const [showArchivedRoles, setShowArchivedRoles] = useState<{[projectId: string]: boolean}>({});
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.push("/login?redirect=/admin/casting");
-    } else if (user && isAdmin) {
-      fetchData();
-    }
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, isAdmin]);
+  }, []);
 
   async function fetchData() {
     try {
@@ -389,7 +383,7 @@ export default function AdminCastingPage() {
     }));
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -400,10 +394,6 @@ export default function AdminCastingPage() {
         </div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (

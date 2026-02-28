@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -34,10 +33,8 @@ interface Submission {
 }
 
 export default function TalentDetailPage() {
-  const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
-  const { user, userData, isAdmin, loading: authLoading } = useAuth();
   const [talent, setTalent] = useState<TalentProfile | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,78 +46,9 @@ export default function TalentDetailPage() {
   const [age, setAge] = useState<number | null>(null);
 
   useEffect(() => {
-    // DIRECT CONSOLE LOG - BYPASS LOGGER
-    console.log("🔍 TALENT PAGE - Auth flow triggered", {
-      authLoading,
-      hasUser: !!user,
-      userId: user?.id,
-      hasUserData: !!userData,
-      userRole: userData?.role,
-      isAdmin,
-      talentProfileId: userId,
-    });
-
-    logger.debug("TalentDetailPage: Auth flow triggered", {
-      authLoading,
-      hasUser: !!user,
-      userId: user?.id,
-      hasUserData: !!userData,
-      userRole: userData?.role,
-      isAdmin,
-      talentProfileId: userId,
-    });
-
-    // Don't do anything while auth is loading
-    if (authLoading) {
-      logger.debug("TalentDetailPage: Auth still loading, waiting...");
-      return;
-    }
-
-    // Redirect if not authenticated
-    if (!user) {
-      logger.warn("TalentDetailPage: No authenticated user, redirecting to login", {
-        redirectUrl: `/login?redirect=/admin/talent/${userId}`,
-      });
-      router.push(`/login?redirect=/admin/talent/${userId}`);
-      return;
-    }
-
-    // Wait for userData to load before checking isAdmin
-    // This prevents false negative when userData is still being fetched
-    if (!userData) {
-      logger.debug("TalentDetailPage: User authenticated but userData not loaded yet, waiting for Supabase...", {
-        userId: user.id,
-        email: user.email,
-      });
-      // userData is still loading from Supabase, wait
-      return;
-    }
-
-    // Redirect if not admin (now safe to check since userData exists)
-    if (!isAdmin) {
-      console.warn("⚠️ TALENT PAGE - NOT ADMIN! Redirecting to /admin", {
-        userId: user.id,
-        userRole: userData.role,
-        redirectUrl: "/admin",
-      });
-      logger.warn("TalentDetailPage: User is not admin, redirecting to /admin", {
-        userId: user.id,
-        userRole: userData.role,
-        redirectUrl: "/admin",
-      });
-      router.push("/admin");
-      return;
-    }
-
-    // Fetch data
-    logger.debug("TalentDetailPage: Auth complete, fetching talent data", {
-      userId: user.id,
-      isAdmin: true,
-      talentProfileId: userId,
-    });
     fetchTalentData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, userData, isAdmin, userId]);
+  }, [userId]);
 
   // ✅ FIX: Calculate age on client-side only to prevent hydration mismatch
   // This useEffect runs AFTER hydration, ensuring server/client HTML match
@@ -390,7 +318,7 @@ export default function TalentDetailPage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -406,33 +334,7 @@ export default function TalentDetailPage() {
     );
   }
 
-  if (!user || !userData || !isAdmin || !talent) {
-    console.warn("🚫 RENDER GUARD - Showing not found screen", {
-      hasUser: !!user,
-      hasUserData: !!userData,
-      isAdmin,
-      hasTalent: !!talent,
-      reason: !user
-        ? "no_user"
-        : !userData
-        ? "no_userData"
-        : !isAdmin
-        ? "not_admin"
-        : "no_talent",
-    });
-    logger.warn("TalentDetailPage: Render guard triggered - showing 'not found' screen", {
-      hasUser: !!user,
-      hasUserData: !!userData,
-      isAdmin,
-      hasTalent: !!talent,
-      reason: !user
-        ? "no_user"
-        : !userData
-        ? "no_userData"
-        : !isAdmin
-        ? "not_admin"
-        : "no_talent",
-    });
+  if (!talent) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

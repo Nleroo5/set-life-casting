@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
@@ -9,31 +9,8 @@ import { logger } from "@/lib/logger";
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user, isAdmin, loading, logout } = useAuth();
+  const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  useEffect(() => {
-    logger.debug("AdminPage: Auth check triggered", {
-      loading,
-      hasUser: !!user,
-      isAdmin,
-      userId: user?.id,
-    });
-
-    if (!loading && (!user || !isAdmin)) {
-      logger.warn("AdminPage: User not authorized, redirecting to login", {
-        hasUser: !!user,
-        isAdmin,
-        redirectUrl: "/login?redirect=/admin",
-      });
-      router.push("/login?redirect=/admin");
-    } else if (!loading && user && isAdmin) {
-      logger.debug("AdminPage: User authorized, showing admin dashboard", {
-        userId: user.id,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, isAdmin]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -45,26 +22,6 @@ export default function AdminPage() {
       setIsLoggingOut(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
-          <p
-            className="mt-4 text-lg text-secondary"
-            style={{ fontFamily: "var(--font-outfit)" }}
-          >
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-100 via-pink-50 to-blue-50">

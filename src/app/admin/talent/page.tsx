@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { getAllProfiles, ProfileRow } from "@/lib/supabase/profiles";
 import { createClient } from "@/lib/supabase/config";
-import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { logger } from "@/lib/logger";
@@ -55,8 +53,6 @@ interface TalentProfile {
 }
 
 export default function TalentDatabasePage() {
-  const router = useRouter();
-  const { user, isAdmin, loading: authLoading } = useAuth();
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [filteredTalents, setFilteredTalents] = useState<TalentProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,12 +79,8 @@ export default function TalentDatabasePage() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.push("/admin");
-    } else if (user && isAdmin && !authLoading) {
-      fetchTalents();
-    }
-  }, [authLoading, user, isAdmin]);
+    fetchTalents();
+  }, []);
 
   useEffect(() => {
     applyFilters();
@@ -441,7 +433,7 @@ export default function TalentDatabasePage() {
     setShowArchived(false);
   }
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -455,10 +447,6 @@ export default function TalentDatabasePage() {
         </div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (

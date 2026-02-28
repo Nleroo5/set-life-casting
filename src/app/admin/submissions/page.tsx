@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
@@ -114,8 +112,6 @@ type FilterStatus = "all" | "new" | "pinned" | "booked" | "rejected";
 const PAGE_SIZE = 50; // Load 50 submissions per page
 
 export default function AdminSubmissionsPage() {
-  const router = useRouter();
-  const { user, isAdmin, loading: authLoading } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -132,13 +128,9 @@ export default function AdminSubmissionsPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    if (!authLoading && (!user || !isAdmin)) {
-      router.push("/login?redirect=/admin/submissions");
-    } else if (user && isAdmin) {
-      fetchData();
-    }
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, isAdmin, page]); // Refetch when page changes
+  }, [page]); // Refetch when page changes
 
   async function fetchData() {
     try {
@@ -459,7 +451,7 @@ export default function AdminSubmissionsPage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -470,10 +462,6 @@ export default function AdminSubmissionsPage() {
         </div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (
