@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getProfile } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
-import { getRole } from "@/lib/supabase/casting";
+import { getRoles } from "@/lib/supabase/casting";
 import { getPhotosByUserId } from "@/lib/supabase/photos";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
@@ -116,23 +116,23 @@ export default function DashboardPage() {
         logger.error("Error fetching submissions:", submissionsError);
         setSubmissions([]);
       } else if (submissionsData) {
-        // Map submissions data and fetch role details for each
-        const mappedSubmissions: Submission[] = await Promise.all(
-          submissionsData.map(async (submission: any) => {
-            // Fetch role data to get roleName and projectTitle
-            const { data: roleData } = await getRole(submission.role_id, true);
+        // Batch-fetch all roles for these submissions in one query
+        const roleIds = [...new Set(submissionsData.map((s: any) => s.role_id).filter(Boolean))];
+        const { data: rolesData } = await getRoles({ includeProject: true });
+        const rolesMap = new Map((rolesData || []).map((r: any) => [r.id, r]));
 
-            return {
-              id: submission.id,
-              roleId: submission.role_id,
-              projectId: submission.project_id,
-              roleName: roleData?.title || 'Unknown Role',
-              projectTitle: (roleData as any)?.projects?.title || 'Unknown Project',
-              status: submission.status,
-              submittedAt: new Date(submission.submitted_at),
-            };
-          })
-        );
+        const mappedSubmissions: Submission[] = submissionsData.map((submission: any) => {
+          const roleData = rolesMap.get(submission.role_id);
+          return {
+            id: submission.id,
+            roleId: submission.role_id,
+            projectId: submission.project_id,
+            roleName: roleData?.title || 'Unknown Role',
+            projectTitle: (roleData as any)?.projects?.title || 'Unknown Project',
+            status: submission.status,
+            submittedAt: new Date(submission.submitted_at),
+          };
+        });
 
         setSubmissions(mappedSubmissions);
       }

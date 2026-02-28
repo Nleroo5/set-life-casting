@@ -213,7 +213,7 @@ export default function TalentDatabasePage() {
           appearance: {
             gender: profile.gender || "",
             dateOfBirth: profile.date_of_birth || "",
-            ethnicity: profile.ethnicity ? [profile.ethnicity] : [],
+            ethnicity: profile.ethnicity ? profile.ethnicity.split(', ').map((e: string) => e.trim()) : [],
             height: `${profile.height_feet || 0}'${profile.height_inches || 0}"`,
             weight: profile.weight || 0,
             hairColor: profile.hair_color || "",
@@ -638,7 +638,8 @@ export default function TalentDatabasePage() {
                 <option value="all">All</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Non-Binary">Non-Binary</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 

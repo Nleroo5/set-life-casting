@@ -14,7 +14,7 @@ import { logger } from "@/lib/logger";
 interface Project {
   id: string;
   title: string;
-  type: "film" | "tv" | "commercial" | "music-video" | "event";
+  type: "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other";
   shootDateStart: string;
   shootDateEnd: string;
   status: "booking" | "booked" | "archived";
@@ -73,18 +73,14 @@ function mapProjectType(
   type: ProjectRow["project_type"]
 ): Project["type"] {
   switch (type) {
-    case "film":
-      return "film";
-    case "tv":
-      return "tv";
-    case "commercial":
-      return "commercial";
-    case "theater":
-      return "event";
-    case "web":
-      return "music-video";
-    default:
-      return "film";
+    case "film": return "film";
+    case "tv": return "tv";
+    case "commercial": return "commercial";
+    case "theater": return "theater";
+    case "web": return "web";
+    case "vertical short": return "vertical short";
+    case "other": return "other";
+    default: return "film";
   }
 }
 

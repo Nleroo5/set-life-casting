@@ -14,14 +14,13 @@ import { createClient } from "@/lib/supabase/config";
 interface ArchivedProject {
   id: string;
   title: string;
-  type: "film" | "tv" | "commercial" | "music-video" | "event";
+  type: "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other";
   shootDateStart: string;
   shootDateEnd: string;
   status: "archived";
   archivedAt?: Date;
   archivedBy?: string;
   completionNotes?: string;
-  bookingCount: number;
   roleCount: number;
   submissionCount: number;
 }
@@ -43,13 +42,15 @@ interface ArchivedRole {
 }
 
 // Schema adapter functions
-function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "music-video" | "event" {
+function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other" {
   switch (type) {
     case "film": return "film";
     case "tv": return "tv";
     case "commercial": return "commercial";
-    case "web": return "music-video";
-    case "theater": return "event";
+    case "theater": return "theater";
+    case "web": return "web";
+    case "vertical short": return "vertical short";
+    case "other": return "other";
     default: return "film";
   }
 }
@@ -106,12 +107,6 @@ export default function ArchivePage() {
 
       const projects = await Promise.all(
         (projectsData || []).map(async (projectRow) => {
-          // Count bookings
-          const { count: bookingCount } = await supabase
-            .from("bookings")
-            .select("*", { count: "exact", head: true })
-            .eq("project_id", projectRow.id);
-
           // Count roles
           const { data: rolesData } = await getRoles({ projectId: projectRow.id });
           const roleCount = rolesData?.length || 0;
@@ -132,7 +127,6 @@ export default function ArchivePage() {
             archivedAt: projectRow.updated_at ? new Date(projectRow.updated_at) : undefined,
             archivedBy: undefined, // Not stored in current schema
             completionNotes: undefined, // Not stored in current schema
-            bookingCount: bookingCount || 0,
             roleCount: roleCount,
             submissionCount: submissionCount || 0,
           } as ArchivedProject;
@@ -214,9 +208,8 @@ export default function ArchivePage() {
 
     if (!confirm(
       `Restore "${project.title}"?\n\n` +
-      `This will restore the project and all associated roles, bookings, and submissions to active status.\n\n` +
+      `This will restore the project and all associated roles and submissions to active status.\n\n` +
       `• ${project.roleCount} roles will be restored\n` +
-      `• ${project.bookingCount} bookings will be reactivated\n` +
       `• ${project.submissionCount} submissions will be restored\n\n` +
       `Continue?`
     )) {
@@ -249,25 +242,6 @@ export default function ArchivePage() {
         }
       }
 
-      // Restore all bookings (back to "confirmed" status)
-      const { data: bookingsData } = await supabase
-        .from("bookings")
-        .select("id")
-        .eq("project_id", projectId);
-
-      if (bookingsData) {
-        for (const booking of bookingsData) {
-          await supabase
-            .from("bookings")
-            .update({
-              status: "confirmed",
-              archived_with_project: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", booking.id);
-        }
-      }
-
       // Restore all submissions (back to null status)
       const { data: submissionsData } = await supabase
         .from("submissions")
@@ -280,7 +254,6 @@ export default function ArchivePage() {
             .from("submissions")
             .update({
               status: null,
-              archived_with_project: false,
               updated_at: new Date().toISOString(),
             })
             .eq("id", submission.id);
@@ -288,18 +261,15 @@ export default function ArchivePage() {
       }
 
       const roleCount = rolesData?.length || 0;
-      const bookingCount = bookingsData?.length || 0;
       const submissionCount = submissionsData?.length || 0;
 
       logger.debug(`✅ Restored project: ${project.title}`);
       logger.debug(`  - ${roleCount} roles restored`);
-      logger.debug(`  - ${bookingCount} bookings reactivated`);
       logger.debug(`  - ${submissionCount} submissions restored`);
 
       alert(
         `Project "${project.title}" restored successfully!\n\n` +
         `• ${roleCount} roles restored\n` +
-        `• ${bookingCount} bookings reactivated\n` +
         `• ${submissionCount} submissions restored\n\n` +
         `The project is now active again.`
       );
@@ -445,21 +415,13 @@ export default function ArchivePage() {
                   </div>
 
                   {/* Project Stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-accent" style={{ fontFamily: "var(--font-galindo)" }}>
                         {project.roleCount}
                       </p>
                       <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
                         Roles
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600" style={{ fontFamily: "var(--font-galindo)" }}>
-                        {project.bookingCount}
-                      </p>
-                      <p className="text-xs text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-                        Bookings
                       </p>
                     </div>
                     <div className="text-center">

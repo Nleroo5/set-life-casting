@@ -299,7 +299,7 @@ export default function AdminPage() {
           >
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Link
               href="/admin/casting?action=new-project"
               className="p-4 bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors text-center"

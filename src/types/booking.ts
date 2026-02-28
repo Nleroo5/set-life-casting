@@ -55,7 +55,7 @@ export interface Submission {
   roleName: string;
   projectId: string;
   projectTitle: string;
-  status: "pinned" | "booked" | "rejected" | "archived" | null;
+  status: "pinned" | "booked" | "rejected" | null;
   profileData: TalentProfile;
   submittedAt: Date;
   updatedAt?: Date;
@@ -268,14 +268,13 @@ export interface SkinsExportData {
 }
 
 // ============================================================================
-// FIRESTORE COLLECTION NAMES
+// TABLE NAMES
 // ============================================================================
 
-export const COLLECTIONS = {
+export const TABLES = {
   PROJECTS: "projects",
   ROLES: "roles",
   SUBMISSIONS: "submissions",
-  BOOKINGS: "bookings",        // NEW
   USERS: "users",
 } as const;
 

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
-      redirectTo: `${appUrl}/auth/reset-password`,
+      redirectTo: `${appUrl}/auth/callback?next=/auth/reset-password`,
     });
 
     // Log any errors but don't expose them to the user

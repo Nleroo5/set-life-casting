@@ -23,7 +23,7 @@ import {
   type ProjectRow,
   type RoleRow
 } from "@/lib/supabase/casting";
-import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/supabase/roles";
+import { archiveRole, restoreRole } from "@/lib/supabase/roles";
 import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 
@@ -31,7 +31,7 @@ import { logger } from "@/lib/logger";
 interface Project {
   id: string;
   title: string;
-  type: "film" | "tv" | "commercial" | "music-video" | "event";
+  type: "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other";
   shootDateStart: string;
   shootDateEnd: string;
   status: "booking" | "booked" | "archived";
@@ -108,26 +108,21 @@ function roleToRoleRow(role: Partial<Role>, projectId?: string): Partial<RoleRow
 }
 
 // Type mapping functions
-function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "music-video" | "event" {
+function mapProjectType(type: string | null | undefined): "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other" {
   switch (type) {
     case "film": return "film";
     case "tv": return "tv";
     case "commercial": return "commercial";
-    case "web": return "music-video";
-    case "theater": return "event";
+    case "theater": return "theater";
+    case "web": return "web";
+    case "vertical short": return "vertical short";
+    case "other": return "other";
     default: return "film";
   }
 }
 
-function mapProjectTypeToSupabase(type: string | undefined): "film" | "tv" | "commercial" | "theater" | "web" | "other" {
-  switch (type) {
-    case "film": return "film";
-    case "tv": return "tv";
-    case "commercial": return "commercial";
-    case "music-video": return "web";
-    case "event": return "theater";
-    default: return "film";
-  }
+function mapProjectTypeToSupabase(type: string | undefined): "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other" {
+  return (type || "film") as "film" | "tv" | "commercial" | "theater" | "web" | "vertical short" | "other";
 }
 
 function mapProjectStatus(status: string): "booking" | "booked" | "archived" {
@@ -351,18 +346,6 @@ export default function AdminCastingPage() {
 
     try {
       setArchivingRole(true);
-
-      // Check for active bookings
-      const bookingCount = await getActiveBookingCount(archiveDialogRole.id);
-      if (bookingCount > 0) {
-        alert(
-          `Cannot archive role "${archiveDialogRole.name}".\n\n` +
-          `This role has ${bookingCount} active booking(s).\n\n` +
-          `Please complete bookings or archive the entire project instead.`
-        );
-        setArchiveDialogRole(null);
-        return;
-      }
 
       await archiveRole(archiveDialogRole.id, user.id, archiveReason);
 
@@ -1021,8 +1004,10 @@ function ProjectForm({
               { value: "film", label: "Film" },
               { value: "tv", label: "TV" },
               { value: "commercial", label: "Commercial" },
-              { value: "music-video", label: "Music Video" },
-              { value: "event", label: "Event" },
+              { value: "web", label: "Web/Music Video" },
+              { value: "theater", label: "Theater/Event" },
+              { value: "vertical short", label: "Vertical Short" },
+              { value: "other", label: "Other" },
             ]}
             error={errors.type?.message as string}
           />

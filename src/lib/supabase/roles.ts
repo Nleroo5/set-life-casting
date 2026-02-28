@@ -27,29 +27,6 @@ export async function archiveRole(
 ): Promise<void> {
   const supabase = createClient()
 
-  // Check for active bookings (if bookings table exists)
-  // Note: Based on the Firebase code, bookings collection was removed
-  // But keeping this check for future compatibility
-  try {
-    const { count: bookingCount } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('role_id', roleId)
-      .neq('archived_with_project', true)
-
-    if (bookingCount && bookingCount > 0) {
-      throw new Error(
-        `Cannot archive role with ${bookingCount} active booking(s). ` +
-        `Please complete or archive the project first.`
-      )
-    }
-  } catch (error: any) {
-    // If bookings table doesn't exist, continue
-    if (error?.code !== '42P01') { // 42P01 = table doesn't exist
-      throw error;
-    }
-  }
-
   // Update role status to archived
   const { error: roleError } = await updateRole(roleId, {
     status: 'archived',
@@ -60,15 +37,14 @@ export async function archiveRole(
     throw roleError
   }
 
-  // Archive associated submissions
+  // Clear submission statuses for this role (role is archived, submissions no longer active)
   const { error: submissionError } = await supabase
     .from('submissions')
     .update({
-      status: 'archived' as any, // Cast because SubmissionStatus doesn't include 'archived'
+      status: null,
       updated_at: new Date().toISOString(),
     })
     .eq('role_id', roleId)
-    .neq('archived_with_project', true)
 
   if (submissionError) {
     throw submissionError
@@ -109,7 +85,7 @@ export async function restoreRole(roleId: string): Promise<void> {
     throw roleError
   }
 
-  // Restore associated submissions back to null (no status)
+  // Restore associated submissions (ensure status is cleared)
   const { error: submissionError } = await supabase
     .from('submissions')
     .update({
@@ -117,35 +93,10 @@ export async function restoreRole(roleId: string): Promise<void> {
       updated_at: new Date().toISOString(),
     })
     .eq('role_id', roleId)
-    .eq('status', 'archived' as any)
+    .is('status', null)
 
   if (submissionError) {
     throw submissionError
   }
 }
 
-/**
- * Gets count of active bookings for a role
- *
- * @param roleId - The role ID
- * @returns Number of active (non-archived) bookings
- */
-export async function getActiveBookingCount(roleId: string): Promise<number> {
-  const supabase = createClient()
-
-  try {
-    // Note: bookings table may not exist in current schema
-    // Returning 0 for now (bookings collection was removed per comments)
-    const { count } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('role_id', roleId)
-      .neq('archived_with_project', true)
-
-    return count || 0
-  } catch (error) {
-    // If bookings table doesn't exist, return 0
-    console.warn('Bookings table query failed, returning 0:', error)
-    return 0
-  }
-}
