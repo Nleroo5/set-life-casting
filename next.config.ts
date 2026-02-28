@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co",
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms https://*.mailerlite.com https://accounts.google.com",
-              "frame-src 'self' https://www.google.com",
+              "frame-src 'self' https://www.google.com https://www.facebook.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
