@@ -38,7 +38,7 @@ export const sizesSchema = z.object({
   womensPantSize: z.string().optional(),
 
   // Universal fields
-  shoeSize: z.string().min(1, "Shoe size is required"),
+  shoeSize: z.string().optional(),
 
   // Optional measurements (with NaN and null handling for empty fields)
   bust: z.number().nullable().optional().or(z.nan().transform(() => undefined)),
@@ -52,6 +52,8 @@ export const sizesSchema = z.object({
   const isMale = data.gender === "Male";
   const isFemale = data.gender === "Female";
   const isNonBinary = data.gender === "Non-binary";
+
+  const isOther = data.gender === "Other";
 
   if (isMale) {
     // Male required fields
@@ -74,6 +76,13 @@ export const sizesSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: "Pant inseam is required",
         path: ["pantInseam"],
+      });
+    }
+    if (!data.shoeSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Shoe size is required",
+        path: ["shoeSize"],
       });
     }
   } else if (isFemale) {
@@ -99,8 +108,15 @@ export const sizesSchema = z.object({
         path: ["womensPantSize"],
       });
     }
-  } else if (isNonBinary) {
-    // Non-binary can fill either set, but must fill at least one complete set
+    if (!data.shoeSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Shoe size is required",
+        path: ["shoeSize"],
+      });
+    }
+  } else if (isNonBinary || isOther) {
+    // Non-binary/Other can fill either set, but must fill at least one complete set
     const hasMaleData = data.shirtSize && data.pantWaist && data.pantInseam;
     const hasFemaleData = data.shirtSize && data.dressSize && data.womensPantSize;
 

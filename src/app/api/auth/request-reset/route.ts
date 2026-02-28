@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 
 // Email validation schema
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Send password reset email using Supabase's built-in function
     // This handles everything: email validation, template, security, etc.
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL;
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
       redirectTo: `${appUrl}/auth/reset-password`,

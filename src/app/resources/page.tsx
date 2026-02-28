@@ -56,7 +56,7 @@ export default function ResourcesPage() {
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               New to Extra Work? Start Here.
             </h2>
-            <p className="text-lg md:text-lgtext-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Background actors (also called "extras") appear in the world of a film, TV show, or commercial—walking down the street, sitting in a restaurant, working in an office, and more. It's fun, fast-paced, and an easy way to step into the film industry.
             </p>
 
@@ -93,7 +93,7 @@ export default function ResourcesPage() {
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">1</span>
               </div>
-              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lg font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 See a Casting Call
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -106,7 +106,7 @@ export default function ResourcesPage() {
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">2</span>
               </div>
-              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lg font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Submit Your Photos & Info
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -119,7 +119,7 @@ export default function ResourcesPage() {
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.6)]">
                 <span className="text-3xl font-bold text-accent">3</span>
               </div>
-              <h3 className="text-lg md:text-lgfont-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h3 className="text-lg md:text-lg font-bold text-accent mb-3 text-center" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Bookings Are Sent by Text
               </h3>
               <p className="text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -155,7 +155,7 @@ export default function ResourcesPage() {
             <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Submit Like a Pro</span>
             </h2>
-            <p className="text-lg md:text-lgtext-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <p className="text-lg md:text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
               Attention to detail is key, & your submission is our first glimpse of your ability to follow instructions! Your photos are our first look at you—here&apos;s how to nail them.
             </p>
           </div>
@@ -470,7 +470,7 @@ export default function ResourcesPage() {
           <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Questions?</span>
           </h2>
-          <p className="text-lg md:text-lgtext-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lg text-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
             We get it—there&apos;s a lot to learn! If something&apos;s unclear or you need help with anything, just reach out. We&apos;re here to help you succeed, whether it&apos;s your first day on set or your hundredth.
           </p>
           <Link href="/contact">
@@ -488,7 +488,7 @@ export default function ResourcesPage() {
           <h2 className="text-2xl md:text-3xl font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?
           </h2>
-          <p className="text-lg md:text-lgmb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <p className="text-lg md:text-lg mb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
             Follow us on Facebook to see current casting calls & start your journey in the film industry today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

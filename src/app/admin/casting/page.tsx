@@ -27,7 +27,7 @@ import { archiveRole, restoreRole, getActiveBookingCount } from "@/lib/supabase/
 import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 
-// UI-facing interfaces (keep Firebase schema for compatibility)
+// UI-facing interfaces
 interface Project {
   id: string;
   title: string;
@@ -553,7 +553,7 @@ export default function AdminCastingPage() {
                     {projectRoles.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-accent/10">
                         <h4 className="text-sm font-semibold text-secondary mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Active Roles ({projectRoles.length}): {projectRoles.filter(r => r.archivedWithProject || r.archivedIndividually).length > 0 && <span className="text-red-500 text-xs">(Some roles have archive flags - check Firestore!)</span>}
+                          Active Roles ({projectRoles.length}): {projectRoles.filter(r => r.archivedWithProject || r.archivedIndividually).length > 0 && <span className="text-red-500 text-xs">(Some roles have archive flags)</span>}
                         </h4>
                         <div className="space-y-2">
                           {projectRoles.map((role) => {

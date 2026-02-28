@@ -200,7 +200,7 @@ export default function SkinsBuilderPage() {
             weight: profile.weight ? String(profile.weight) : "",
             hairColor: profile.hair_color || "",
             eyeColor: profile.eye_color || "",
-            tattoos: profile.has_tattoos || false,
+            tattoos: profile.visible_tattoos || false,
           },
           wardrobe: {
             gender: profile.gender || "",
@@ -218,8 +218,6 @@ export default function SkinsBuilderPage() {
             jacketSize: profile.jacket_size || undefined,
           },
           experience: {
-            actingExperience: profile.acting_experience || false,
-            comfortable: profile.comfortable_with || [],
             specialSkills: profile.special_skills || [],
           },
         };

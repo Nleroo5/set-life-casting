@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import { motion } from "framer-motion";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "About Set Life Casting | Atlanta's Premier Extras Casting Agency Since 2015",

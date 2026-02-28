@@ -64,9 +64,8 @@ export default function AccountStep({ onNext }: AccountStepProps) {
         const { error: userError } = await supabase.from("users").insert({
           id: data.user.id,
           email: data.user.email,
-          display_name: displayName,
+          full_name: displayName,
           role: "talent",
-          is_guest: false,
         });
 
         if (userError) {

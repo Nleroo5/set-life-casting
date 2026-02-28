@@ -120,6 +120,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
   const isMale = gender === "Male";
   const isFemale = gender === "Female";
   const isNonBinary = gender === "Non-binary";
+  const isOther = gender === "Other";
 
   const onSubmit = (formData: SizesFormData) => {
     // Ensure gender is included in submission
@@ -158,13 +159,13 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
         <input type="hidden" {...register("gender")} value={gender} />
 
         {/* MALE SIZES */}
-        {(isMale || isNonBinary) && (
+        {(isMale || isNonBinary || isOther) && (
           <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
             <h3
               className="text-lg font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
             >
-              {isNonBinary ? "Male Sizing (Optional)" : "Required Sizes"}
+              {(isNonBinary || isOther) ? "Male Sizing (Optional)" : "Required Sizes"}
             </h3>
 
             <div className="space-y-6">
@@ -203,13 +204,13 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
         )}
 
         {/* FEMALE SIZES */}
-        {(isFemale || isNonBinary) && (
+        {(isFemale || isNonBinary || isOther) && (
           <div className="bg-linear-to-br from-pink-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
             <h3
               className="text-lg font-bold text-secondary mb-4"
               style={{ fontFamily: "var(--font-galindo)" }}
             >
-              {isNonBinary ? "Female Sizing (Optional)" : "Required Sizes"}
+              {(isNonBinary || isOther) ? "Female Sizing (Optional)" : "Required Sizes"}
             </h3>
 
             <div className="space-y-6">
@@ -261,7 +262,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Male optional measurements */}
-            {isMale && (
+            {(isMale || isOther) && (
               <>
                 <Input
                   label="Neck (inches)"
@@ -287,7 +288,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
             )}
 
             {/* Female optional measurements */}
-            {isFemale && (
+            {(isFemale || isOther) && (
               <>
                 <Input
                   label="Bust (inches)"
@@ -362,8 +363,8 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
           </div>
         </div>
 
-        {/* Helper Text for Non-Binary */}
-        {isNonBinary && (
+        {/* Helper Text for Non-Binary / Other */}
+        {(isNonBinary || isOther) && (
           <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
             <p
               className="text-sm text-secondary-light text-center"

@@ -216,43 +216,13 @@ export default function CreateProfilePage() {
     logger.debug("Submitting profile with photos:", finalPhotos);
 
     try {
-      // Transform appearance data to match database schema
-      // Height needs to be split from string "5'10"" to feet: 5, inches: 10
-      // Weight needs to move from appearance to sizes
-      let heightFeet: number | undefined;
-      let heightInches: number | undefined;
-      let weight: number | undefined;
-
-      // Parse height string like "5'10"" into feet and inches
-      if (formData.appearance.height) {
-        const heightMatch = formData.appearance.height.match(/^(\d+)'(\d+)"?$/);
-        if (heightMatch) {
-          heightFeet = parseInt(heightMatch[1], 10);
-          heightInches = parseInt(heightMatch[2], 10);
-        }
-      }
-
-      // Get weight from appearance data
-      if (formData.appearance.weight) {
-        weight = formData.appearance.weight;
-      }
-
       // Create/update user profile in Supabase
+      // Height parsing (string -> feet/inches) and weight mapping
+      // are handled by mapProfileDataToRow in profiles.ts
       const { data, error } = await createProfile(user.id, {
         basicInfo: formData.basicInfo,
-        appearance: {
-          ...formData.appearance,
-          // Remove height/weight from appearance as they're being moved to sizes
-          height: undefined,
-          weight: undefined,
-        },
-        sizes: {
-          ...formData.sizes,
-          // Add parsed height and weight to sizes
-          heightFeet,
-          heightInches,
-          weight,
-        } as any,
+        appearance: formData.appearance,
+        sizes: formData.sizes as any,
         details: formData.details as any,
         profileComplete: true,
         lastStepCompleted: 5,

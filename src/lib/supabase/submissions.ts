@@ -483,12 +483,8 @@ export async function getBookedSubmissions(projectId: string) {
         neck,
         sleeve,
         jacket_size,
-        has_tattoos,
-        acting_experience,
-        comfortable_with,
-        special_skills,
-        available_dates,
-        conflicts
+        visible_tattoos,
+        special_skills
       ),
       roles!inner (
         id,

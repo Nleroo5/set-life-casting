@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger";
 
 /**
  * API route to proxy the Set Life Casting logo
- * Bypasses CORS restrictions when fetching from Firebase Storage
+ * Bypasses CORS restrictions when fetching logo from external storage
  */
 export async function GET(request: NextRequest) {
   try {

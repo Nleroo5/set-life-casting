@@ -190,7 +190,7 @@ export default function TalentDatabasePage() {
         sampleUserPhotos: photosByUserId[userIds[0]]?.length || 0,
       });
 
-      // Map Supabase flat structure to Firebase nested structure for compatibility
+      // Map Supabase flat structure to nested UI structure
       const talentsData: TalentProfile[] = profilesData
         .filter((profile) => {
           // Skip profiles with missing critical data

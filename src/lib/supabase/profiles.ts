@@ -187,11 +187,11 @@ function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
     if (data.sizes.womensPantSize !== undefined) row.womens_pant_size = data.sizes.womensPantSize || null
     if (data.sizes.bust !== undefined) row.bust = data.sizes.bust || null
     if (data.sizes.chest !== undefined) row.chest = data.sizes.chest || null
-    if (data.sizes.waist !== undefined) row.waist = data.sizes.waist || null
-    if (data.sizes.hips !== undefined) row.hips = data.sizes.hips || null
-    if (data.sizes.inseam !== undefined) row.inseam = data.sizes.inseam || null
-    if (data.sizes.neck !== undefined) row.neck = data.sizes.neck || null
-    if (data.sizes.sleeve !== undefined) row.sleeve = data.sizes.sleeve || null
+    if (data.sizes.waist !== undefined) row.waist = data.sizes.waist != null ? String(data.sizes.waist) : null
+    if (data.sizes.hips !== undefined) row.hips = data.sizes.hips != null ? String(data.sizes.hips) : null
+    if (data.sizes.inseam !== undefined) row.inseam = data.sizes.inseam != null ? String(data.sizes.inseam) : null
+    if (data.sizes.neck !== undefined) row.neck = data.sizes.neck != null ? String(data.sizes.neck) : null
+    if (data.sizes.sleeve !== undefined) row.sleeve = data.sizes.sleeve != null ? String(data.sizes.sleeve) : null
     if (data.sizes.jacketSize !== undefined) row.jacket_size = data.sizes.jacketSize || null
     if (data.sizes.dressSize !== undefined) row.dress_size = data.sizes.dressSize || null
     if (data.sizes.shoeSize !== undefined) row.shoe_size = data.sizes.shoeSize || null

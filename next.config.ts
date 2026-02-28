@@ -9,12 +9,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
+        hostname: '*.supabase.co',
         pathname: '/**',
       },
       {
+        // Legacy logo still hosted on Firebase Storage
         protocol: 'https',
-        hostname: '*.supabase.co',
+        hostname: 'firebasestorage.googleapis.com',
         pathname: '/**',
       },
     ],
@@ -61,7 +62,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.firebaseio.com https://firebasestorage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://accounts.google.com https://www.google-analytics.com https://www.clarity.ms https://*.mailerlite.com wss://*.firebaseio.com https://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms https://*.mailerlite.com https://accounts.google.com",
               "frame-src 'self' https://www.google.com",
               "object-src 'none'",
               "base-uri 'self'",

@@ -7,10 +7,7 @@
     "dev:webpack": "NEXT_DISABLE_TURBOPACK=1 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "migrate:profiles": "tsx scripts/migrate-profiles-physical-field.ts",
-    "migrate:bookings": "tsx scripts/migrate-bookings-physical-field.ts",
-    "migrate:all": "npm run migrate:profiles && npm run migrate:bookings"
+    "lint": "eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

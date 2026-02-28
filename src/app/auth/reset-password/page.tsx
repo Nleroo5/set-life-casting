@@ -35,16 +35,16 @@ function ResetPasswordForm() {
       setError("");
 
       const supabase = createClient();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      if (sessionError || !session) {
+      if (userError || !user) {
         setError("Invalid or expired reset link. Please request a new password reset.");
         setVerifying(false);
         return;
       }
 
       // Store user email for display
-      setUserEmail(session.user.email || "");
+      setUserEmail(user.email || "");
       setVerifying(false);
     } catch (err: unknown) {
       logger.error("Password reset session verification error:", err);
