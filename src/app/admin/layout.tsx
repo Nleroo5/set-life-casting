@@ -2,33 +2,19 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, userData, isAdmin, loading } = useAuth();
   const router = useRouter();
-
-  // Once confirmed admin, remember it to prevent false redirects
-  // during token refresh (where isAdmin momentarily flips to false)
-  const wasAdmin = useRef(false);
-
-  useEffect(() => {
-    if (isAdmin) {
-      wasAdmin.current = true;
-    }
-  }, [isAdmin]);
 
   useEffect(() => {
     // Don't redirect while auth is still loading
     if (loading) return;
-
-    // If admin was previously confirmed and user still exists,
-    // don't redirect on transient auth state changes (token refresh)
-    if (wasAdmin.current && user) return;
 
     // Not authenticated
     if (!user) {
@@ -36,15 +22,18 @@ export default function AdminLayout({
       return;
     }
 
+    // Wait for userData to load before checking admin status
+    if (!userData) return;
+
     // Authenticated but not admin
     if (!isAdmin) {
       router.push("/");
       return;
     }
-  }, [loading, user, isAdmin, router]);
+  }, [loading, user, userData, isAdmin, router]);
 
   // Show loading spinner until auth is fully resolved
-  if (loading || !user || !isAdmin) {
+  if (loading || !user || !userData || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
