@@ -93,7 +93,6 @@ export async function restoreRole(roleId: string): Promise<void> {
       updated_at: new Date().toISOString(),
     })
     .eq('role_id', roleId)
-    .is('status', null)
 
   if (submissionError) {
     throw submissionError

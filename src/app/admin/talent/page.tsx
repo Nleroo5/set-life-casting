@@ -7,8 +7,6 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { logger } from "@/lib/logger";
 
-const supabase = createClient();
-
 interface TalentProfile {
   id: string;
   basicInfo: {
@@ -89,6 +87,7 @@ export default function TalentDatabasePage() {
   async function fetchTalents() {
     try {
       setLoading(true);
+      const supabase = createClient();
 
       // Check current user context
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -346,11 +345,9 @@ export default function TalentDatabasePage() {
 
     // Age range filter
     if (ageRangeFilter !== "all") {
-      const now = new Date();
       filtered = filtered.filter((t) => {
         if (!t.appearance?.dateOfBirth) return false;
-        const birthDate = new Date(t.appearance.dateOfBirth);
-        const age = now.getFullYear() - birthDate.getFullYear();
+        const age = calculateAge(t.appearance.dateOfBirth);
 
         switch (ageRangeFilter) {
           case "18-25":

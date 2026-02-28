@@ -109,10 +109,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // Add security headers for authenticated admin routes
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
     response.headers.set('X-Authenticated', 'true')
   }
 

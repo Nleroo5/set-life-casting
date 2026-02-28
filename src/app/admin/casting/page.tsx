@@ -224,7 +224,7 @@ export default function AdminCastingPage() {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
 
-    if (!confirm(`Archive "${project.title}"?\n\nAll roles, bookings, and submissions will be preserved but marked as archived. This is the recommended way to close completed projects.`)) {
+    if (!confirm(`Archive "${project.title}"?\n\nAll roles and submissions will be preserved but marked as archived. This is the recommended way to close completed projects.`)) {
       return;
     }
 
@@ -233,7 +233,6 @@ export default function AdminCastingPage() {
 
       const supabase = createClient();
       let rolesCount = 0;
-      let bookingsCount = 0;
       let submissionsCount = 0;
 
       // Update project status to archived
@@ -253,31 +252,11 @@ export default function AdminCastingPage() {
         rolesCount++;
       }
 
-      // Mark all bookings as archived and completed (if bookings table exists)
-      try {
-        const { data: bookingsData, error: bookingsError } = await supabase
-          .from("bookings")
-          .update({
-            status: "completed",
-            archived_with_project: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("project_id", projectId)
-          .select();
-
-        if (!bookingsError && bookingsData) {
-          bookingsCount = bookingsData.length;
-        }
-      } catch (error) {
-        // Bookings table may not exist
-        logger.warn("Bookings update skipped (table may not exist)");
-      }
-
-      // Mark all submissions as archived
+      // Clear submission statuses for archived project (set to null, not invalid "archived")
       const { data: submissionsData, error: submissionsError } = await supabase
         .from("submissions")
         .update({
-          status: "archived" as any,
+          status: null,
           updated_at: new Date().toISOString(),
         })
         .eq("project_id", projectId)
@@ -287,15 +266,9 @@ export default function AdminCastingPage() {
         submissionsCount = submissionsData.length;
       }
 
-      logger.debug(`✅ Archived project: ${project.title}`);
-      logger.debug(`  - ${rolesCount} roles archived`);
-      logger.debug(`  - ${bookingsCount} bookings completed`);
-      logger.debug(`  - ${submissionsCount} submissions archived`);
-
       alert(
         `Project "${project.title}" archived successfully!\n\n` +
         `• ${rolesCount} roles preserved\n` +
-        `• ${bookingsCount} bookings marked complete\n` +
         `• ${submissionsCount} submissions archived\n\n` +
         `All data is safely preserved and can be viewed in the Archive section.`
       );
@@ -313,7 +286,7 @@ export default function AdminCastingPage() {
 
     // Bookings collection removed - no longer checking for bookings
 
-    if (!confirm(`Are you sure you want to delete "${project.title}"?\n\nThis will permanently delete all associated roles and submissions.\n\nNote: If this project has any bookings, you should archive it instead.`)) {
+    if (!confirm(`Are you sure you want to delete "${project.title}"?\n\nThis will permanently delete all associated roles and submissions.\n\nNote: Consider archiving instead to preserve data.`)) {
       return;
     }
 
