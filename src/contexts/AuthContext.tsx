@@ -89,7 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         logger.error("Error loading user data:", error);
-        setUserData(null);
+        // Only clear userData on initial load (when it's null).
+        // On re-fetches (TOKEN_REFRESHED), preserve the existing userData
+        // to prevent isAdmin from flipping to false during token refresh.
+        if (!userData) setUserData(null);
       } else if (data) {
         logger.debug("User data loaded", {
           hasData: !!data,
@@ -99,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       logger.error("Error in loadUserData:", error);
-      setUserData(null);
+      if (!userData) setUserData(null);
     } finally {
       setLoading(false);
     }
