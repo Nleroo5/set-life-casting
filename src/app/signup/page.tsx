@@ -83,15 +83,15 @@ function SignupForm() {
         return;
       }
 
-      // Create user record in public.users table
+      // Create user record in public.users table (upsert for idempotency — safe to retry)
       const { error: insertError } = await supabase
         .from("users")
-        .insert({
+        .upsert({
           id: authData.user.id,
           email: authData.user.email,
           role: "talent",
           full_name: data.fullName,
-        });
+        }, { onConflict: "id" });
 
       if (insertError) {
         logger.error("Error creating user record:", insertError);

@@ -221,48 +221,75 @@ export default function ArchivePage() {
         throw projectError;
       }
 
-      // Restore all roles
+      // Restore all roles (track failures)
       const { data: rolesData } = await getRoles({ projectId });
+      let rolesRestored = 0;
+      let rolesFailed = 0;
 
       if (rolesData) {
         for (const role of rolesData) {
-          await updateRole(role.id, {
-            status: "open", // Restore to open status
+          const { error: roleError } = await updateRole(role.id, {
+            status: "open",
           });
+          if (roleError) {
+            logger.error(`Failed to restore role ${role.id}:`, roleError);
+            rolesFailed++;
+          } else {
+            rolesRestored++;
+          }
         }
       }
 
-      // Restore all submissions (back to null status)
+      // Restore all submissions (track failures)
       const { data: submissionsData } = await supabase
         .from("submissions")
         .select("id")
         .eq("project_id", projectId);
 
+      let submissionsRestored = 0;
+      let submissionsFailed = 0;
+
       if (submissionsData) {
         for (const submission of submissionsData) {
-          await supabase
+          const { error: subError } = await supabase
             .from("submissions")
             .update({
               status: null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", submission.id);
+          if (subError) {
+            logger.error(`Failed to restore submission ${submission.id}:`, subError);
+            submissionsFailed++;
+          } else {
+            submissionsRestored++;
+          }
         }
       }
 
-      const roleCount = rolesData?.length || 0;
-      const submissionCount = submissionsData?.length || 0;
+      const totalRoles = rolesData?.length || 0;
+      const totalSubmissions = submissionsData?.length || 0;
 
       logger.debug(`✅ Restored project: ${project.title}`);
-      logger.debug(`  - ${roleCount} roles restored`);
-      logger.debug(`  - ${submissionCount} submissions restored`);
+      logger.debug(`  - ${rolesRestored}/${totalRoles} roles restored`);
+      logger.debug(`  - ${submissionsRestored}/${totalSubmissions} submissions restored`);
 
-      alert(
-        `Project "${project.title}" restored successfully!\n\n` +
-        `• ${roleCount} roles restored\n` +
-        `• ${submissionCount} submissions restored\n\n` +
-        `The project is now active again.`
-      );
+      const failures = rolesFailed + submissionsFailed;
+      if (failures > 0) {
+        alert(
+          `Project "${project.title}" partially restored.\n\n` +
+          `• Restored ${rolesRestored} of ${totalRoles} roles${rolesFailed > 0 ? ` (${rolesFailed} failed)` : ""}\n` +
+          `• Restored ${submissionsRestored} of ${totalSubmissions} submissions${submissionsFailed > 0 ? ` (${submissionsFailed} failed)` : ""}\n\n` +
+          `Some items failed to restore. Please try again or contact support.`
+        );
+      } else {
+        alert(
+          `Project "${project.title}" restored successfully!\n\n` +
+          `• ${rolesRestored} roles restored\n` +
+          `• ${submissionsRestored} submissions restored\n\n` +
+          `The project is now active again.`
+        );
+      }
 
       await fetchArchivedProjects();
     } catch (error) {

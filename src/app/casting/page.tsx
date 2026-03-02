@@ -118,6 +118,7 @@ export default function CastingPage() {
   const { isAdmin } = useAuth();
   const [roles, setRoles] = useState<RoleWithProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
@@ -129,12 +130,14 @@ export default function CastingPage() {
   async function fetchRoles() {
     try {
       setLoading(true);
+      setError(null);
 
       // Fetch open roles with active, public projects
       const { data, error } = await getOpenRoles();
 
       if (error) {
         logger.error("Error fetching roles:", error);
+        setError("Something went wrong loading casting calls. Please try again.");
         setRoles([]);
         return;
       }
@@ -159,8 +162,9 @@ export default function CastingPage() {
         .filter((role): role is RoleWithProject => role !== null);
 
       setRoles(rolesData);
-    } catch (error) {
-      logger.error("Error fetching roles:", error);
+    } catch (err) {
+      logger.error("Error fetching roles:", err);
+      setError("Something went wrong loading casting calls. Please try again.");
       setRoles([]);
     } finally {
       setLoading(false);
@@ -250,8 +254,40 @@ export default function CastingPage() {
               </div>
             )}
 
+            {/* Error State */}
+            {!loading && error && (
+              <div className="text-center py-12">
+                <svg
+                  className="mx-auto h-16 w-16 text-red-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <h3
+                  className="text-xl font-bold text-secondary mb-2"
+                  style={{ fontFamily: "var(--font-outfit)" }}
+                >
+                  {error}
+                </h3>
+                <Button
+                  variant="primary"
+                  onClick={() => fetchRoles()}
+                  className="mt-4"
+                >
+                  Try Again
+                </Button>
+              </div>
+            )}
+
             {/* No Roles Found */}
-            {!loading && filteredRoles.length === 0 && (
+            {!loading && !error && filteredRoles.length === 0 && (
               <div className="text-center py-12">
                 <svg
                   className="mx-auto h-16 w-16 text-gray-400 mb-4"

@@ -289,31 +289,26 @@ export default function SkinsBuilderPage() {
     ));
   }
 
-  // Convert ethnicity to code
+  // Convert a single ethnicity value to its code
+  function singleEthnicityCode(value: string): string {
+    const v = value.toLowerCase();
+    if (v.includes("caucasian") || v.includes("white")) return "C";
+    if (v.includes("asian")) return "A";
+    if (v.includes("african") || v.includes("black")) return "AA";
+    if (v.includes("hispanic") || v.includes("latino") || v.includes("latina")) return "H";
+    return "O";
+  }
+
+  // Convert ethnicity (single or multi) to code string
   function getEthnicityCode(ethnicity: string | string[] | undefined): string {
-    let ethValue = "";
-
-    // Handle array or string
     if (Array.isArray(ethnicity) && ethnicity.length > 0) {
-      ethValue = ethnicity[0].toLowerCase();
+      // Join codes for all ethnicities (e.g. "C/AA" for mixed)
+      const codes = [...new Set(ethnicity.map(singleEthnicityCode))];
+      return codes.join("/");
     } else if (ethnicity && typeof ethnicity === 'string') {
-      ethValue = ethnicity.toLowerCase();
-    } else {
-      return "O"; // Default to Other
+      return singleEthnicityCode(ethnicity);
     }
-
-    // Convert to code
-    if (ethValue.includes("caucasian") || ethValue.includes("white")) {
-      return "C";
-    } else if (ethValue.includes("asian")) {
-      return "A";
-    } else if (ethValue.includes("african") || ethValue.includes("black")) {
-      return "AA";
-    } else if (ethValue.includes("hispanic") || ethValue.includes("latino") || ethValue.includes("latina")) {
-      return "H";
-    } else {
-      return "O"; // Other
-    }
+    return "O"; // Default to Other
   }
 
   async function exportToExcel() {

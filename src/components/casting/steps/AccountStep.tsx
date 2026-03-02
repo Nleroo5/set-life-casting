@@ -61,14 +61,14 @@ export default function AccountStep({ onNext }: AccountStepProps) {
 
       if (error) throw error;
 
-      // Create user record in users table
+      // Create user record in users table (upsert for idempotency — safe to retry)
       if (data.user) {
-        const { error: userError } = await supabase.from("users").insert({
+        const { error: userError } = await supabase.from("users").upsert({
           id: data.user.id,
           email: data.user.email,
           full_name: displayName,
           role: "talent",
-        });
+        }, { onConflict: "id" });
 
         if (userError) {
           console.error("Error creating user record:", userError);
