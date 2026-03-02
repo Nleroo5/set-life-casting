@@ -57,6 +57,7 @@ function SignupForm() {
       const supabase = createClient();
 
       // Sign up user with Supabase Auth
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -65,6 +66,7 @@ function SignupForm() {
             full_name: data.fullName,
             role: "talent", // Default role for signup
           },
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       });
 

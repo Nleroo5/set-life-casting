@@ -47,6 +47,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
     setError("");
     try {
       const supabase = createClient();
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -54,6 +55,7 @@ export default function AccountStep({ onNext }: AccountStepProps) {
           data: {
             display_name: displayName,
           },
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       });
 
