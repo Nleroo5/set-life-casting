@@ -26,7 +26,7 @@ export default function ResourcesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="display-lg font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               Everything You Need to Know About <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Being An Extra</span>
             </h1>
             <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -53,7 +53,7 @@ export default function ResourcesPage() {
             <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-black mb-8 text-center [text-shadow:_0_0_20px_rgb(234_179_8_/_70%),_0_0_40px_rgb(234_179_8_/_40%)]" style={{ fontFamily: 'var(--font-galindo)' }}>
               START HERE
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               New to Extra Work? Start Here.
             </h2>
             <p className="text-lg md:text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -82,7 +82,7 @@ export default function ResourcesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               How Casting Works (Simple Breakdown)
             </h2>
           </div>
@@ -134,7 +134,7 @@ export default function ResourcesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-linear-to-br from-white to-purple-50/30 rounded-2xl p-8 md:p-10 border-2 border-accent shadow-[0_0_30px_rgba(95,101,196,0.15)] hover:shadow-[0_0_50px_rgba(95,101,196,0.3)] hover:border-purple-400 transition-all duration-300">
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to Know If You're Right for a Role
             </h2>
             <p className="text-lg text-secondary leading-relaxed text-center" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -152,7 +152,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold text-secondary mb-4 text-center animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               How to <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Submit Like a Pro</span>
             </h2>
             <p className="text-lg md:text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -346,7 +346,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold mb-4 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               Your First Day on Set: What to Expect
             </h2>
           </div>
@@ -427,7 +427,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold mb-6 text-center heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
               Getting Paid
             </h2>
             <div className="text-lg text-secondary-light leading-relaxed text-center max-w-3xl mx-auto space-y-4" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -467,7 +467,7 @@ export default function ResourcesPage() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="h-1 w-20 bg-linear-to-r from-accent to-purple-600 rounded-full mb-6 mx-auto" />
-          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-md font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">Questions?</span>
           </h2>
           <p className="text-lg md:text-lg text-secondary-light leading-relaxed mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -485,7 +485,7 @@ export default function ResourcesPage() {
       {/* CTA */}
       <section className="py-20 bg-linear-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-md font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get Started?
           </h2>
           <p className="text-lg md:text-lg mb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>

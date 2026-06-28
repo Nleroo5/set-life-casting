@@ -43,7 +43,7 @@ export default function ServicesPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="display-lg font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Trusted</span> Background Casting for Productions in Georgia & the Southeast
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed mb-8 drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -63,7 +63,7 @@ export default function ServicesPage() {
         <section className="py-12 md:py-16 lg:py-20 xl:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h2 className="display-md font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Who We Work With
               </h2>
               <p className="text-lg md:text-lg text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -106,7 +106,7 @@ export default function ServicesPage() {
         <section className="py-12 md:py-16 lg:py-20 xl:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <h2 className="display-md font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
                 What We Do
               </h2>
               <p className="text-lg md:text-lg text-secondary-light max-w-3xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -272,7 +272,7 @@ export default function ServicesPage() {
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h2 className="display-md font-bold text-secondary mb-4" style={{ fontFamily: 'var(--font-galindo)' }}>
               Why Productions Choose{" "}
               <span className="bg-linear-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">
                 Set Life Casting
@@ -313,7 +313,7 @@ export default function ServicesPage() {
       {/* CTA */}
       <section className="py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-md font-bold text-secondary mb-6 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Ready to Get <span className="bg-linear-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">Started?</span>
           </h2>
           <p className="text-lg md:text-lg text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>

@@ -48,7 +48,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="text-base sm:text-lg md:text-lg font-bold text-secondary truncate" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <span className="text-xl md:text-2xl font-bold text-secondary truncate" style={{ fontFamily: 'var(--font-galindo)' }}>
               Set Life Casting
             </span>
           </Link>

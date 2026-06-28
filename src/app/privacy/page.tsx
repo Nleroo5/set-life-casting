@@ -29,7 +29,7 @@ export default function PrivacyPage() {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="display-lg font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               Privacy <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Policy</span>
             </h1>
             <p className="text-xl text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>

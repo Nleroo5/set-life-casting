@@ -14,7 +14,7 @@ export default function CastingStatus() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-lg font-bold mb-4 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Be the First to <span className="text-accent">Know</span>
           </h2>
           <p className="text-xl text-secondary-light max-w-2xl mx-auto" style={{ fontFamily: 'var(--font-outfit)' }}>

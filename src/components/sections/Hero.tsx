@@ -92,7 +92,7 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           {/* Main Heading */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h1 className="display-xl font-bold text-white mb-6 leading-tight px-2 animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
             Casting Made <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Simple</span><br />For Talent & Productions
           </h1>
 
@@ -137,7 +137,7 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <div className="text-4xl md:text-5xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                 <AnimatedCounter target={150} duration={5} suffix="+" />
               </div>
               <div className="text-base md:text-lg text-white/80 font-medium" style={{ fontFamily: 'var(--font-galindo)' }}>
@@ -151,7 +151,7 @@ export default function Hero() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
+              <div className="text-4xl md:text-5xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
               <div className="text-base md:text-lg text-white/80 font-medium" style={{ fontFamily: 'var(--font-galindo)' }}>

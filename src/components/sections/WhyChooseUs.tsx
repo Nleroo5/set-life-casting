@@ -77,7 +77,7 @@ export default function WhyChooseUs() {
 
             {/* MAIN BOARD - Header */}
             <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 relative">
-              <h2 className="text-2xl sm:text-3xl md:text-3xl font-bold text-gray-900 text-center" style={{ fontFamily: 'var(--font-fredoka)' }}>
+              <h2 className="display-lg font-bold text-gray-900 text-center" style={{ fontFamily: 'var(--font-fredoka)' }}>
                 Why Productions Choose Set Life Casting
               </h2>
             </div>

@@ -143,7 +143,7 @@ export default function FAQPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
+            <h1 className="display-lg font-bold text-white mb-6 leading-tight px-2 drop-shadow-lg animate-word" style={{ fontFamily: 'var(--font-galindo)' }}>
               Frequently Asked <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent glow-text">Questions</span>
             </h1>
             <p className="text-lg md:text-lg text-white/90 leading-relaxed drop-shadow-md" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -173,7 +173,7 @@ export default function FAQPage() {
                 >
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#eab308" strokeWidth="0.5" />
                 </svg>
-                <h2 className="text-xl md:text-2xl font-bold text-secondary mx-2" style={{ fontFamily: 'var(--font-galindo)' }}>
+                <h2 className="display-md font-bold text-secondary mx-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                   {section.category}
                 </h2>
                 <svg
@@ -243,7 +243,7 @@ export default function FAQPage() {
       {/* CTA */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-md font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
             Still Have Questions?
           </h2>
           <p className="text-lg md:text-lg text-secondary-light mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>

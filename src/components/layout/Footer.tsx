@@ -73,7 +73,7 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-lg md:text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
+              <span className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
             <p className="text-white/90 text-base md:text-base">
               Atlanta&apos;s premier extras casting company for film, TV,
@@ -162,7 +162,7 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
+              <span className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'var(--font-galindo)' }}>Set Life Casting</span>
             </Link>
             <p className="text-white/90 text-base max-w-sm mx-auto">
               Atlanta&apos;s premier extras casting company for film, TV,
