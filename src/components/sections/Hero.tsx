@@ -137,10 +137,10 @@ export default function Hero() {
               transition={{ delay: 0.7, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                 <AnimatedCounter target={150} duration={5} suffix="+" />
               </div>
-              <div className="text-base md:text-lg text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Productions Served
               </div>
             </motion.div>
@@ -151,10 +151,10 @@ export default function Hero() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-center"
             >
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-galindo)' }}>
                 <AnimatedCounter target={100000} duration={6} suffix="+" />
               </div>
-              <div className="text-base md:text-lg text-white/80 font-medium">
+              <div className="text-base md:text-lg text-white/80 font-medium" style={{ fontFamily: 'var(--font-galindo)' }}>
                 Talent Cast
               </div>
             </motion.div>

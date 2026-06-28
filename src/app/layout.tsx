@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Outfit } from "next/font/google";
-import localFont from "next/font/local";
+import { Fredoka, Outfit, Lilita_One } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
@@ -23,9 +22,10 @@ const outfit = Outfit({
   display: "swap",
 });
 
-const galindo = localFont({
-  src: "../../font/Galindo-Regular.ttf",
+const lilitaOne = Lilita_One({
+  weight: "400",
   variable: "--font-galindo",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -238,7 +238,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${fredoka.variable} ${outfit.variable} ${galindo.variable} antialiased`}
+        className={`${fredoka.variable} ${outfit.variable} ${lilitaOne.variable} antialiased`}
       >
         {/* Google Analytics - Fixed: Moved new Date() to client component */}
         <Script
