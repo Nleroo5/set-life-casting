@@ -485,7 +485,7 @@ export default function ResourcesPage() {
       {/* CTA */}
       <section className="py-20 bg-linear-to-br from-accent to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="display-md font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)' }}>
+          <h2 className="display-md font-bold mb-6 heading-shimmer" style={{ fontFamily: 'var(--font-galindo)', WebkitTextStroke: '1px white' }}>
             Ready to Get Started?
           </h2>
           <p className="text-lg md:text-lg mb-8 text-white/90 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
