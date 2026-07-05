@@ -336,9 +336,10 @@ export async function hasUserSubmitted(
     .select('id')
     .eq('user_id', userId)
     .eq('role_id', roleId)
-    .single()
+    .maybeSingle()
 
-  // If no error and data exists, user has submitted
+  // maybeSingle() returns data=null (no error) when the user has not submitted,
+  // instead of .single()'s PGRST116 error. A real query error still yields false.
   return !error && !!data
 }
 

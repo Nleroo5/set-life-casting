@@ -40,9 +40,13 @@ function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Redirect if already logged in
+  // Redirect if already logged in AND email-verified.
+  // Gating on email_confirmed_at prevents a race with onSubmit's unverified
+  // sign-out: without it, the session set by signInWithPassword triggers this
+  // redirect to /dashboard before the manual verification check can sign the
+  // user back out, causing a redirect flip-flop.
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && user.email_confirmed_at) {
       // Redirect all users (including admins) to their intended destination
       // This ensures deep links work correctly even after cookie expiration
       router.push(redirectTo);

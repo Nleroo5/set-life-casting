@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
@@ -33,6 +33,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  // Mirror userData in a ref so the long-lived onAuthStateChange/getSession
+  // callbacks (registered once in the mount effect) can read the CURRENT value
+  // instead of the stale render-0 closure value. Without this, `!userData` in
+  // loadUserData was always true, so a failed TOKEN_REFRESHED re-fetch always
+  // wiped userData and flipped isAdmin to false.
+  const userDataRef = useRef<UserData | null>(null);
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
 
   useEffect(() => {
     // Get initial session
@@ -92,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Only clear userData on initial load (when it's null).
         // On re-fetches (TOKEN_REFRESHED), preserve the existing userData
         // to prevent isAdmin from flipping to false during token refresh.
-        if (!userData) setUserData(null);
+        if (!userDataRef.current) setUserData(null);
       } else if (data) {
         logger.debug("User data loaded", {
           hasData: !!data,
@@ -102,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       logger.error("Error in loadUserData:", error);
-      if (!userData) setUserData(null);
+      if (!userDataRef.current) setUserData(null);
     } finally {
       setLoading(false);
     }

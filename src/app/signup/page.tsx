@@ -42,9 +42,9 @@ function SignupForm() {
     resolver: zodResolver(signupSchema),
   });
 
-  // Redirect if already logged in
+  // Redirect if already logged in AND email-verified (mirrors the login gate).
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && user.email_confirmed_at) {
       router.push(redirectTo);
     }
   }, [authLoading, user, redirectTo, router]);
