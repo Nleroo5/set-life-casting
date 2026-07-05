@@ -83,21 +83,26 @@ function SignupForm() {
         return;
       }
 
-      // Create user record in public.users table (upsert for idempotency — safe to retry)
-      const { error: insertError } = await supabase
-        .from("users")
-        .upsert({
-          id: authData.user.id,
-          email: authData.user.email,
-          role: "talent",
-          full_name: data.fullName,
-        }, { onConflict: "id" });
+      // A database trigger already creates the public.users row (id, email, role)
+      // when the auth user is created. This client upsert only ENRICHES that row
+      // with full_name, and can only run when signUp returned a session (i.e. email
+      // confirmation is disabled). When confirmation is enabled, there is no session
+      // here, the client is anonymous, and RLS correctly blocks the write — that is
+      // expected, NOT a failure, because the account row already exists.
+      if (authData.session) {
+        const { error: insertError } = await supabase
+          .from("users")
+          .upsert({
+            id: authData.user.id,
+            email: authData.user.email,
+            role: "talent",
+            full_name: data.fullName,
+          }, { onConflict: "id" });
 
-      if (insertError) {
-        logger.error("Error creating user record:", insertError);
-        setError("Failed to create user profile. Please contact support.");
-        setIsSubmitting(false);
-        return;
+        if (insertError) {
+          // Non-fatal: the trigger already created the row; log for observability.
+          logger.error("Non-fatal: user record enrichment failed:", insertError);
+        }
       }
 
       // Success - show message and redirect to login
