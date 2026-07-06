@@ -404,19 +404,29 @@ export async function updateProfileStep(
  *
  * Returns profiles in flat structure for easier admin filtering
  */
+// Columns rendered by the admin talent grid. Selecting this subset instead of
+// '*' avoids transferring large unused text columns (bio, experience, training,
+// languages, unions, imdb_link, measurements, etc.). Keep in sync with the grid.
+const TALENT_LIST_COLUMNS =
+  'id, user_id, first_name, last_name, email, phone, city, state, ' +
+  'gender, date_of_birth, ethnicity, height_feet, height_inches, weight, ' +
+  'hair_color, hair_length, eye_color, shirt_size, pant_waist, pant_inseam, ' +
+  'dress_size, shoe_size, visible_tattoos, tattoos_description, facial_hair, ' +
+  'status, admin_tag, admin_notes, created_at'
+
 export async function getAllProfiles() {
   const supabase = createClient()
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select(TALENT_LIST_COLUMNS)
     .order('created_at', { ascending: false })
 
   if (error) {
     return { data: null, error }
   }
 
-  return { data: data as ProfileRow[], error: null }
+  return { data: data as unknown as ProfileRow[], error: null }
 }
 
 /**
