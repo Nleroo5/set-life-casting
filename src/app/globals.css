@@ -14,8 +14,12 @@
   --secondary-light: #6a6b78;
 
   --accent: #5f65c4;
-  --accent-dark: #5f65c4;
-  --accent-light: #5f65c4;
+  --accent-dark: #4a4f9f;
+  --accent-light: #8f93d6;
+
+  /* State colors (WCAG AA contrast on white: danger 4.8:1, success 5.0:1) */
+  --danger: #dc2626;
+  --success: #15803d;
 }
 
 @theme inline {
@@ -34,6 +38,9 @@
   --color-accent: var(--accent);
   --color-accent-dark: var(--accent-dark);
   --color-accent-light: var(--accent-light);
+
+  --color-danger: var(--danger);
+  --color-success: var(--success);
 
   /* Fonts */
   --font-heading: var(--font-fredoka);
