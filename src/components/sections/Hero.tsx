@@ -46,21 +46,27 @@ function AnimatedCounter({
 
 export default function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [shouldAutoplay, setShouldAutoplay] = useState(true);
 
   useEffect(() => {
-    // Detect mobile device and slow connection
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    const isSlowConnection = connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g' || connection?.effectiveType === '3g';
-    const isSaveDataEnabled = connection?.saveData;
+    const video = videoRef.current;
+    if (!video) return;
 
-    // Don't autoplay on mobile or slow connections to save data
-    if (isMobile || isSlowConnection || isSaveDataEnabled) {
-      setShouldAutoplay(false);
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
+    // Force muted at the DOM level: React does not reliably set the `muted`
+    // attribute, and browsers block autoplay for anything they consider unmuted.
+    video.muted = true;
+
+    const tryPlay = () => {
+      video.play().catch(() => {
+        // Autoplay was blocked (rare, e.g. strict data-saver mode); the poster
+        // stays visible. Nothing else to do.
+      });
+    };
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+      return () => video.removeEventListener("loadeddata", tryPlay);
     }
   }, []);
 
@@ -70,11 +76,11 @@ export default function Hero() {
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
-          autoPlay={shouldAutoplay}
+          autoPlay
           loop
           muted
           playsInline
-          preload={shouldAutoplay ? "auto" : "metadata"}
+          preload="auto"
           poster="/images/hero-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover"
         >
