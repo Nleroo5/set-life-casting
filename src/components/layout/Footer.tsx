@@ -126,10 +126,10 @@ export default function Footer() {
                 SetLifeCasting@gmail.com
               </a>
               <a
-                href="tel:+14706938314"
+                href="tel:+17705025460"
                 className="text-white/80 hover:text-accent transition-colors duration-200 text-base md:text-base block"
               >
-                (470) 693-8314
+                (770) 502-5460
               </a>
             </div>
             <div className="flex space-x-4">
@@ -229,10 +229,10 @@ export default function Footer() {
               SetLifeCasting@gmail.com
             </a>
             <a
-              href="tel:+14706938314"
+              href="tel:+17705025460"
               className="text-white/80 hover:text-accent transition-colors duration-200 text-base block"
             >
-              (470) 693-8314
+              (770) 502-5460
             </a>
           </div>
         </div>
