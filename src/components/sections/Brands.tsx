@@ -51,7 +51,7 @@ export default function Brands() {
           {track.map((brand, index) => (
             <div
               key={`${brand.name}-${index}`}
-              className="relative h-16 w-32 sm:h-20 sm:w-40 md:h-24 md:w-48 shrink-0 grayscale opacity-75 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+              className="relative h-16 w-32 sm:h-20 sm:w-40 md:h-24 md:w-48 shrink-0 opacity-90 hover:opacity-100 transition-opacity duration-300"
             >
               <Image
                 src={brand.logo}
