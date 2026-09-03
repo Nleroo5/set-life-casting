@@ -24,7 +24,13 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const [error, setError] = useState("");
+  // /auth/callback sends ?error=auth_callback_failed when a verification or
+  // reset link can't be exchanged for a session.
+  const [error, setError] = useState(
+    searchParams.get("error") === "auth_callback_failed"
+      ? "That link is invalid or has expired. Request a new one below."
+      : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");

@@ -99,10 +99,12 @@ export async function middleware(request: NextRequest) {
       .single()
 
     if (roleError) {
-      // DB query failed — allow through rather than blocking a legitimate admin
-      // Client-side layout guard + Supabase RLS still protect the data
+      // Fail closed. The admin layout deliberately does not gate on isAdmin
+      // (see admin/layout.tsx), so this check is the only thing between a
+      // non-admin and the admin UI. A legitimate admin hitting a transient
+      // error simply retries the navigation.
       console.error('[MIDDLEWARE] Admin role check failed:', roleError.message)
-      return response
+      return NextResponse.redirect(new URL('/', request.url))
     }
 
     if (userData?.role !== 'admin') {
@@ -112,10 +114,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('X-Authenticated', 'true')
   }
 
-  // Add security headers to all responses
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+  // Security headers are set for every route in next.config.ts headers()
 
   return response
 }

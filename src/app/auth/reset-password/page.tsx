@@ -85,9 +85,10 @@ function ResetPasswordForm() {
       // Password was successfully updated
       setSuccess(true);
 
-      // Redirect to login after 3 seconds
+      // The reset link's code exchange already created a session, so the user
+      // is signed in. Send them on to the dashboard.
       setTimeout(() => {
-        router.push("/login?reset=success");
+        router.push("/dashboard");
       }, 3000);
     } catch (err: unknown) {
       logger.error("Password reset error:", err);
@@ -151,10 +152,10 @@ function ResetPasswordForm() {
               Password Reset Successful
             </h2>
             <p className="text-base text-secondary-light mb-6" style={{ fontFamily: "var(--font-outfit)" }}>
-              Your password has been successfully reset. You can now sign in with your new password.
+              Your password has been updated and you&apos;re signed in.
             </p>
             <p className="text-sm text-secondary-light" style={{ fontFamily: "var(--font-outfit)" }}>
-              Redirecting to login...
+              Taking you to your dashboard...
             </p>
           </div>
         </div>

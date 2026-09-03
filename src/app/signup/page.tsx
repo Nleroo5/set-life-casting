@@ -64,7 +64,6 @@ function SignupForm() {
         options: {
           data: {
             full_name: data.fullName,
-            role: "talent", // Default role for signup
           },
           emailRedirectTo: `${siteUrl}/auth/callback`,
         },
@@ -89,13 +88,13 @@ function SignupForm() {
       // confirmation is disabled). When confirmation is enabled, there is no session
       // here, the client is anonymous, and RLS correctly blocks the write — that is
       // expected, NOT a failure, because the account row already exists.
+      // Role is intentionally absent: the database assigns it (migration 021).
       if (authData.session) {
         const { error: insertError } = await supabase
           .from("users")
           .upsert({
             id: authData.user.id,
             email: authData.user.email,
-            role: "talent",
             full_name: data.fullName,
           }, { onConflict: "id" });
 

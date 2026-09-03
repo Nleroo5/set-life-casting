@@ -156,7 +156,7 @@ export default function RootLayout({
               "name": "Set Life Casting",
               "legalName": "Set Life Casting LLC",
               "url": "https://www.setlifecasting.com",
-              "logo": "https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d",
+              "logo": "https://www.setlifecasting.com/images/logo.png",
               "image": "https://www.setlifecasting.com/images/set-life-casting-atlanta-production-set.jpg",
               "description": "Atlanta's premier extras casting company specializing in background talent for film, TV, commercials, and music videos across Georgia and the Southeast. 10+ years experience with 100,000+ talent cast.",
               "telephone": "+1-770-502-5460",
@@ -230,7 +230,7 @@ export default function RootLayout({
                 "name": "Set Life Casting",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": "https://firebasestorage.googleapis.com/v0/b/drive-lead-media-crm.firebasestorage.app/o/websiteQuotes%2Fquote_1760395151657_f05s8xyu2%2Flogo%2FScreen%20Shot%202024-01-27%20at%203.54.57%20PM-fotor-2024012904710.jpg?alt=media&token=be6f763a-80f6-47d1-ad5e-b2fd483b339d"
+                  "url": "https://www.setlifecasting.com/images/logo.png"
                 }
               }
             })

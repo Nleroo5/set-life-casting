@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getProfile } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
-import { getRoles } from "@/lib/supabase/casting";
 import { getPhotosByUserId } from "@/lib/supabase/photos";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
@@ -52,8 +51,12 @@ export default function DashboardPage() {
   const [pastBookings, setPastBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
+  // Set before logout() so the redirect effect below doesn't fire a second
+  // navigation to /login once user becomes null.
+  const signingOut = useRef(false);
 
   useEffect(() => {
+    if (signingOut.current) return;
     if (!authLoading && !user) {
       router.push("/login?redirect=/dashboard");
     } else if (!authLoading && user && isAdmin) {
@@ -68,6 +71,9 @@ export default function DashboardPage() {
   async function fetchUserData() {
     if (!user || hasFetched) return;
     setHasFetched(true);
+    // Stays true when we hand off to /profile/create so the empty dashboard
+    // never paints before the navigation lands.
+    let redirecting = false;
 
     try {
       // Fetch profile from Supabase
@@ -78,10 +84,9 @@ export default function DashboardPage() {
       }
 
       if (!profileData || !profileData.basicInfo) {
-        // No profile found - redirect to create profile (admins don't need profiles)
-        if (!isAdmin) {
-          router.push("/profile/create");
-        }
+        // No profile found - redirect to create profile
+        redirecting = true;
+        router.push("/profile/create");
         return;
       }
 
@@ -116,30 +121,23 @@ export default function DashboardPage() {
         logger.error("Error fetching submissions:", submissionsError);
         setSubmissions([]);
       } else if (submissionsData) {
-        // Batch-fetch all roles for these submissions in one query
-        const roleIds = [...new Set(submissionsData.map((s: any) => s.role_id).filter(Boolean))];
-        const { data: rolesData } = await getRoles({ includeProject: true });
-        const rolesMap = new Map((rolesData || []).map((r: any) => [r.id, r]));
-
-        const mappedSubmissions: Submission[] = submissionsData.map((submission: any) => {
-          const roleData = rolesMap.get(submission.role_id);
-          return {
-            id: submission.id,
-            roleId: submission.role_id,
-            projectId: submission.project_id,
-            roleName: roleData?.title || 'Unknown Role',
-            projectTitle: (roleData as any)?.projects?.title || 'Unknown Project',
-            status: submission.status,
-            submittedAt: new Date(submission.submitted_at),
-          };
-        });
+        // getUserSubmissions already joins roles(title) and projects(title)
+        const mappedSubmissions: Submission[] = submissionsData.map((submission: any) => ({
+          id: submission.id,
+          roleId: submission.role_id,
+          projectId: submission.project_id,
+          roleName: submission.roles?.title || 'Unknown Role',
+          projectTitle: submission.projects?.title || 'Unknown Project',
+          status: submission.status,
+          submittedAt: new Date(submission.submitted_at),
+        }));
 
         setSubmissions(mappedSubmissions);
       }
     } catch (error) {
       logger.error("Error fetching user data:", error);
     } finally {
-      setLoading(false);
+      if (!redirecting) setLoading(false);
     }
   }
 
@@ -163,10 +161,12 @@ export default function DashboardPage() {
   }
 
   const handleSignOut = async () => {
+    signingOut.current = true;
     try {
       await logout();
       router.push("/");
     } catch (error) {
+      signingOut.current = false;
       logger.error("Sign out error:", error);
     }
   };
@@ -218,7 +218,7 @@ export default function DashboardPage() {
             >
               Welcome Back,{" "}
               <span className="bg-linear-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {profile?.basicInfo?.firstName || user.user_metadata?.full_name || null || "Talent"}
+                {profile?.basicInfo?.firstName || user.user_metadata?.full_name || "Talent"}
               </span>
             </h1>
             <p
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                   <p className="text-secondary-light mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
                     You haven&apos;t completed your profile yet
                   </p>
-                  <Link href="/casting">
+                  <Link href="/profile/create">
                     <Button variant="primary">
                       Complete Your Profile
                     </Button>

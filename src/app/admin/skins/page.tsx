@@ -472,7 +472,7 @@ export default function SkinsBuilderPage() {
 
       // Fetch and add logo (positioned clearly below table)
       try {
-        const logoUrl = "/api/logo";
+        const logoUrl = "/images/logo.png";
         const response = await fetch(logoUrl);
 
         if (!response.ok) {
@@ -482,7 +482,7 @@ export default function SkinsBuilderPage() {
         const imageBuffer = await response.arrayBuffer();
         const imageId = workbook.addImage({
           buffer: imageBuffer,
-          extension: 'jpeg',
+          extension: 'png',
         });
 
         // Place logo - col 4 for center, row is 0-indexed
