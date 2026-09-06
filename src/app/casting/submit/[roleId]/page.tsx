@@ -188,6 +188,13 @@ export default function SubmitPage() {
         return;
       }
 
+      // Closed, filled and archived roles are not listed, but their ids are
+      // readable; refuse them here as well as in the database (migration 023).
+      if ((roleData as { status?: string }).status !== "open") {
+        router.push("/casting");
+        return;
+      }
+
       setRole(roleData as any); // Cast to Role interface (old Firebase structure)
 
       // Get project data

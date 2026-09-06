@@ -74,8 +74,11 @@ function LoginForm() {
 
       if (authError) {
         logger.error("Login error:", authError);
-        // Supabase error messages are user-friendly by default
-        setError(authError.message);
+        const friendly: Record<string, string> = {
+          "Email not confirmed": "Please verify your email before logging in. Check your inbox for the verification link.",
+          "Invalid login credentials": "Incorrect email or password.",
+        };
+        setError(friendly[authError.message] ?? authError.message);
         setIsSubmitting(false);
         return;
       }

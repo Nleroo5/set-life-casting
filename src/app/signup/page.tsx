@@ -71,7 +71,11 @@ function SignupForm() {
 
       if (signUpError) {
         logger.error("Signup error:", signUpError);
-        setError(signUpError.message);
+        setError(
+          /rate limit/i.test(signUpError.message)
+            ? "We couldn't send your verification email right now. Please try again in a few minutes."
+            : signUpError.message
+        );
         setIsSubmitting(false);
         return;
       }

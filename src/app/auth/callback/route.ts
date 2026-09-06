@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { validateRedirectUrl } from '@/lib/utils/redirect'
 
@@ -9,15 +10,27 @@ import { validateRedirectUrl } from '@/lib/utils/redirect'
  * - Email verification after signup
  * - Password reset links
  *
- * Supabase redirects here with a `code` query parameter.
- * We exchange it for a session, then redirect to the intended page.
+ * Two link styles are accepted:
+ *   - `token_hash` + `type` (email templates using {{ .TokenHash }}): verified
+ *     server-side, works on any device.
+ *   - `code` (PKCE): only works in the browser that started the flow, because
+ *     the code verifier lives in that browser's cookie.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
+  const tokenHash = searchParams.get('token_hash')
+  const type = searchParams.get('type') as EmailOtpType | null
   const code = searchParams.get('code')
   const next = validateRedirectUrl(searchParams.get('next'), '/')
 
-  if (code) {
+  if (tokenHash && type) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
+
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`)
+    }
+  } else if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 

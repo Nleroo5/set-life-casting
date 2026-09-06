@@ -136,6 +136,21 @@ export interface ProfileRow {
 }
 
 /**
+ * Whole years between a YYYY-MM-DD date of birth and today, in local time.
+ */
+export function ageFromDateOfBirth(dateOfBirth: string | null | undefined): number | null {
+  const m = dateOfBirth ? /^(\d{4})-(\d{2})-(\d{2})/.exec(dateOfBirth) : null
+  if (!m) return null
+  const today = new Date()
+  let age = today.getFullYear() - Number(m[1])
+  const birthdayPassed =
+    today.getMonth() + 1 > Number(m[2]) ||
+    (today.getMonth() + 1 === Number(m[2]) && today.getDate() >= Number(m[3]))
+  if (!birthdayPassed) age -= 1
+  return age >= 0 ? age : null
+}
+
+/**
  * Map nested Firebase structure to flat Supabase columns
  */
 function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
@@ -176,7 +191,10 @@ function mapProfileDataToRow(data: ProfileData): Partial<ProfileRow> {
     if (data.appearance.hairLength !== undefined) row.hair_length = data.appearance.hairLength || null
     if (data.appearance.eyeColor !== undefined) row.eye_color = data.appearance.eyeColor || null
     if (data.appearance.age !== undefined) row.age = data.appearance.age || null
-    if (data.appearance.dateOfBirth !== undefined) row.date_of_birth = data.appearance.dateOfBirth || null
+    if (data.appearance.dateOfBirth !== undefined) {
+      row.date_of_birth = data.appearance.dateOfBirth || null
+      row.age = ageFromDateOfBirth(data.appearance.dateOfBirth)
+    }
   }
 
   // Map sizes
@@ -245,7 +263,7 @@ function mapRowToProfileData(row: ProfileRow): ProfileData {
       hairColor: row.hair_color || undefined,
       hairLength: row.hair_length || undefined,
       eyeColor: row.eye_color || undefined,
-      age: row.age || undefined,
+      age: row.age ?? ageFromDateOfBirth(row.date_of_birth) ?? undefined,
       dateOfBirth: row.date_of_birth || undefined,
     },
     sizes: {

@@ -16,18 +16,22 @@ export interface DatePickerProps {
   minDate?: Date;
 }
 
+// A date of birth is a calendar day, not an instant. Parse and format it from
+// local year/month/day so it never shifts across the UTC boundary (which made
+// "January 10" save as the 11th and display as the 9th).
+const parseLocalDate = (value?: string): Date | null => {
+  const m = value ? /^(\d{4})-(\d{2})-(\d{2})/.exec(value) : null;
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+};
+const formatLocalDate = (date: Date): string =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
   ({ label, error, value, onChange, name, placeholder = "Select date", maxDate, minDate }, ref) => {
-    const selectedDate = value ? new Date(value) : null;
+    const selectedDate = parseLocalDate(value);
 
     const handleChange = (date: Date | null) => {
-      if (date) {
-        // Format as YYYY-MM-DD for form compatibility
-        const formatted = date.toISOString().split("T")[0];
-        onChange?.(formatted);
-      } else {
-        onChange?.("");
-      }
+      onChange?.(date ? formatLocalDate(date) : "");
     };
 
     return (

@@ -52,10 +52,10 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.mailerlitelibrary.com https://assets.mailerlite.com https://groot.mailerlite.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.clarity.ms",
-              "style-src 'self' 'unsafe-inline' https://assets.mailerlite.com https://assets.mlcdn.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.mailerlitelibrary.com https://assets.mailerlite.com https://groot.mailerlite.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.clarity.ms https://assets.mlcdn.com",
+              "style-src 'self' 'unsafe-inline' https://assets.mailerlite.com https://assets.mlcdn.com https://fonts.mailerlite.com",
               "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co",
-              "font-src 'self' data:",
+              "font-src 'self' data: https://fonts.mailerlite.com https://assets.mlcdn.com",
               "connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.clarity.ms https://*.mailerlite.com https://accounts.google.com",
               "frame-src 'self' https://www.google.com https://www.gstatic.com https://www.facebook.com",
               "object-src 'none'",

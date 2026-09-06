@@ -64,7 +64,6 @@ export default function DashboardPage() {
       router.push("/admin");
     } else if (user && !isAdmin && !authLoading && !hasFetched) {
       fetchUserData();
-      fetchPastBookings();
     }
   }, [authLoading, user, isAdmin, hasFetched]);
 
@@ -133,30 +132,23 @@ export default function DashboardPage() {
         }));
 
         setSubmissions(mappedSubmissions);
+
+        // Past work = submissions the admin marked as booked
+        setPastBookings(
+          submissionsData
+            .filter((s) => s.status === "booked")
+            .map((s) => ({
+              id: s.id,
+              roleName: s.roles?.title || "Unknown Role",
+              projectTitle: s.projects?.title || "Unknown Project",
+              updatedAt: new Date(s.booked_at || s.updated_at || s.submitted_at),
+            }))
+        );
       }
     } catch (error) {
       logger.error("Error fetching user data:", error);
     } finally {
       if (!redirecting) setLoading(false);
-    }
-  }
-
-  async function fetchPastBookings() {
-    if (!user) return;
-
-    try {
-      // TODO: Bookings feature not migrated to Supabase yet
-      // For now, just set empty array
-      const bookings: Array<{
-        id: string;
-        roleName: string;
-        projectTitle: string;
-        updatedAt: Date | undefined;
-      }> = [];
-
-      setPastBookings(bookings);
-    } catch (error) {
-      logger.error("Error fetching past bookings:", error);
     }
   }
 
