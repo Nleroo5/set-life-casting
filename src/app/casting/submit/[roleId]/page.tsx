@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getProfile, createProfile } from "@/lib/supabase/profiles";
+import { getPhotosByUserId } from "@/lib/supabase/photos";
 import { getRole, getProject } from "@/lib/supabase/casting";
 import { createSubmission } from "@/lib/supabase/submissions";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
@@ -124,7 +125,6 @@ export default function SubmitPage() {
 
       if (profileData) {
         // Check if profile has all required data
-        // Note: Photos are stored separately and not part of ProfileData
         const hasCompleteProfile =
           profileData.basicInfo &&
           profileData.appearance &&
@@ -142,7 +142,15 @@ export default function SubmitPage() {
             photos: {}, // Photos are fetched separately from photos table
           } as any);
           setHasExistingProfile(true);
-          setCurrentStep(7); // Skip directly to review
+
+          // Photos live in their own table. The database refuses a submission
+          // without a headshot and a full body photo, so only skip the photos
+          // step when both already exist.
+          const { data: photos } = await getPhotosByUserId(user.id);
+          const hasRequiredPhotos =
+            !!photos?.some((p) => p.type === "headshot") &&
+            !!photos?.some((p) => p.type === "fullbody");
+          setCurrentStep(hasRequiredPhotos ? 7 : 6);
         } else {
           // Incomplete profile, start from step 2
           // Note: Type casting due to mismatch between ProfileData and FormData interfaces
@@ -251,6 +259,11 @@ export default function SubmitPage() {
       });
 
       if (profileError) {
+        // check_violation: the database's required-photos rule (migration 022)
+        if (profileError.code === "23514") {
+          alert(profileError.message);
+          return;
+        }
         logger.error("Profile creation error:", profileError);
         throw new Error("Failed to save profile");
       }
@@ -278,6 +291,12 @@ export default function SubmitPage() {
         if ((submissionError as any).code === '23505') {
           alert("You have already submitted for this role.");
           router.push("/dashboard");
+          return;
+        }
+
+        // check_violation: the database's required-photos rule (migration 022)
+        if (submissionError.code === "23514") {
+          alert(submissionError.message);
           return;
         }
 

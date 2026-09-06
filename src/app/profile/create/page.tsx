@@ -229,6 +229,12 @@ export default function CreateProfilePage() {
       });
 
       if (error) {
+        // check_violation: the database's required-photos rule (migration 022)
+        if (error.code === "23514") {
+          alert(error.message);
+          setIsSubmitting(false);
+          return;
+        }
         logger.error("❌ Supabase createProfile error:", error);
         throw error;
       }

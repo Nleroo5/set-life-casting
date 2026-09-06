@@ -203,6 +203,7 @@ There is no test suite. Verify changes with `npx tsc --noEmit`, a lint compariso
 ## 📝 Notes
 
 - Localhost runs on port 3002, not 3000
+- If `next dev`, `tsc` or `eslint` hang at ~0% CPU: this repo lives on an iCloud-synced Desktop and macOS evicts `node_modules` files (`ls -lO` shows `dataless`). Run tooling from a copy outside iCloud, or move the repo out of iCloud
 - Supabase config uses `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only)
 - Email verification required before login and before profile submission
 - Admin role is `public.users.role = 'admin'`
