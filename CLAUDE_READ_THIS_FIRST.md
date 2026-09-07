@@ -183,8 +183,8 @@ After making ANY change:
 ## 🔐 SUPABASE CREDENTIALS
 
 **Project URL**: https://inhdkjjrahvhrdkbkiogw.supabase.co
-**Anon Key**: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluaGRqanJhaHZocmRrYmtpb2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNjkxNDAsImV4cCI6MjA4NTY0NTE0MH0.0rAYfBG2tZ2NJWCECBiGmhbK2Ei6g21-HxEWUZEi_kU
-**Service Role Key**: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluaGRqanJhaHZocmRrYmtpb2d3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDA2OTE0MCwiZXhwIjoyMDg1NjQ1MTQwfQ.7bZWUaUNKHCnLTznrDqHSMFi4NzkkEM60SQWcIw2GCo
+**Anon Key**: <REDACTED - key rotated 2026-09-06; never commit keys>
+**Service Role Key**: <REDACTED - key rotated 2026-09-06; never commit keys>
 
 ---
 
