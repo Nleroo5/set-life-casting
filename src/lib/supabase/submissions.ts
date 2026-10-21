@@ -7,8 +7,9 @@
  * Created: 2026-02-04
  * Part of: Firebase to Supabase Migration
  *
- * NOTE: supabaseAdmin is imported inside functions that need it (not at module level)
- * to avoid errors when this file is imported in client components
+ * NOTE: This module runs in the browser. Admin-only writes use the regular client and
+ * are authorized by the admin RLS policies (migrations 013/014). The service-role
+ * client cannot be used here: its key does not exist in client bundles.
  */
 
 import { createClient } from './config'
@@ -102,7 +103,7 @@ export async function createSubmission(
 /**
  * Update submission status (admin only)
  *
- * Uses service role client to bypass RLS (admin operation)
+ * Authorized by the admin RLS policies (migrations 013/014)
  *
  * @param submissionId - Submission ID
  * @param status - New status
@@ -112,7 +113,7 @@ export async function updateSubmissionStatus(
   submissionId: string,
   status: SubmissionStatus
 ) {
-  const { supabaseAdmin } = await import('./admin')
+  const supabase = createClient()
 
   const updates: any = { status, updated_at: new Date().toISOString() }
 
@@ -128,7 +129,7 @@ export async function updateSubmissionStatus(
     updates.booked_at = null
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('submissions')
     .update(updates)
     .eq('id', submissionId)
@@ -141,7 +142,7 @@ export async function updateSubmissionStatus(
 /**
  * Update submission admin notes (admin only)
  *
- * Uses service role client to bypass RLS (admin operation)
+ * Authorized by the admin RLS policies (migrations 013/014)
  *
  * @param submissionId - Submission ID
  * @param notes - Admin notes
@@ -150,9 +151,9 @@ export async function updateSubmissionNotes(
   submissionId: string,
   notes: string
 ) {
-  const { supabaseAdmin } = await import('./admin')
+  const supabase = createClient()
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('submissions')
     .update({ admin_notes: notes, updated_at: new Date().toISOString() })
     .eq('id', submissionId)
@@ -405,7 +406,7 @@ export async function getSubmissionCounts() {
 /**
  * Bulk update submission statuses (admin only)
  *
- * Uses service role client to bypass RLS (admin operation)
+ * Authorized by the admin RLS policies (migrations 013/014)
  *
  * @param submissionIds - Array of submission IDs
  * @param status - New status
@@ -415,7 +416,7 @@ export async function bulkUpdateSubmissionStatus(
   submissionIds: string[],
   status: SubmissionStatus
 ) {
-  const { supabaseAdmin } = await import('./admin')
+  const supabase = createClient()
 
   const updates: any = { status, updated_at: new Date().toISOString() }
 
@@ -431,7 +432,7 @@ export async function bulkUpdateSubmissionStatus(
     updates.booked_at = null
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('submissions')
     .update(updates)
     .in('id', submissionIds)
