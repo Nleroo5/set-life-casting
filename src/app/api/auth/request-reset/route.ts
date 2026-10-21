@@ -40,12 +40,23 @@ export async function POST(request: NextRequest) {
       redirectTo: `${appUrl}/auth/callback?next=/auth/reset-password`,
     });
 
-    // Log any errors but don't expose them to the user
+    // Supabase already answers success for unknown addresses, so an error here
+    // means the email was not sent (rate limit or mailer failure). Say so,
+    // instead of telling the user to check an inbox that will stay empty.
     if (error) {
       logger.error("Supabase password reset error:", error);
+      const rateLimited = error.status === 429;
+      return NextResponse.json(
+        {
+          error: rateLimited
+            ? "Too many reset requests. Please wait a few minutes and try again."
+            : "We couldn't send the reset email right now. Please try again later.",
+        },
+        { status: rateLimited ? 429 : 503 }
+      );
     }
 
-    // For security, always return success (don't reveal if email exists)
+    // Unknown addresses also land here, so this does not reveal whether an account exists
     return NextResponse.json({
       success: true,
       message: "If an account exists with this email, you will receive a password reset link.",
