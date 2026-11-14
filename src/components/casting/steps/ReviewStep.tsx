@@ -126,7 +126,7 @@ export default function ReviewStep({
         <ReviewSection title="Appearance">
           <ReviewItem label="Gender" value={appearance.gender} />
           <ReviewItem label="Date of Birth" value={appearance.dateOfBirth} />
-          <ReviewItem label="Ethnicity" value={appearance.ethnicity.join(", ")} />
+          <ReviewItem label="Ethnicity" value={(appearance.ethnicity || []).join(", ")} />
           <ReviewItem label="Height" value={appearance.height} />
           <ReviewItem label="Weight" value={`${appearance.weight} lbs`} />
           <ReviewItem label="Hair" value={`${appearance.hairColor} (${appearance.hairLength})`} />

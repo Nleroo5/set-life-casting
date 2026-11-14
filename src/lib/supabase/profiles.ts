@@ -41,11 +41,11 @@ export interface Sizes {
   womensPantSize?: string
   bust?: number
   chest?: string
-  waist?: string
-  hips?: string
+  waist?: number
+  hips?: number
   inseam?: string
-  neck?: string
-  sleeve?: string
+  neck?: number
+  sleeve?: number
   jacketSize?: string
   dressSize?: string
   shoeSize?: string
@@ -149,6 +149,30 @@ export function ageFromDateOfBirth(dateOfBirth: string | null | undefined): numb
   if (!birthdayPassed) age -= 1
   return age >= 0 ? age : null
 }
+
+/**
+ * waist, hips, neck and sleeve are text columns but number fields in the form.
+ * Read them back as numbers so the sizes schema accepts a saved profile.
+ */
+function measurementToNumber(value: string | null | undefined): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined
+  const n = Number(value)
+  return Number.isFinite(n) ? n : undefined
+}
+
+/**
+ * Columns the profile form reads back. admin_tag, admin_notes and status are
+ * admin-only and are left out so a talent's own requests never carry them to
+ * the browser; the admin pages select those three explicitly.
+ */
+const PROFILE_FORM_COLUMNS =
+  'id, user_id, first_name, last_name, email, phone, city, state, ' +
+  'gender, ethnicity, hair_color, hair_length, eye_color, age, date_of_birth, ' +
+  'height_feet, height_inches, weight, shirt_size, pant_waist, pant_inseam, ' +
+  'womens_pant_size, bust, chest, waist, hips, inseam, neck, sleeve, jacket_size, ' +
+  'dress_size, shoe_size, visible_tattoos, tattoos_description, facial_hair, ' +
+  'bio, experience, training, special_skills, languages, unions, imdb_link, ' +
+  'profile_complete, last_step_completed, created_at, updated_at'
 
 /**
  * Map nested Firebase structure to flat Supabase columns
@@ -273,11 +297,11 @@ function mapRowToProfileData(row: ProfileRow): ProfileData {
       womensPantSize: row.womens_pant_size || undefined,
       bust: row.bust || undefined,
       chest: row.chest || undefined,
-      waist: row.waist || undefined,
-      hips: row.hips || undefined,
+      waist: measurementToNumber(row.waist),
+      hips: measurementToNumber(row.hips),
       inseam: row.inseam || undefined,
-      neck: row.neck || undefined,
-      sleeve: row.sleeve || undefined,
+      neck: measurementToNumber(row.neck),
+      sleeve: measurementToNumber(row.sleeve),
       jacketSize: row.jacket_size || undefined,
       dressSize: row.dress_size || undefined,
       shoeSize: row.shoe_size || undefined,
@@ -309,7 +333,7 @@ export async function getProfile(userId: string) {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select(PROFILE_FORM_COLUMNS)
     .eq('user_id', userId)
     .single()
 
@@ -322,7 +346,7 @@ export async function getProfile(userId: string) {
   }
 
   // Convert flat row to nested structure
-  return { data: mapRowToProfileData(data as ProfileRow), error: null }
+  return { data: mapRowToProfileData(data as unknown as ProfileRow), error: null }
 }
 
 /**
@@ -367,14 +391,14 @@ export async function updateProfile(userId: string, data: Partial<ProfileData>) 
     .from('profiles')
     .update(row)
     .eq('user_id', userId)
-    .select()
+    .select(PROFILE_FORM_COLUMNS)
     .single()
 
   if (error) {
     return { data: null, error }
   }
 
-  return { data: mapRowToProfileData(result as ProfileRow), error: null }
+  return { data: mapRowToProfileData(result as unknown as ProfileRow), error: null }
 }
 
 /**
@@ -407,14 +431,14 @@ export async function updateProfileStep(
     }, {
       onConflict: 'user_id',
     })
-    .select()
+    .select(PROFILE_FORM_COLUMNS)
     .single()
 
   if (error) {
     return { data: null, error }
   }
 
-  return { data: mapRowToProfileData(data as ProfileRow), error: null }
+  return { data: mapRowToProfileData(data as unknown as ProfileRow), error: null }
 }
 
 /**

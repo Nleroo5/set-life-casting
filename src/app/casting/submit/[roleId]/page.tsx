@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getProfile, createProfile } from "@/lib/supabase/profiles";
-import { getPhotosByUserId } from "@/lib/supabase/photos";
+import { getPhotosByUserId, linkPhotosToProfile } from "@/lib/supabase/photos";
 import { getRole, getProject } from "@/lib/supabase/casting";
 import { createSubmission } from "@/lib/supabase/submissions";
 import ProgressIndicator from "@/components/ui/ProgressIndicator";
@@ -21,6 +21,7 @@ import {
   SizesFormData,
   DetailsFormData,
   PhotosFormData,
+  firstIncompleteProfileSection,
 } from "@/lib/schemas/casting";
 import { logger } from "@/lib/logger";
 
@@ -83,9 +84,10 @@ export default function SubmitPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      // Come back to this role after signing in
+      router.push(`/login?redirect=${encodeURIComponent(`/casting/submit/${roleId}`)}`);
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, router, roleId]);
 
   // Redirect admins to admin page - they don't need to submit for roles
   useEffect(() => {
@@ -103,11 +105,15 @@ export default function SubmitPage() {
   }, [authLoading, user, isAdmin, router]);
 
   // Check for existing profile and either skip to review or skip Step 1
+  // Keyed on the user's id, not the user object: Supabase hands back a new
+  // object on every token refresh and tab refocus, and re-running this would
+  // reload the form and jump back to Review, discarding unsaved edits.
   useEffect(() => {
     if (!authLoading && user && !isAdmin) {
       checkExistingProfile();
     }
-  }, [authLoading, user, isAdmin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id, isAdmin]);
 
   async function checkExistingProfile() {
     if (!user) return;
@@ -124,25 +130,11 @@ export default function SubmitPage() {
       }
 
       if (profileData) {
-        // Check if profile has all required data
-        const hasCompleteProfile =
-          profileData.basicInfo &&
-          profileData.appearance &&
-          profileData.sizes &&
-          profileData.details;
+        // The four sections are always present as objects, so test their
+        // contents: the first one that fails its form schema is where to resume.
+        const incompleteSection = firstIncompleteProfileSection(profileData);
 
-        if (hasCompleteProfile) {
-          // Load existing profile data (photos fetched separately)
-          // Note: Type casting due to mismatch between ProfileData and FormData interfaces
-          setFormData({
-            basicInfo: profileData.basicInfo || {},
-            appearance: profileData.appearance || {},
-            sizes: profileData.sizes || {},
-            details: profileData.details || {},
-            photos: {}, // Photos are fetched separately from photos table
-          } as any);
-          setHasExistingProfile(true);
-
+        if (!incompleteSection) {
           // Photos live in their own table. The database refuses a submission
           // without a headshot and a full body photo, so only skip the photos
           // step when both already exist.
@@ -150,9 +142,25 @@ export default function SubmitPage() {
           const hasRequiredPhotos =
             !!photos?.some((p) => p.type === "headshot") &&
             !!photos?.some((p) => p.type === "fullbody");
+
+          // Load existing profile data, with the saved photos so Review shows them
+          // Note: Type casting due to mismatch between ProfileData and FormData interfaces
+          setFormData({
+            basicInfo: profileData.basicInfo || {},
+            appearance: profileData.appearance || {},
+            sizes: profileData.sizes || {},
+            details: profileData.details || {},
+            photos: {
+              photos: (photos || []).map((p) => ({
+                url: p.url,
+                type: p.type === "portfolio" ? "additional" : p.type,
+              })),
+            },
+          } as any);
+          setHasExistingProfile(true);
           setCurrentStep(hasRequiredPhotos ? 7 : 6);
         } else {
-          // Incomplete profile, start from step 2
+          // Incomplete profile: resume at the first section that still needs data
           // Note: Type casting due to mismatch between ProfileData and FormData interfaces
           setFormData({
             basicInfo: profileData.basicInfo || {},
@@ -161,7 +169,8 @@ export default function SubmitPage() {
             details: profileData.details || {},
             photos: {}, // Photos are fetched separately from photos table
           } as any);
-          setCurrentStep(2);
+          const stepForSection = { basicInfo: 2, appearance: 3, sizes: 4, details: 5 } as const;
+          setCurrentStep(stepForSection[incompleteSection]);
         }
       } else if (currentStep === 1) {
         // No profile, skip to step 2 (basic info)
@@ -195,13 +204,14 @@ export default function SubmitPage() {
         return;
       }
 
-      setRole(roleData as any); // Cast to Role interface (old Firebase structure)
+      // The page's Role/Project shapes use name/type; the rows use title/project_type
+      setRole({ ...(roleData as any), name: roleData.title });
 
       // Get project data
       if ((roleData as any).project_id) {
         const { data: projectData, error: projectError } = await getProject((roleData as any).project_id);
         if (projectData && !projectError) {
-          setProject(projectData as any); // Cast to Project interface
+          setProject({ ...(projectData as any), type: projectData.project_type || "" });
         }
       }
     } catch (error) {
@@ -224,7 +234,10 @@ export default function SubmitPage() {
       }
     }
 
-    setCurrentStep((prev) => Math.min(prev + 1, 7));
+    // Advance from the step this handler was rendered for, not from whatever the
+    // step is by now: a double-click on Next fires this twice, and counting up
+    // from the latest value would skip a step.
+    setCurrentStep(Math.min(currentStep + 1, 7));
   };
 
   const handlePrevious = () => {
@@ -280,6 +293,13 @@ export default function SubmitPage() {
       }
 
       const profileId = profileResult.id;
+
+      // Photos uploaded in this wizard before the profile row existed have no
+      // profile_id yet, and the admin views load photos by profile_id.
+      const { error: linkError } = await linkPhotosToProfile(user.id, profileId);
+      if (linkError) {
+        logger.error("Failed to link photos to profile:", linkError);
+      }
 
       // Create submission record
       // Note: Database UNIQUE constraint on (user_id, role_id) prevents duplicates
@@ -364,7 +384,7 @@ export default function SubmitPage() {
             className="text-base text-secondary-light"
             style={{ fontFamily: "var(--font-outfit)" }}
           >
-            {project.title} • {project.type}
+            {project.title}{project.type ? ` • ${project.type}` : ""}
           </p>
         </div>
 

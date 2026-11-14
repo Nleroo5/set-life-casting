@@ -41,10 +41,10 @@ export default function DetailsStep({ data, gender, onNext, onPrevious }: Detail
   } = useForm<DetailsFormData>({
     resolver: zodResolver(detailsSchema),
     defaultValues: {
-      gender: gender,
       visibleTattoos: false,
       facialHair: "",
       ...data,
+      gender: gender, // after ...data: the gender chosen now, not one saved earlier
     },
   });
 

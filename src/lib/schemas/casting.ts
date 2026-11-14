@@ -181,6 +181,27 @@ export const submissionSchema = basicInfoSchema
   .merge(photosSchema)
   .merge(reviewSchema);
 
+export type ProfileSection = "basicInfo" | "appearance" | "sizes" | "details";
+
+/**
+ * The first profile section that does not pass its form schema, or null when
+ * all four do. Sizes and details are checked with the gender from appearance,
+ * exactly as their form steps receive it.
+ */
+export function firstIncompleteProfileSection(profile: {
+  basicInfo?: object | null;
+  appearance?: { gender?: string } | null;
+  sizes?: object | null;
+  details?: object | null;
+}): ProfileSection | null {
+  if (!basicInfoSchema.safeParse(profile.basicInfo ?? {}).success) return "basicInfo";
+  if (!appearanceSchema.safeParse(profile.appearance ?? {}).success) return "appearance";
+  const gender = profile.appearance?.gender;
+  if (!sizesSchema.safeParse({ ...(profile.sizes ?? {}), gender }).success) return "sizes";
+  if (!detailsSchema.safeParse({ ...(profile.details ?? {}), gender }).success) return "details";
+  return null;
+}
+
 export type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
 export type AppearanceFormData = z.infer<typeof appearanceSchema>;
 export type SizesFormData = z.infer<typeof sizesSchema>;

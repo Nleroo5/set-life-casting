@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile, updateProfileStep, createProfile } from "@/lib/supabase/profiles";
 import { linkPhotosToProfile } from "@/lib/supabase/photos";
@@ -18,6 +18,7 @@ import {
   SizesFormData,
   DetailsFormData,
   PhotosFormData,
+  firstIncompleteProfileSection,
 } from "@/lib/schemas/casting";
 import { logger } from "@/lib/logger";
 
@@ -46,6 +47,10 @@ export default function CreateProfilePage() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+
+  // True while handleNext is saving a step. A second click on Next during the
+  // save would otherwise advance the wizard twice and skip a whole step.
+  const advancingRef = useRef(false);
 
   // Load existing profile data on mount
   useEffect(() => {
@@ -101,7 +106,11 @@ export default function CreateProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [authLoading, user, router]);
+    // Keyed on the user's id, not the user object: Supabase hands back a new
+    // object on every token refresh and tab refocus, and reloading then would
+    // overwrite what the person is in the middle of entering.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id, router]);
 
   // Scroll to top when step changes
   useEffect(() => {
@@ -109,43 +118,50 @@ export default function CreateProfilePage() {
   }, [currentStep]);
 
   const handleNext = async (stepData?: Record<string, unknown>) => {
-    // Save step data
-    if (stepData) {
-      const stepKey = getCurrentStepKey();
-      if (stepKey) {
-        // Use consistent updater function pattern
-        setFormData((prev) => ({
-          ...prev,
-          [stepKey]: stepData,
-        }));
+    if (advancingRef.current) return;
+    advancingRef.current = true;
 
-        // Auto-save progress to Supabase (not for photos - they're already saved)
-        if (user && stepKey !== 'photos') {
-          try {
-            const { error } = await updateProfileStep(
-              user.id,
-              stepKey as 'basicInfo' | 'appearance' | 'sizes' | 'details',
-              stepData
-            );
+    try {
+      // Save step data
+      if (stepData) {
+        const stepKey = getCurrentStepKey();
+        if (stepKey) {
+          // Use consistent updater function pattern
+          setFormData((prev) => ({
+            ...prev,
+            [stepKey]: stepData,
+          }));
 
-            if (error) {
-              logger.error("❌ Auto-save failed:", error);
-              // Show user-friendly notification
+          // Auto-save progress to Supabase (not for photos - they're already saved)
+          if (user && stepKey !== 'photos') {
+            try {
+              const { error } = await updateProfileStep(
+                user.id,
+                stepKey as 'basicInfo' | 'appearance' | 'sizes' | 'details',
+                stepData
+              );
+
+              if (error) {
+                logger.error("❌ Auto-save failed:", error);
+                // Show user-friendly notification
+                console.warn("⚠️ Your changes were not saved automatically. Please try again.");
+              } else {
+                logger.debug(`✅ Auto-saved ${stepKey} to Supabase`);
+              }
+            } catch (error) {
+              logger.error("❌ Auto-save error:", error);
               console.warn("⚠️ Your changes were not saved automatically. Please try again.");
-            } else {
-              logger.debug(`✅ Auto-saved ${stepKey} to Supabase`);
             }
-          } catch (error) {
-            logger.error("❌ Auto-save error:", error);
-            console.warn("⚠️ Your changes were not saved automatically. Please try again.");
           }
         }
       }
-    }
 
-    // Move to next step (photos step handles submission directly)
-    if (currentStep < 5) {
-      setCurrentStep((prev) => Math.min(prev + 1, 5));
+      // Move to next step (photos step handles submission directly)
+      if (currentStep < 5) {
+        setCurrentStep(Math.min(currentStep + 1, 5));
+      }
+    } finally {
+      advancingRef.current = false;
     }
   };
 
@@ -209,6 +225,18 @@ export default function CreateProfilePage() {
     if (!hasFullBody) {
       logger.error("Missing full body photo");
       alert("Full body photo is required. Please upload a full body photo before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // A profile is only complete when every section passes its form. If one
+    // does not (a step was never filled in), go back to it instead of saving a
+    // "complete" profile with holes in it.
+    const incompleteSection = firstIncompleteProfileSection(formData);
+    if (incompleteSection) {
+      const stepForSection = { basicInfo: 1, appearance: 2, sizes: 3, details: 4 } as const;
+      alert("Part of your profile is still missing. Please complete the highlighted step, then continue to Photos.");
+      setCurrentStep(stepForSection[incompleteSection]);
       setIsSubmitting(false);
       return;
     }

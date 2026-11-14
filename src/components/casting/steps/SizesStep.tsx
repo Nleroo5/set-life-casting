@@ -80,6 +80,18 @@ const WOMENS_SHOE_SIZES = [
   }),
 ];
 
+// Shoe sizes for the shared selector shown to Non-binary / Other: 5-15
+const ALL_SHOE_SIZES = [
+  { value: "", label: "Select Size" },
+  ...Array.from({ length: 21 }, (_, i) => {
+    const size = 5 + i * 0.5;
+    return {
+      value: String(size),
+      label: String(size),
+    };
+  }),
+];
+
 // Women's shirt sizes
 const WOMENS_SHIRT_SIZES = [
   { value: "", label: "Select Size" },
@@ -121,6 +133,10 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
   const isFemale = gender === "Female";
   const isNonBinary = gender === "Non-binary";
   const isOther = gender === "Other";
+  // Non-binary / Other see both sizing blocks. Shirt and shoe size are single
+  // fields, so they get one selector above the blocks instead of one in each:
+  // two inputs registered under the same name leave only the last one bound.
+  const showsBothBlocks = isNonBinary || isOther;
 
   const onSubmit = (formData: SizesFormData) => {
     // Ensure gender is included in submission
@@ -158,6 +174,34 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
         {/* Hidden gender field to ensure validation works */}
         <input type="hidden" {...register("gender")} value={gender} />
 
+        {/* SHARED SIZES (Non-binary / Other) */}
+        {showsBothBlocks && (
+          <div className="bg-linear-to-br from-white to-purple-50/30 rounded-xl p-6 border-2 border-accent/20">
+            <h3
+              className="text-lg font-bold text-secondary mb-4"
+              style={{ fontFamily: "var(--font-galindo)" }}
+            >
+              Shirt &amp; Shoe Size
+            </h3>
+
+            <div className="space-y-6">
+              <Select
+                label="Shirt Size"
+                {...register("shirtSize")}
+                options={MENS_SHIRT_SIZES}
+                error={errors.shirtSize?.message}
+              />
+
+              <Select
+                label="Shoe Size (US)"
+                {...register("shoeSize")}
+                options={ALL_SHOE_SIZES}
+                error={errors.shoeSize?.message}
+              />
+            </div>
+          </div>
+        )}
+
         {/* MALE SIZES */}
         {(isMale || isNonBinary || isOther) && (
           <div className="bg-linear-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-accent/20">
@@ -169,12 +213,14 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
             </h3>
 
             <div className="space-y-6">
-              <Select
-                label="Shirt Size"
-                {...register("shirtSize")}
-                options={MENS_SHIRT_SIZES}
-                error={errors.shirtSize?.message}
-              />
+              {!showsBothBlocks && (
+                <Select
+                  label="Shirt Size"
+                  {...register("shirtSize")}
+                  options={MENS_SHIRT_SIZES}
+                  error={errors.shirtSize?.message}
+                />
+              )}
 
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
@@ -193,12 +239,14 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 />
               </div>
 
-              <Select
-                label="Shoe Size (US Men's)"
-                {...register("shoeSize")}
-                options={MENS_SHOE_SIZES}
-                error={isMale ? errors.shoeSize?.message : undefined}
-              />
+              {!showsBothBlocks && (
+                <Select
+                  label="Shoe Size (US Men's)"
+                  {...register("shoeSize")}
+                  options={MENS_SHOE_SIZES}
+                  error={errors.shoeSize?.message}
+                />
+              )}
             </div>
           </div>
         )}
@@ -214,12 +262,14 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
             </h3>
 
             <div className="space-y-6">
-              <Select
-                label="Shirt Size"
-                {...register("shirtSize")}
-                options={WOMENS_SHIRT_SIZES}
-                error={isFemale ? errors.shirtSize?.message : undefined}
-              />
+              {!showsBothBlocks && (
+                <Select
+                  label="Shirt Size"
+                  {...register("shirtSize")}
+                  options={WOMENS_SHIRT_SIZES}
+                  error={errors.shirtSize?.message}
+                />
+              )}
 
               <Select
                 label="Dress Size (US)"
@@ -235,12 +285,14 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 error={errors.womensPantSize?.message}
               />
 
-              <Select
-                label="Shoe Size (US Women's)"
-                {...register("shoeSize")}
-                options={WOMENS_SHOE_SIZES}
-                error={isFemale ? errors.shoeSize?.message : undefined}
-              />
+              {!showsBothBlocks && (
+                <Select
+                  label="Shoe Size (US Women's)"
+                  {...register("shoeSize")}
+                  options={WOMENS_SHOE_SIZES}
+                  error={errors.shoeSize?.message}
+                />
+              )}
             </div>
           </div>
         )}
@@ -267,6 +319,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 <Input
                   label="Neck (inches)"
                   type="number"
+                  step="0.5"
                   {...register("neck", { valueAsNumber: true })}
                   error={errors.neck?.message}
                   placeholder="15.5"
@@ -274,6 +327,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 <Input
                   label="Sleeve (inches)"
                   type="number"
+                  step="0.5"
                   {...register("sleeve", { valueAsNumber: true })}
                   error={errors.sleeve?.message}
                   placeholder="33"
@@ -341,6 +395,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 <Input
                   label="Neck (inches)"
                   type="number"
+                  step="0.5"
                   {...register("neck", { valueAsNumber: true })}
                   error={errors.neck?.message}
                   placeholder="15.5"
@@ -348,6 +403,7 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
                 <Input
                   label="Sleeve (inches)"
                   type="number"
+                  step="0.5"
                   {...register("sleeve", { valueAsNumber: true })}
                   error={errors.sleeve?.message}
                   placeholder="33"
@@ -372,6 +428,11 @@ export default function SizesStep({ data, gender, onNext, onPrevious }: SizesSte
             >
               Please provide sizing for at least one category (male or female) to help us match you with appropriate wardrobe options.
             </p>
+            {errors.gender?.message && (
+              <p className="mt-2 text-sm text-danger text-center" role="alert">
+                {errors.gender.message}
+              </p>
+            )}
           </div>
         )}
 

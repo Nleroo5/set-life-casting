@@ -29,7 +29,8 @@ interface PhotoSlot {
   photoId?: string; // Database photo ID for deletion
   storagePath?: string; // Storage path for deletion
   uploading?: boolean;
-  error?: string;
+  error?: string; // Upload failed (offers "Retry upload")
+  removeError?: string; // Delete failed; the photo is still saved
 }
 
 export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps) {
@@ -74,63 +75,60 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     { id: "additional-6", type: "additional", label: "Additional Photo 6", required: false },
   ]);
 
-  // Initialize photoSlots from existing data when editing
+  // Fill the slots from the photos already saved for this user. Every upload
+  // writes its row straight away, so the database is the source of truth, and
+  // loading from it gives each slot the photoId and storagePath it needs to
+  // delete or replace that photo later.
+  const userId = user?.id;
   useEffect(() => {
-    const loadExistingPhotos = async () => {
-      // First, try to load from data prop (if provided)
-      if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
-        setPhotoSlots((prev) => {
-          const newSlots = [...prev];
-          data.photos!.forEach((photo) => {
-            const slotIndex = newSlots.findIndex((s) => s.type === photo.type && !s.url);
-            if (slotIndex !== -1) {
-              newSlots[slotIndex] = {
-                ...newSlots[slotIndex],
-                url: photo.url,
-                preview: photo.url,
-              };
-            }
-          });
-          return newSlots;
-        });
-      } else if (user) {
-        // If no photos in data prop, fetch from database
-        try {
-          const { data: photos, error } = await getPhotosByUserId(user.id);
-          if (error) {
-            logger.error("Error loading existing photos:", error);
-            return;
-          }
+    if (!userId) return;
+    let cancelled = false;
 
-          if (photos && photos.length > 0) {
-            logger.info(`📸 Loaded ${photos.length} existing photos for editing`);
-            setPhotoSlots((prev) => {
-              const newSlots = [...prev];
-              photos.forEach((photo) => {
-                // Map photo type from database to slot type
-                const slotType = photo.type === "portfolio" ? "additional" : photo.type as "headshot" | "fullbody" | "additional";
-                const slotIndex = newSlots.findIndex((s) => s.type === slotType && !s.url);
-                if (slotIndex !== -1) {
-                  newSlots[slotIndex] = {
-                    ...newSlots[slotIndex],
-                    url: photo.url,
-                    preview: photo.url,
-                    photoId: photo.id, // Save database ID for deletion
-                    storagePath: photo.storage_path, // Save storage path for deletion
-                  };
-                }
-              });
-              return newSlots;
-            });
-          }
-        } catch (error) {
+    const loadExistingPhotos = async () => {
+      try {
+        const { data: photos, error } = await getPhotosByUserId(userId);
+        if (cancelled) return;
+        if (error) {
           logger.error("Error loading existing photos:", error);
+          return;
         }
+
+        if (photos && photos.length > 0) {
+          logger.info(`📸 Loaded ${photos.length} existing photos for editing`);
+          setPhotoSlots((prev) => {
+            const newSlots = [...prev];
+            photos.forEach((photo) => {
+              // Already on screen (this effect can run more than once)
+              if (newSlots.some((s) => s.photoId === photo.id)) return;
+              // Map photo type from database to slot type
+              const slotType = photo.type === "portfolio" ? "additional" : photo.type as "headshot" | "fullbody" | "additional";
+              const slotIndex = newSlots.findIndex((s) => s.type === slotType && !s.url && !s.preview);
+              if (slotIndex !== -1) {
+                newSlots[slotIndex] = {
+                  ...newSlots[slotIndex],
+                  url: photo.url,
+                  preview: photo.url,
+                  photoId: photo.id, // Save database ID for deletion
+                  storagePath: photo.storage_path, // Save storage path for deletion
+                };
+              }
+            });
+            return newSlots;
+          });
+        }
+      } catch (error) {
+        logger.error("Error loading existing photos:", error);
       }
     };
 
     loadExistingPhotos();
-  }, [user]); // Re-run if user changes
+    return () => {
+      cancelled = true;
+    };
+    // Keyed on the id: the user object itself is replaced on every token
+    // refresh and tab refocus, which used to re-run this and copy the same
+    // photos into the empty slots.
+  }, [userId]);
 
   // Sync photoSlots with form value
   useEffect(() => {
@@ -272,21 +270,28 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
   const removePhoto = async (slotId: string) => {
     const slot = photoSlots.find((s) => s.id === slotId);
 
-    // If photo exists in database, delete it
+    // If photo exists in database, delete it. Keep it on screen if that fails,
+    // so the slot never shows empty while the photo is still saved.
     if (slot?.photoId && slot?.storagePath) {
-      try {
-        await deletePhoto(slot.photoId, slot.storagePath);
-        logger.info(`Deleted photo ${slot.photoId} from database and storage`);
-      } catch (error) {
-        logger.error("Error deleting photo:", error);
-        // Continue anyway - clear from UI even if delete fails
+      const { error: deleteError } = await deletePhoto(slot.photoId, slot.storagePath);
+      if (deleteError) {
+        logger.error("Error deleting photo:", deleteError);
+        setPhotoSlots((prev) =>
+          prev.map((s) =>
+            s.id === slotId
+              ? { ...s, removeError: "Couldn't remove this photo. Please try again." }
+              : s
+          )
+        );
+        return;
       }
+      logger.info(`Deleted photo ${slot.photoId} from database and storage`);
     }
 
     setPhotoSlots((prev) =>
       prev.map((s) =>
         s.id === slotId
-          ? { ...s, file: undefined, preview: undefined, url: undefined, photoId: undefined, storagePath: undefined, error: undefined }
+          ? { ...s, file: undefined, preview: undefined, url: undefined, photoId: undefined, storagePath: undefined, error: undefined, removeError: undefined }
           : s
       )
     );
@@ -564,6 +569,9 @@ function PhotoUploadSlot({ slot, onDrop, onRemove, onRetry }: PhotoUploadSlotPro
                 )}
                 {slot.url && !slot.error && (
                   <p className="text-xs text-success mt-1">✓ Uploaded</p>
+                )}
+                {slot.removeError && (
+                  <p className="text-xs text-danger mt-1" role="alert">✗ {slot.removeError}</p>
                 )}
               </div>
               <button
