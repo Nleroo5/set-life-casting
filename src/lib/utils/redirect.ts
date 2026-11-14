@@ -17,6 +17,7 @@
  * validateRedirectUrl('/admin/casting') // Returns '/admin/casting'
  * validateRedirectUrl('https://evil.com') // Returns '/dashboard'
  * validateRedirectUrl('//evil.com') // Returns '/dashboard'
+ * validateRedirectUrl('/\\evil.com') // Returns '/dashboard'
  */
 export function validateRedirectUrl(
   redirectUrl: string | null | undefined,
@@ -44,6 +45,12 @@ export function validateRedirectUrl(
 
   // Must start with / to be a relative path
   if (!trimmed.startsWith('/')) {
+    return fallback;
+  }
+
+  // Browsers read "\" as "/" and drop tab/newline characters when resolving a
+  // URL, so "/\evil.com" and "/<tab>/evil.com" both resolve to another site.
+  if (/[\\\u0000-\u001f\u007f]/.test(trimmed)) {
     return fallback;
   }
 

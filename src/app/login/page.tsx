@@ -26,11 +26,25 @@ function LoginForm() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   // /auth/callback sends ?error=auth_callback_failed when a verification or
   // reset link can't be exchanged for a session.
-  const [error, setError] = useState(
-    searchParams.get("error") === "auth_callback_failed"
-      ? "That link is invalid or has expired. Request a new one below."
+  const [error, setError] = useState(() => {
+    if (searchParams.get("error") === "auth_callback_failed") {
+      return 'That link is invalid or has expired. Sign in below to get a new verification email, or use "Forgot password?" for a new reset link.';
+    }
+    if (searchParams.get("notice") === "reset_other_browser") {
+      return 'Reset links only work in the browser you requested them from. Use "Forgot password?" below and open the new link on this device.';
+    }
+    return "";
+  });
+  // /auth/callback sends ?notice=email_verified when a verification link was
+  // good but opened in a different browser, so no session could be created.
+  const [notice, setNotice] = useState(
+    searchParams.get("notice") === "email_verified"
+      ? "Your email is verified. Sign in to continue."
       : ""
   );
+  // Set when sign-in is refused because the email is not verified yet
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resending, setResending] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -62,6 +76,8 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setError("");
+    setNotice("");
+    setUnverifiedEmail("");
     setIsSubmitting(true);
 
     try {
@@ -79,6 +95,9 @@ function LoginForm() {
           "Invalid login credentials": "Incorrect email or password.",
         };
         setError(friendly[authError.message] ?? authError.message);
+        if (authError.message === "Email not confirmed") {
+          setUnverifiedEmail(data.email);
+        }
         setIsSubmitting(false);
         return;
       }
@@ -86,6 +105,7 @@ function LoginForm() {
       // Check if email is verified
       if (!authData.user?.email_confirmed_at) {
         setError("Please verify your email before logging in. Check your inbox for the verification link.");
+        setUnverifiedEmail(data.email);
         await supabase.auth.signOut();
         setIsSubmitting(false);
         return;
@@ -101,9 +121,47 @@ function LoginForm() {
     }
   };
 
+  // An unverified user cannot sign in, so this is the only place they can ask
+  // for the verification email again.
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: unverifiedEmail,
+        options: { emailRedirectTo: `${siteUrl}/auth/callback` },
+      });
+
+      if (resendError) {
+        logger.error("Resend verification error:", resendError);
+        setError(
+          /rate limit|security purposes/i.test(resendError.message)
+            ? "We just sent you an email. Please wait a minute before asking for another."
+            : "We couldn't send the verification email right now. Please try again in a few minutes."
+        );
+        return;
+      }
+
+      setUnverifiedEmail("");
+      setNotice("Verification email sent. Check your inbox and spam folder, and open the link on this device.");
+    } catch (err: unknown) {
+      logger.error("Unexpected resend error:", err);
+      setError("We couldn't send the verification email right now. Please try again in a few minutes.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
+    setUnverifiedEmail("");
     setIsSubmitting(true);
 
     try {
@@ -175,6 +233,26 @@ function LoginForm() {
           {error && (
             <div className="mb-6 p-4 bg-danger/10 border-2 border-danger/30 rounded-lg">
               <p className="text-danger text-sm text-center">{error}</p>
+              {unverifiedEmail && (
+                <div className="mt-3 text-center">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resending}
+                    className="text-sm font-semibold text-accent hover:text-accent-dark underline disabled:opacity-50"
+                    style={{ fontFamily: "var(--font-outfit)" }}
+                  >
+                    {resending ? "Sending..." : "Resend verification email"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Notice (email verified, verification email sent) */}
+          {notice && (
+            <div className="mb-6 p-4 bg-success/10 border-2 border-success/30 rounded-lg">
+              <p className="text-success text-sm text-center">{notice}</p>
             </div>
           )}
 

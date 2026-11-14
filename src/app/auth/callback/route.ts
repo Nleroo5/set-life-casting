@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const code = searchParams.get('code')
-  const next = validateRedirectUrl(searchParams.get('next'), '/')
+  // Email verification links carry no `next`; send those to the dashboard,
+  // which forwards a new talent on to profile creation.
+  const next = validateRedirectUrl(searchParams.get('next'), '/dashboard')
 
   if (tokenHash && type) {
     const supabase = await createClient()
@@ -38,8 +40,16 @@ export async function GET(request: NextRequest) {
       // Redirect to the intended destination
       return NextResponse.redirect(`${origin}${next}`)
     }
+
+    // Supabase only issues a code after it has checked the emailed link, so
+    // the link was valid (and for a signup link the email is now verified).
+    // The exchange fails when the link is opened in a different browser or
+    // device from the one that started the flow, because the PKCE verifier
+    // lives in that browser's cookie. Say that, rather than "invalid link".
+    const notice = next === '/auth/reset-password' ? 'reset_other_browser' : 'email_verified'
+    return NextResponse.redirect(`${origin}/login?notice=${notice}`)
   }
 
-  // If no code or exchange failed, redirect to login with error
+  // No usable code or token (expired, already used, or malformed link)
   return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
 }
