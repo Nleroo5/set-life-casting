@@ -636,7 +636,8 @@ export default function TalentDatabasePage() {
               Ethnicity
             </label>
             <div className="flex flex-wrap gap-2">
-              {["White/Caucasian", "Black/African American", "Hispanic/Latino", "Asian", "Native American", "Pacific Islander", "Middle Eastern", "Mixed/Multiracial", "Other"].map((ethnicity) => (
+              {/* Must match the values AppearanceStep's ETHNICITY_OPTIONS saves to profiles.ethnicity */}
+              {["Caucasian", "African American", "Hispanic/Latino", "Asian", "Native American", "Pacific Islander", "Middle Eastern", "Mixed", "Other"].map((ethnicity) => (
                 <button
                   key={ethnicity}
                   onClick={() => toggleEthnicityFilter(ethnicity)}
