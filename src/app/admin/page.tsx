@@ -266,19 +266,19 @@ export default function AdminPage() {
               </p>
             </Link>
             <Link
-              href="/admin/casting?action=new-role"
+              href="/admin/casting"
               className="p-4 bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors text-center"
             >
               <p className="text-accent font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
-                + New Role
+                Manage Roles
               </p>
             </Link>
             <Link
-              href="/admin/submissions?filter=pending"
+              href="/admin/submissions?filter=new"
               className="p-4 bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors text-center"
             >
               <p className="text-accent font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
-                View Pending
+                View New Submissions
               </p>
             </Link>
             <Link

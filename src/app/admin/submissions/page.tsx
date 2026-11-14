@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 import { getAllSubmissions, updateSubmissionStatus, bulkUpdateSubmissionStatus } from "@/lib/supabase/submissions";
 import { getProjects, getRoles } from "@/lib/supabase/casting";
 import { getPhotosByProfileIds } from "@/lib/supabase/photos";
+import { ageFromDateOfBirth } from "@/lib/supabase/profiles";
 
 interface ProfileBasicInfo {
   firstName?: string;
@@ -109,7 +110,7 @@ interface RoleWithSubmissions {
 
 type FilterStatus = "all" | "new" | "pinned" | "booked" | "rejected";
 
-const PAGE_SIZE = 50; // Load 50 submissions per page
+const PAGE_SIZE = 50; // Submissions are fetched in batches of 50 until all are loaded
 
 export default function AdminSubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -123,14 +124,14 @@ export default function AdminSubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
 
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
   useEffect(() => {
+    // The admin dashboard links here with ?filter=new
+    const filter = new URLSearchParams(window.location.search).get("filter");
+    if (filter === "new" || filter === "pinned" || filter === "booked" || filter === "rejected") {
+      setFilterStatus(filter);
+    }
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]); // Refetch when page changes
+  }, []);
 
   async function fetchData() {
     try {
@@ -169,28 +170,47 @@ export default function AdminSubmissionsPage() {
         })) as Role[]);
       }
 
-      // ✅ FIX: Fetch all submissions with profile data (single query with JOIN + pagination)
-      const { data: submissionsData, error: submissionsError, count } = await getAllSubmissions({
-        orderBy: 'submitted_at',
-        order: 'desc',
-        limit: PAGE_SIZE,
-        offset: (page - 1) * PAGE_SIZE,
-      });
+      // Load every submission, one batch at a time. The project filter, status
+      // counts and search on this page all work on the loaded list, so a single
+      // batch would silently hide everything older than the newest 50.
+      const seenIds = new Set<string>();
+      const submissionsData: NonNullable<Awaited<ReturnType<typeof getAllSubmissions>>["data"]> = [];
+      const photosMap: Record<string, { url: string; type: string }[]> = {};
+      let submissionsError: unknown = null;
 
-      // Update total count for pagination UI
-      setTotalCount(count || 0);
+      for (let offset = 0; ; offset += PAGE_SIZE) {
+        const { data: batch, error: batchError, count } = await getAllSubmissions({
+          orderBy: 'submitted_at',
+          order: 'desc',
+          limit: PAGE_SIZE,
+          offset,
+        });
+
+        if (batchError) {
+          submissionsError = batchError;
+          break;
+        }
+
+        const rows = batch || [];
+        for (const sub of rows) {
+          // A submission arriving mid-load shifts the offsets; never list one twice
+          if (seenIds.has(sub.id)) continue;
+          seenIds.add(sub.id);
+          submissionsData.push(sub);
+        }
+
+        // Photos for this batch's profiles (1 query per batch instead of 1 per submission)
+        const profileIds = rows.map((sub) => sub.profile_id).filter(Boolean);
+        const { data: batchPhotos } = await getPhotosByProfileIds(profileIds);
+        Object.assign(photosMap, batchPhotos || {});
+
+        if (rows.length < PAGE_SIZE || offset + rows.length >= (count || 0)) break;
+      }
 
       if (submissionsError) {
         logger.error("Error fetching submissions:", submissionsError);
         setSubmissions([]);
-      } else if (submissionsData && submissionsData.length > 0) {
-        // ✅ FIX: Batch fetch photos for ALL profiles (1 query instead of N)
-        const profileIds = submissionsData
-          .map((sub: any) => sub.profile_id)
-          .filter(Boolean);
-
-        const { data: photosMap } = await getPhotosByProfileIds(profileIds);
-
+      } else if (submissionsData.length > 0) {
         // ✅ FIX: Map data in-memory (no more database queries)
         const mapped = submissionsData
           .filter((sub: any) => sub.profiles && sub.profiles.first_name) // Skip invalid profiles
@@ -224,7 +244,7 @@ export default function AdminSubmissionsPage() {
                   gender: sub.profiles.gender || '',
                   dateOfBirth: sub.profiles.date_of_birth || '',
                   ethnicity: sub.profiles.ethnicity ? [sub.profiles.ethnicity] : [],
-                  height: sub.profiles.height_feet && sub.profiles.height_inches
+                  height: sub.profiles.height_feet != null && sub.profiles.height_inches != null
                     ? `${sub.profiles.height_feet}'${sub.profiles.height_inches}"`
                     : '',
                   weight: sub.profiles.weight || 0,
@@ -256,6 +276,8 @@ export default function AdminSubmissionsPage() {
           });
 
         setSubmissions(mapped);
+        // Keep the open detail panel in step with the reloaded data
+        setSelectedSubmission((prev) => (prev ? mapped.find((s) => s.id === prev.id) ?? null : null));
         logger.debug(`✅ Loaded ${mapped.length} submissions with optimized queries`);
       } else {
         setSubmissions([]);
@@ -271,21 +293,8 @@ export default function AdminSubmissionsPage() {
   }
 
   // Helper function to calculate age from date of birth
-  const calculateAge = (dateOfBirth: string | undefined): number | null => {
-    if (!dateOfBirth) return null;
-    try {
-      const birthDate = new Date(dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    } catch {
-      return null;
-    }
-  };
+  const calculateAge = (dateOfBirth: string | undefined): number | null =>
+    ageFromDateOfBirth(dateOfBirth);
 
   // Filter submissions based on selected project, status, and search query
   const filteredSubmissions = submissions

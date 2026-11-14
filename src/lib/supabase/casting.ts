@@ -60,6 +60,7 @@ export interface RoleRow {
   audition_location?: string | null
   shoot_dates?: string | null
   shoot_location?: string | null
+  reference_image_url?: string | null
   // Status
   status: 'open' | 'closed' | 'filled' | 'archived'
   positions_available: number

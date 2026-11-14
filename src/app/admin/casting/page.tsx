@@ -19,6 +19,7 @@ import {
   createRole,
   updateRole as updateRoleInDb,
   deleteRole,
+  getRoleSubmissionCount,
   type ProjectRow,
   type RoleRow
 } from "@/lib/supabase/casting";
@@ -45,9 +46,11 @@ interface Role {
   bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
+  // The stored status. bookingStatus only knows open/closed, so this is what
+  // lets a save keep an 'archived' or 'filled' role as it was.
+  dbStatus?: RoleRow["status"];
   additionalNotes?: string;
   referenceImageUrl?: string;
-  archivedWithProject?: boolean;
   archivedIndividually?: boolean;
   archivedAt?: Date;
   archivedBy?: string;
@@ -86,24 +89,38 @@ function roleRowToRole(row: RoleRow): Role {
     bookingDates: row.shoot_dates ? row.shoot_dates.split(",").map(d => d.trim()) : [""],
     location: row.shoot_location || "",
     bookingStatus: mapRoleStatus(row.status),
+    dbStatus: row.status,
     additionalNotes: row.pay_details || "",
-    referenceImageUrl: "", // Reference images not in current schema
-    archivedWithProject: row.status === "archived",
+    referenceImageUrl: row.reference_image_url || "",
     archivedIndividually: row.status === "archived",
   };
 }
 
-function roleToRoleRow(role: Partial<Role>, projectId?: string): Partial<RoleRow> {
-  return {
-    project_id: projectId || role.projectId,
+function roleToRoleRow(role: RoleFormData, projectId: string): Partial<RoleRow> {
+  // "Closed" in the form covers closed, filled and archived. Unless the admin
+  // reopens the role, an archived or filled role keeps its stored status.
+  const keepsStoredStatus =
+    role.bookingStatus === "booked" &&
+    (role.dbStatus === "archived" || role.dbStatus === "filled");
+
+  const row: Partial<RoleRow> = {
+    project_id: projectId,
     title: role.name,
     description: role.requirements,
     pay_rate: role.rate,
     shoot_dates: role.bookingDates?.filter(d => d).join(", "),
     shoot_location: role.location,
-    status: mapRoleStatusToSupabase(role.bookingStatus),
+    status: keepsStoredStatus ? role.dbStatus : mapRoleStatusToSupabase(role.bookingStatus),
     pay_details: role.additionalNotes,
   };
+
+  // Written only when it changed, so saving a role never depends on the
+  // reference_image_url column (migration 024) unless an image is involved.
+  if ((role.referenceImageUrl || "") !== (role.savedReferenceImageUrl || "")) {
+    row.reference_image_url = role.referenceImageUrl || null;
+  }
+
+  return row;
 }
 
 // Type mapping functions
@@ -168,8 +185,10 @@ interface RoleFormData {
   bookingDates: string[]; // Array of ISO date strings for multiple booking dates
   location: string;
   bookingStatus: "booking" | "booked";
+  dbStatus?: RoleRow["status"];
   additionalNotes?: string;
   referenceImageUrl?: string;
+  savedReferenceImageUrl?: string; // What the role had when the form opened
 }
 
 type ViewMode = "projects" | "new-project" | "edit-project";
@@ -188,11 +207,16 @@ export default function AdminCastingPage() {
   const [showArchivedRoles, setShowArchivedRoles] = useState<{[projectId: string]: boolean}>({});
 
   useEffect(() => {
-    fetchData();
+    // Links from the admin dashboard and the archive page carry these.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("action") === "new-project") {
+      setViewMode("new-project");
+    }
+    fetchData(params.get("project"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchData() {
+  async function fetchData(focusProjectId?: string | null) {
     try {
       // Fetch projects from Supabase
       const { data: projectsData, error: projectsError } = await getProjects();
@@ -200,6 +224,11 @@ export default function AdminCastingPage() {
 
       const mappedProjects = (projectsData || []).map(projectRowToProject);
       setProjects(mappedProjects);
+
+      // An archived project is only listed under "Show Archived Projects"
+      if (focusProjectId && mappedProjects.find(p => p.id === focusProjectId)?.status === "archived") {
+        setShowArchived(true);
+      }
 
       // Fetch roles from Supabase
       const { data: rolesData, error: rolesError } = await getRoles();
@@ -224,7 +253,7 @@ export default function AdminCastingPage() {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
 
-    if (!confirm(`Archive "${project.title}"?\n\nAll roles and submissions will be preserved but marked as archived. This is the recommended way to close completed projects.`)) {
+    if (!confirm(`Archive "${project.title}"?\n\nOpen roles will stop accepting submissions. All roles, submissions and booking decisions are kept. This is the recommended way to close completed projects.`)) {
       return;
     }
 
@@ -232,8 +261,6 @@ export default function AdminCastingPage() {
       logger.debug(`🔍 Starting archive process for project: ${project.title}`);
 
       const supabase = createClient();
-      let rolesCount = 0;
-      let submissionsCount = 0;
 
       // Update project status to archived
       const { error: projectError } = await updateProject(projectId, {
@@ -243,34 +270,30 @@ export default function AdminCastingPage() {
 
       if (projectError) throw projectError;
 
-      // Mark all roles as archived
+      // Close roles that are still open so they cannot take new submissions.
+      // Closed, filled and individually archived roles keep their status, and
+      // submissions are not touched: pinned/booked/rejected decisions stay.
       const { data: projectRoles, error: rolesError } = await getRoles({ projectId });
       if (rolesError) throw rolesError;
 
+      let rolesClosed = 0;
       for (const role of projectRoles || []) {
-        await updateRoleInDb(role.id, { status: "archived" });
-        rolesCount++;
+        if (role.status !== "open") continue;
+        const { error: roleError } = await updateRoleInDb(role.id, { status: "closed" });
+        if (roleError) throw roleError;
+        rolesClosed++;
       }
 
-      // Clear submission statuses for archived project (set to null, not invalid "archived")
-      const { data: submissionsData, error: submissionsError } = await supabase
+      const { count: submissionsCount } = await supabase
         .from("submissions")
-        .update({
-          status: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("project_id", projectId)
-        .select();
-
-      if (!submissionsError && submissionsData) {
-        submissionsCount = submissionsData.length;
-      }
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", projectId);
 
       alert(
-        `Project "${project.title}" archived successfully!\n\n` +
-        `• ${rolesCount} roles preserved\n` +
-        `• ${submissionsCount} submissions archived\n\n` +
-        `All data is safely preserved and can be viewed in the Archive section.`
+        `Project "${project.title}" archived.\n\n` +
+        `• ${(projectRoles || []).length} roles kept (${rolesClosed} closed to new submissions)\n` +
+        `• ${submissionsCount || 0} submissions kept with their statuses\n\n` +
+        `You can view or restore it from the Archive section.`
       );
 
       await fetchData();
@@ -318,7 +341,7 @@ export default function AdminCastingPage() {
 
       alert(
         `Role "${archiveDialogRole.name}" archived successfully!\n\n` +
-        `The role and its submissions are now hidden from talent.`
+        `The role is hidden from talent. Its submissions and their statuses are kept.`
       );
 
       setArchiveDialogRole(null);
@@ -334,7 +357,7 @@ export default function AdminCastingPage() {
   };
 
   const handleRestoreRole = async (roleId: string, roleName: string) => {
-    if (!confirm(`Restore role "${roleName}"?\n\nThis will make the role visible to talent again and restore all associated submissions.`)) {
+    if (!confirm(`Restore role "${roleName}"?\n\nThis will reopen the role so talent can see it and submit again. Existing submissions are unchanged.`)) {
       return;
     }
 
@@ -419,7 +442,8 @@ export default function AdminCastingPage() {
                 .filter(p => showArchived ? p.status === "archived" : p.status !== "archived")
                 .map((project) => {
                 const projectRoles = roles.filter((r) => r.projectId === project.id);
-                const activeRoles = projectRoles.filter(r => !r.archivedWithProject && !r.archivedIndividually);
+                const activeRoles = projectRoles.filter(r => !r.archivedIndividually);
+                const archivedRoles = projectRoles.filter(r => r.archivedIndividually);
 
                 // DEBUG: Log for each project
                 logger.debug(`🔍 Project: "${project.title}" | Status: ${project.status} | Total Roles: ${projectRoles.length} | Active: ${activeRoles.length}`);
@@ -496,13 +520,13 @@ export default function AdminCastingPage() {
                     </div>
 
                     {/* Active Roles List */}
-                    {projectRoles.length > 0 && (
+                    {activeRoles.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-accent/10">
                         <h4 className="text-sm font-semibold text-secondary mb-3" style={{ fontFamily: "var(--font-outfit)" }}>
-                          Active Roles ({projectRoles.length}): {projectRoles.filter(r => r.archivedWithProject || r.archivedIndividually).length > 0 && <span className="text-red-500 text-xs">(Some roles have archive flags)</span>}
+                          Active Roles ({activeRoles.length}):
                         </h4>
                         <div className="space-y-2">
-                          {projectRoles.map((role) => {
+                          {activeRoles.map((role) => {
                             const roleBookings: any[] = []; // Bookings collection removed
                             return (
                               <div
@@ -587,7 +611,7 @@ export default function AdminCastingPage() {
                     )}
 
                     {/* Archived Roles Section (Collapsible) */}
-                    {projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).length > 0 && (
+                    {archivedRoles.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-accent/10">
                         <button
                           onClick={() => toggleArchivedRoles(project.id)}
@@ -595,11 +619,11 @@ export default function AdminCastingPage() {
                           style={{ fontFamily: "var(--font-outfit)" }}
                         >
                           <span>{showArchivedRoles[project.id] ? "▼" : "▶"}</span>
-                          <span>Archived Roles ({projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).length})</span>
+                          <span>Archived Roles ({archivedRoles.length})</span>
                         </button>
                         {showArchivedRoles[project.id] && (
                           <div className="space-y-2">
-                            {projectRoles.filter(r => r.archivedIndividually && !r.archivedWithProject).map((role) => (
+                            {archivedRoles.map((role) => (
                               <div
                                 key={role.id}
                                 className="bg-gray-50/50 rounded-lg p-3 border border-gray-200"
@@ -632,13 +656,15 @@ export default function AdminCastingPage() {
                                       </p>
                                     )}
                                   </div>
-                                  <Button
-                                    variant="outline"
-                                    className="text-xs text-accent hover:text-accent-dark ml-2"
-                                    onClick={() => handleRestoreRole(role.id, role.name)}
-                                  >
-                                    Restore
-                                  </Button>
+                                  {project.status !== "archived" && (
+                                    <Button
+                                      variant="outline"
+                                      className="text-xs text-accent hover:text-accent-dark ml-2"
+                                      onClick={() => handleRestoreRole(role.id, role.name)}
+                                    >
+                                      Restore
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -681,7 +707,7 @@ export default function AdminCastingPage() {
                 Archive Role: {archiveDialogRole.name}
               </h3>
               <p className="text-sm text-secondary-light mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
-                This will hide the role from talent and mark all submissions as archived.
+                This will hide the role from talent. Its submissions and their statuses are kept.
                 The role can be restored later if needed.
               </p>
               <Textarea
@@ -744,8 +770,10 @@ function ProjectForm({
           bookingDates: r.bookingDates, // Already migrated by the fetch logic
           location: r.location,
           bookingStatus: r.bookingStatus,
+          dbStatus: r.dbStatus,
           additionalNotes: r.additionalNotes || "",
           referenceImageUrl: r.referenceImageUrl || "",
+          savedReferenceImageUrl: r.referenceImageUrl || "",
         }))
       : [
           {
@@ -840,10 +868,11 @@ function ProjectForm({
 
       const supabase = createClient();
 
-      // Create a unique filename
+      // Create a unique filename. Storage keys reject some characters, so keep
+      // only letters, digits, dot, dash and underscore from the original name.
       const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const filename = `role-references/${timestamp}_${file.name}`;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filename = `role-references/${timestamp}_${safeName}`;
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -883,19 +912,34 @@ function ProjectForm({
     setIsSubmitting(true);
     try {
       if (project) {
+        // Roles removed from the form are deleted on save, and the database
+        // deletes their submissions with them. Say so before anything is written.
+        const currentRoleIds = new Set(roles.filter((r) => r.id).map((r) => r.id!));
+        const removedRoles = existingRoles.filter((r) => !currentRoleIds.has(r.id));
+        const rolesToDelete = removedRoles.map((r) => r.id);
+
+        let submissionsAtRisk = 0;
+        for (const roleId of rolesToDelete) {
+          submissionsAtRisk += await getRoleSubmissionCount(roleId);
+        }
+        if (submissionsAtRisk > 0) {
+          const names = removedRoles.map((r) => `"${r.name}"`).join(", ");
+          if (!confirm(
+            `You removed ${names} from this project.\n\n` +
+            `Saving will permanently delete ${submissionsAtRisk} submission${submissionsAtRisk === 1 ? "" : "s"} for ${removedRoles.length === 1 ? "that role" : "those roles"}, including any pinned or booked talent.\n\n` +
+            `To keep them, cancel and archive the role instead.\n\n` +
+            `Delete and save?`
+          )) {
+            return;
+          }
+        }
+
         // Update existing project
         const projectUpdate = projectToProjectRow(data);
         const { error: projectError } = await updateProject(project.id, projectUpdate);
         if (projectError) throw projectError;
 
-        // Track existing role IDs to identify deletions
-        const existingRoleIds = new Set(existingRoles.map((r) => r.id));
-        const currentRoleIds = new Set(roles.filter((r) => r.id).map((r) => r.id!));
-
         // Delete roles that were removed from the form
-        const rolesToDelete = Array.from(existingRoleIds).filter(
-          (id) => !currentRoleIds.has(id)
-        );
         for (const roleId of rolesToDelete) {
           const { error } = await deleteRole(roleId);
           if (error) throw error;

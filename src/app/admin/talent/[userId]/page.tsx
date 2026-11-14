@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
-import { getProfile, type ProfileData } from "@/lib/supabase/profiles";
+import { getProfile, ageFromDateOfBirth, type ProfileData } from "@/lib/supabase/profiles";
 import { getUserSubmissions } from "@/lib/supabase/submissions";
 import { getRoles } from "@/lib/supabase/casting";
 import { createClient } from "@/lib/supabase/config";
@@ -54,8 +54,7 @@ export default function TalentDetailPage() {
   // This useEffect runs AFTER hydration, ensuring server/client HTML match
   useEffect(() => {
     if (talent?.appearance?.dateOfBirth) {
-      const calculatedAge = calculateAge(talent.appearance.dateOfBirth);
-      setAge(calculatedAge);
+      setAge(ageFromDateOfBirth(talent.appearance.dateOfBirth));
     } else {
       setAge(null);
     }
@@ -279,15 +278,12 @@ export default function TalentDetailPage() {
     setEditingNotes(false);
   }
 
-  function calculateAge(dateOfBirth: string): number {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
+  // A date of birth is a calendar day (YYYY-MM-DD), not an instant. new Date()
+  // would read it as UTC midnight and show the previous day in US time zones.
+  function formatDateOfBirth(dateOfBirth: string): string {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateOfBirth);
+    if (!m) return dateOfBirth;
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString();
   }
 
   const getStatusBadgeVariant = (
@@ -634,7 +630,7 @@ export default function TalentDetailPage() {
                 {talent.appearance?.dateOfBirth && (
                   <DetailItem
                     label="Date of Birth"
-                    value={new Date(talent.appearance.dateOfBirth).toLocaleDateString()}
+                    value={formatDateOfBirth(talent.appearance.dateOfBirth)}
                   />
                 )}
                 <DetailItem

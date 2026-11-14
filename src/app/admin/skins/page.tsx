@@ -183,8 +183,9 @@ export default function SkinsBuilderPage() {
           },
           physical: {
             gender: profile.gender || "",
-            ethnicity: profile.ethnicity ? (Array.isArray(profile.ethnicity) ? profile.ethnicity : [profile.ethnicity]) : [],
-            height: profile.height_feet && profile.height_inches ? `${profile.height_feet}'${profile.height_inches}"` : "",
+            // profiles.ethnicity is one comma-joined string ("Asian, African American")
+            ethnicity: profile.ethnicity ? profile.ethnicity.split(",").map((e: string) => e.trim()).filter(Boolean) : [],
+            height: profile.height_feet != null && profile.height_inches != null ? `${profile.height_feet}'${profile.height_inches}"` : "",
             weight: profile.weight ? String(profile.weight) : "",
             hairColor: profile.hair_color || "",
             eyeColor: profile.eye_color || "",
@@ -248,35 +249,34 @@ export default function SkinsBuilderPage() {
 
     logger.debug("✅ Role found:", role.name);
 
-    // Find the booking for this role
-    const booking = bookings.find(b => b.roleId === selectedRoleId);
-    if (!booking) {
+    // Every booked talent for this role gets a line on the skin
+    const roleBookings = bookings.filter(b => b.roleId === selectedRoleId);
+    if (roleBookings.length === 0) {
       logger.error("❌ No booking found for roleId:", selectedRoleId);
       logger.error("Available roleIds in bookings:", bookings.map(b => b.roleId));
       alert("No talent booked for this role. Please book talent from the Submissions page first.");
       return;
     }
 
-    logger.debug("✅ Booking found:", booking.talentProfile?.basicInfo?.firstName, booking.talentProfile?.basicInfo?.lastName);
-
-    // Check if role already added
-    if (skinRoles.some(sr => sr.role.id === selectedRoleId)) {
+    // Skip anyone already on the skin
+    const alreadyAdded = new Set(skinRoles.map(sr => sr.booking.id));
+    const bookingsToAdd = roleBookings.filter(b => !alreadyAdded.has(b.id));
+    if (bookingsToAdd.length === 0) {
       alert("This role is already in the skin");
       return;
     }
 
-    // Add role to skin
-    const newSkinRole: SkinRole = {
-      id: `${Date.now()}-${selectedRoleId}`,
+    const newSkinRoles: SkinRole[] = bookingsToAdd.map((booking) => ({
+      id: `${Date.now()}-${booking.id}`,
       booking,
       role,
       callTime: "",
       notes: "",
-    };
+    }));
 
-    setSkinRoles([...skinRoles, newSkinRole]);
+    setSkinRoles([...skinRoles, ...newSkinRoles]);
     setSelectedRoleId(""); // Reset selection
-    logger.debug("✅ Role added to skin successfully");
+    logger.debug(`✅ Added ${newSkinRoles.length} booked talent for role to skin`);
   }
 
   function removeRoleFromSkin(skinRoleId: string) {

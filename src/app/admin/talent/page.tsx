@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getAllProfiles } from "@/lib/supabase/profiles";
+import { getAllProfiles, ageFromDateOfBirth } from "@/lib/supabase/profiles";
 import { createClient } from "@/lib/supabase/config";
 import Link from "next/link";
 import Image from "next/image";
@@ -277,8 +277,8 @@ export default function TalentDatabasePage() {
     // Age range filter
     if (ageRangeFilter !== "all") {
       filtered = filtered.filter((t) => {
-        if (!t.appearance?.dateOfBirth) return false;
-        const age = calculateAge(t.appearance.dateOfBirth);
+        const age = ageFromDateOfBirth(t.appearance?.dateOfBirth);
+        if (age === null) return false;
 
         switch (ageRangeFilter) {
           case "18-25":
@@ -320,17 +320,6 @@ export default function TalentDatabasePage() {
       return feet * 12 + inches;
     }
     return 0;
-  }
-
-  function calculateAge(dateOfBirth: string): number {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
   }
 
   // Helper functions for multi-select filters
@@ -739,7 +728,7 @@ export default function TalentDatabasePage() {
 
               const headshotPhoto = photoArray?.find?.((p) => p.type === "headshot");
               const photoUrl = headshotPhoto?.url || photoArray?.[0]?.url;
-              const age = talent.appearance?.dateOfBirth ? calculateAge(talent.appearance.dateOfBirth) : null;
+              const age = ageFromDateOfBirth(talent.appearance?.dateOfBirth);
 
               // Determine border and shadow based on admin tag
               let borderClass = "border-accent/20";

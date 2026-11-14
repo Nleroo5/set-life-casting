@@ -63,6 +63,7 @@ function adaptRoleRow(row: RoleRow, project: ProjectRow): RoleWithProject {
     location: row.shoot_location || project.location || "TBD",
     bookingStatus: mapRoleStatus(row.status),
     additionalNotes: row.pay_details || undefined,
+    referenceImageUrl: row.reference_image_url || undefined,
     archivedWithProject: false,
     archivedIndividually: false,
     project: adaptProjectRow(project),
@@ -446,7 +447,12 @@ export default function CastingPage() {
                       {role.referenceImageUrl && (
                         <div className="mb-4">
                           <button
-                            onClick={() => openImageModal(role.referenceImageUrl!)}
+                            onClick={() =>
+                              // The image modal can't display a PDF reference
+                              role.referenceImageUrl!.toLowerCase().endsWith(".pdf")
+                                ? window.open(role.referenceImageUrl!, "_blank", "noopener")
+                                : openImageModal(role.referenceImageUrl!)
+                            }
                             className="text-sm text-accent hover:text-purple-600 underline transition-colors"
                             style={{ fontFamily: "var(--font-outfit)" }}
                           >

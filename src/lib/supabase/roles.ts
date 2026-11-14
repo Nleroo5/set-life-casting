@@ -8,7 +8,6 @@
  * Part of: Firebase to Supabase Migration
  */
 
-import { createClient } from './config'
 import { updateRole } from './casting'
 
 /**
@@ -18,36 +17,21 @@ import { updateRole } from './casting'
  * @param userId - The admin user ID performing the archive
  * @param reason - Optional reason for archiving
  * @returns Promise that resolves when archive is complete
- * @throws Error if role has active bookings or archive fails
+ * @throws Error if the archive fails
  */
 export async function archiveRole(
   roleId: string,
   userId: string,
   reason?: string
 ): Promise<void> {
-  const supabase = createClient()
-
-  // Update role status to archived
+  // Only the role changes. Its submissions keep their pinned/booked/rejected
+  // status so the casting decisions survive an archive and a later restore.
   const { error: roleError } = await updateRole(roleId, {
     status: 'archived',
-    // Store archive metadata in a JSONB field or separate table if needed
   })
 
   if (roleError) {
     throw roleError
-  }
-
-  // Clear submission statuses for this role (role is archived, submissions no longer active)
-  const { error: submissionError } = await supabase
-    .from('submissions')
-    .update({
-      status: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('role_id', roleId)
-
-  if (submissionError) {
-    throw submissionError
   }
 }
 
@@ -56,27 +40,10 @@ export async function archiveRole(
  *
  * @param roleId - The role ID to restore
  * @returns Promise that resolves when restore is complete
- * @throws Error if role is archived with project or restore fails
+ * @throws Error if the restore fails
  */
 export async function restoreRole(roleId: string): Promise<void> {
-  const supabase = createClient()
-
-  // Get role data
-  const { data: role, error: fetchError } = await supabase
-    .from('roles')
-    .select('*')
-    .eq('id', roleId)
-    .single()
-
-  if (fetchError || !role) {
-    throw new Error('Role not found')
-  }
-
-  // Check if role is archived with project
-  // This would need to be stored in a metadata field or separate archive table
-  // For now, we'll just restore the role status
-
-  // Restore role status to 'open'
+  // Reopen the role. Submissions are left exactly as they are.
   const { error: roleError } = await updateRole(roleId, {
     status: 'open',
   })
@@ -84,18 +51,4 @@ export async function restoreRole(roleId: string): Promise<void> {
   if (roleError) {
     throw roleError
   }
-
-  // Restore associated submissions (ensure status is cleared)
-  const { error: submissionError } = await supabase
-    .from('submissions')
-    .update({
-      status: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('role_id', roleId)
-
-  if (submissionError) {
-    throw submissionError
-  }
 }
-

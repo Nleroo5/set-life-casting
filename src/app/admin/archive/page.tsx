@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { logger } from "@/lib/logger";
-import { getProjects, getRoles, updateProject, updateRole, type ProjectRow, type RoleRow } from "@/lib/supabase/casting";
+import { getProjects, getRoles, updateProject, type ProjectRow, type RoleRow } from "@/lib/supabase/casting";
 import { restoreRole } from "@/lib/supabase/roles";
 import { createClient } from "@/lib/supabase/config";
 
@@ -198,9 +198,8 @@ export default function ArchivePage() {
 
     if (!confirm(
       `Restore "${project.title}"?\n\n` +
-      `This will restore the project and all associated roles and submissions to active status.\n\n` +
-      `• ${project.roleCount} roles will be restored\n` +
-      `• ${project.submissionCount} submissions will be restored\n\n` +
+      `The project returns to Casting Management as Booked. Its ${project.roleCount} role(s) keep the status they have now, and its ${project.submissionCount} submission(s) keep their pinned/booked/rejected decisions.\n\n` +
+      `To take new submissions, set the project to Booking and reopen the roles you want.\n\n` +
       `Continue?`
     )) {
       return;
@@ -210,9 +209,8 @@ export default function ArchivePage() {
       setRestoring(projectId);
       logger.debug(`🔄 Starting restore process for project: ${project.title}`);
 
-      const supabase = createClient();
-
-      // Update project status back to "closed" (booked)
+      // Only the project changes. Roles keep their current status (nothing is
+      // reopened by accident) and submissions keep their decisions.
       const { error: projectError } = await updateProject(projectId, {
         status: "closed", // "booked" in UI terms
       });
@@ -221,75 +219,14 @@ export default function ArchivePage() {
         throw projectError;
       }
 
-      // Restore all roles (track failures)
-      const { data: rolesData } = await getRoles({ projectId });
-      let rolesRestored = 0;
-      let rolesFailed = 0;
-
-      if (rolesData) {
-        for (const role of rolesData) {
-          const { error: roleError } = await updateRole(role.id, {
-            status: "open",
-          });
-          if (roleError) {
-            logger.error(`Failed to restore role ${role.id}:`, roleError);
-            rolesFailed++;
-          } else {
-            rolesRestored++;
-          }
-        }
-      }
-
-      // Restore all submissions (track failures)
-      const { data: submissionsData } = await supabase
-        .from("submissions")
-        .select("id")
-        .eq("project_id", projectId);
-
-      let submissionsRestored = 0;
-      let submissionsFailed = 0;
-
-      if (submissionsData) {
-        for (const submission of submissionsData) {
-          const { error: subError } = await supabase
-            .from("submissions")
-            .update({
-              status: null,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", submission.id);
-          if (subError) {
-            logger.error(`Failed to restore submission ${submission.id}:`, subError);
-            submissionsFailed++;
-          } else {
-            submissionsRestored++;
-          }
-        }
-      }
-
-      const totalRoles = rolesData?.length || 0;
-      const totalSubmissions = submissionsData?.length || 0;
-
       logger.debug(`✅ Restored project: ${project.title}`);
-      logger.debug(`  - ${rolesRestored}/${totalRoles} roles restored`);
-      logger.debug(`  - ${submissionsRestored}/${totalSubmissions} submissions restored`);
 
-      const failures = rolesFailed + submissionsFailed;
-      if (failures > 0) {
-        alert(
-          `Project "${project.title}" partially restored.\n\n` +
-          `• Restored ${rolesRestored} of ${totalRoles} roles${rolesFailed > 0 ? ` (${rolesFailed} failed)` : ""}\n` +
-          `• Restored ${submissionsRestored} of ${totalSubmissions} submissions${submissionsFailed > 0 ? ` (${submissionsFailed} failed)` : ""}\n\n` +
-          `Some items failed to restore. Please try again or contact support.`
-        );
-      } else {
-        alert(
-          `Project "${project.title}" restored successfully!\n\n` +
-          `• ${rolesRestored} roles restored\n` +
-          `• ${submissionsRestored} submissions restored\n\n` +
-          `The project is now active again.`
-        );
-      }
+      alert(
+        `Project "${project.title}" restored as Booked.\n\n` +
+        `• ${project.roleCount} role(s) unchanged\n` +
+        `• ${project.submissionCount} submission(s) unchanged\n\n` +
+        `Open it in Casting Management to reopen roles.`
+      );
 
       await fetchArchivedProjects();
     } catch (error) {
@@ -303,7 +240,7 @@ export default function ArchivePage() {
   const handleRestoreIndividualRole = async (role: ArchivedRole) => {
     if (!confirm(
       `Restore role "${role.name}"?\n\n` +
-      `This will make the role visible to talent again and restore ${role.submissionCount} submission(s).\n\n` +
+      `This will reopen the role so talent can see it and submit again. Its ${role.submissionCount} existing submission(s) are unchanged.\n\n` +
       `Project: ${role.projectTitle} (${role.projectStatus === "archived" ? "Archived" : "Active"})\n\n` +
       `Continue?`
     )) {
@@ -319,7 +256,7 @@ export default function ArchivePage() {
       logger.debug(`✅ Restored role: ${role.name}`);
       alert(
         `Role "${role.name}" restored successfully!\n\n` +
-        `• ${role.submissionCount} submissions restored\n\n` +
+        `• ${role.submissionCount} submission(s) unchanged\n\n` +
         `The role is now visible to talent.`
       );
 
