@@ -9,6 +9,10 @@ interface BreadcrumbItem {
   href: string;
 }
 
+// Folders that only group routes and have no page of their own. They are
+// shown as plain text; linking them (or listing them for search engines) 404s.
+const PATHS_WITHOUT_PAGE = new Set(["/profile", "/auth", "/casting/submit"]);
+
 export default function Breadcrumbs() {
   const pathname = usePathname();
 
@@ -41,12 +45,14 @@ export default function Breadcrumbs() {
     return {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: breadcrumbs.map((item, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        name: item.name,
-        item: `https://www.setlifecasting.com${item.href}`,
-      })),
+      itemListElement: breadcrumbs
+        .filter((item) => !PATHS_WITHOUT_PAGE.has(item.href))
+        .map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.name,
+          item: `https://www.setlifecasting.com${item.href}`,
+        })),
     };
   };
 
@@ -89,6 +95,8 @@ export default function Breadcrumbs() {
                     >
                       {breadcrumb.name}
                     </span>
+                  ) : PATHS_WITHOUT_PAGE.has(breadcrumb.href) ? (
+                    <span className="text-secondary-light">{breadcrumb.name}</span>
                   ) : (
                     <Link
                       href={breadcrumb.href}

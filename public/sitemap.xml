@@ -31,6 +31,14 @@
     <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
   </url>
 
+  <url>
+    <loc>https://www.setlifecasting.com/casting</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="author" href="https://www.driveleadmedia.com" />
+  </url>
+
   <!-- Resources -->
   <url>
     <loc>https://www.setlifecasting.com/resources</loc>
