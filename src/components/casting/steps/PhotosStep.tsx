@@ -8,7 +8,7 @@ import imageCompression from "browser-image-compression";
 import Button from "@/components/ui/Button";
 import { photosSchema, PhotosFormData } from "@/lib/schemas/casting";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadPhoto, savePhotoMetadata, getPhotosByUserId, deletePhoto } from "@/lib/supabase/photos";
+import { uploadPhoto, savePhotoMetadata, getPhotosByUserId, deletePhoto, removeUploadedFile } from "@/lib/supabase/photos";
 import Image from "next/image";
 import { logger } from "@/lib/logger";
 
@@ -163,6 +163,8 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
     // Map slot type to photo type for database
     const photoType = slotType === "additional" ? "portfolio" : slotType;
 
+    let limitMessage = "";
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         // Upload to Supabase Storage
@@ -191,14 +193,25 @@ export default function PhotosStep({ data, onNext, onPrevious }: PhotosStepProps
 
         if (metadataError || !photoData) {
           logger.error('Failed to save photo metadata:', metadataError);
-          throw new Error('Failed to save photo metadata');
+          // A coded error means the database answered and refused the row, so
+          // the file has nothing pointing at it: remove it rather than orphan
+          // it. (No code = the request itself failed and the row may exist.)
+          if (metadataError?.code) {
+            await removeUploadedFile(path);
+          }
+          // check_violation: the per-user photo limit (migration 024). The
+          // database's message says which limit, and retrying cannot succeed.
+          if (metadataError?.code === "23514") {
+            limitMessage = metadataError.message;
+          }
+          throw new Error(limitMessage || 'Failed to save photo metadata');
         }
 
         logger.debug(`Successfully uploaded ${slotId} to Supabase Storage:`, url);
         return { url, photoId: photoData.id, storagePath: path };
       } catch (error) {
         logger.error(`Upload attempt ${attempt} failed for ${slotId}:`, error);
-        if (attempt === retries) {
+        if (attempt === retries || limitMessage) {
           throw error;
         }
         // Wait before retrying (exponential backoff)

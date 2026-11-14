@@ -248,6 +248,23 @@ export async function deletePhoto(photoId: string, storagePath: string) {
 }
 
 /**
+ * Remove an uploaded file that has no photos row
+ *
+ * Used when the upload succeeded but saving its metadata failed, so the file
+ * is not left in storage with nothing pointing at it.
+ */
+export async function removeUploadedFile(storagePath: string) {
+  const supabase = createClient()
+
+  const { error } = await supabase
+    .storage
+    .from('photos')
+    .remove([storagePath])
+
+  return { error }
+}
+
+/**
  * Update photo display order
  *
  * @param photoId - Photo ID
