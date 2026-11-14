@@ -14,8 +14,12 @@ export default function GoogleAnalytics() {
     // Initialize dataLayer
     window.dataLayer = window.dataLayer || [];
 
-    function gtag(...args: any[]) {
-      window.dataLayer.push(args);
+    // gtag.js only acts on the `arguments` object itself. An Array pushed to
+    // dataLayer is ignored, so `config` never ran and no page view was sent.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    function gtag(..._args: unknown[]) {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments);
     }
 
     // ✅ FIX: new Date() called in useEffect (client-side only)
