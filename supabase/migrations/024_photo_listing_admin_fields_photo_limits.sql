@@ -7,7 +7,9 @@
  *         bucket (74 talent folders, 402 files) and download every photo.
  *         Policy "Anyone can view photos" (011) gave SELECT on every object
  *         to every role. A public bucket serves its files by URL without any
- *         SELECT policy, so that policy only ever enabled listing.
+ *         SELECT policy; what that policy added was listing for everyone
+ *         (and the SELECT an owner needs to delete their own file, which the
+ *         narrower policies below keep).
  *   S-02  "Users can update own profile" (006) has no column restriction, so
  *         a talent could change their own admin_tag, admin_notes and status
  *         (un-archive themselves, tag themselves green).
@@ -20,8 +22,51 @@
  *         column to keep it in and no policy allowing the upload.
  *
  * Idempotent: safe to run more than once.
- * Run the VERIFICATION queries at the bottom afterwards.
+ *
+ * HOW TO RUN (Supabase dashboard > SQL Editor):
+ *   - Paste the WHOLE file and run it with nothing selected (if text is
+ *     selected, only the selection runs).
+ *   - The editor asks you to confirm because the file drops policies. That is
+ *     expected.
+ *   - If it stops with "Stopped before changing anything", nothing was
+ *     changed: the message lists a storage policy this file does not know
+ *     about. Send that message back before going further.
+ *   - When it succeeds, the result grid shows the storage policies now in
+ *     place (see the last statement).
  */
+
+-- ============================================================================
+-- 0. Safety check: no surprises on storage.objects
+-- ----------------------------------------------------------------------------
+-- The bucket and its first policies were created by hand, so production may
+-- hold a policy the repo has never seen. Any SELECT or ALL policy on
+-- storage.objects can grant read (and therefore listing) access, and dropping
+-- one blind could break something else. So: if anything other than the known
+-- names exists, stop and report it instead of guessing.
+-- ============================================================================
+DO $$
+DECLARE
+  unexpected text;
+BEGIN
+  SELECT string_agg(
+           format('%I  [%s, roles %s]  USING %s', policyname, cmd, roles::text, coalesce(qual, '(none)')),
+           E'\n')
+    INTO unexpected
+    FROM pg_policies
+   WHERE schemaname = 'storage'
+     AND tablename = 'objects'
+     AND cmd IN ('SELECT', 'ALL')
+     AND policyname NOT IN (
+       'Anyone can view photos',
+       'Users can read own photo files',
+       'Admins can read all photo files'
+     );
+
+  IF unexpected IS NOT NULL THEN
+    RAISE EXCEPTION E'Stopped before changing anything. Storage policies this migration does not know about can also grant read access:\n%', unexpected;
+  END IF;
+END;
+$$;
 
 -- ============================================================================
 -- 1. Storage: no more listing of the photos bucket
@@ -31,32 +76,10 @@
 -- the ability to enumerate folders and files.
 --
 -- The app still needs to read its own objects: storage `remove()` selects the
--- object before deleting it, so owners keep SELECT on their own folder.
+-- object before deleting it, so owners keep SELECT on their own folder. The
+-- narrow policies are created before the broad one is dropped, so there is no
+-- moment at which an owner cannot delete their own photo.
 -- ============================================================================
-DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
-
--- The bucket and its first policies were created by hand, so the broad policy
--- may exist under another name. Drop any other SELECT policy on the photos
--- bucket; the two created below are the only ones that should exist.
-DO $$
-DECLARE
-  p record;
-BEGIN
-  FOR p IN
-    SELECT policyname
-      FROM pg_policies
-     WHERE schemaname = 'storage'
-       AND tablename = 'objects'
-       AND cmd = 'SELECT'
-       AND qual LIKE '%photos%'
-       AND policyname NOT IN ('Users can read own photo files', 'Admins can read all photo files')
-  LOOP
-    EXECUTE format('DROP POLICY %I ON storage.objects', p.policyname);
-    RAISE NOTICE 'Dropped storage SELECT policy: %', p.policyname;
-  END LOOP;
-END;
-$$;
-
 DROP POLICY IF EXISTS "Users can read own photo files" ON storage.objects;
 CREATE POLICY "Users can read own photo files"
   ON storage.objects
@@ -82,6 +105,8 @@ CREATE POLICY "Admins can read all photo files"
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
+
 -- ============================================================================
 -- 2. profiles: admin_tag, admin_notes and status belong to admins
 -- ----------------------------------------------------------------------------
@@ -89,8 +114,10 @@ CREATE POLICY "Admins can read all photo files"
 -- tries to write. It restores rather than raises so an ordinary profile save
 -- that happens to carry these columns still succeeds.
 --
--- auth.uid() is NULL for the service role, the SQL editor and migrations;
--- those are trusted. (anon is also NULL, but has no write policy at all.)
+-- Trusted callers are the service role, the SQL editor and migrations: they
+-- carry no user id. A request from the API as `anon` or `authenticated`
+-- without a user id is NOT trusted, so this does not depend on which write
+-- policies exist for anon.
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.protect_profile_admin_fields()
 RETURNS TRIGGER
@@ -98,8 +125,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  jwt_role text := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF auth.uid() IS NULL AND coalesce(jwt_role, '') NOT IN ('anon', 'authenticated') THEN
     RETURN NEW;
   END IF;
 
@@ -127,6 +156,11 @@ CREATE TRIGGER profiles_protect_admin_fields
   FOR EACH ROW
   EXECUTE FUNCTION public.protect_profile_admin_fields();
 
+-- A talent could otherwise get round the trigger by deleting their profile and
+-- creating a new one (which starts active, untagged, with no notes). No screen
+-- lets a talent delete their profile; admins and the service role still can.
+DROP POLICY IF EXISTS "Users can delete own profile" ON public.profiles;
+
 -- ============================================================================
 -- 3. submissions: review fields belong to admins
 -- ----------------------------------------------------------------------------
@@ -140,8 +174,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  jwt_role text := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF auth.uid() IS NULL AND coalesce(jwt_role, '') NOT IN ('anon', 'authenticated') THEN
     RETURN NEW;
   END IF;
 
@@ -175,12 +211,20 @@ CREATE TRIGGER submissions_protect_review_fields
   FOR EACH ROW
   EXECUTE FUNCTION public.protect_submission_review_fields();
 
+-- Same bypass as for profiles: a rejected talent could delete the submission
+-- and submit again as "new". No screen lets a talent delete a submission;
+-- admins and the service role still can, and deleting a role or project still
+-- removes its submissions.
+DROP POLICY IF EXISTS "Users can delete own submissions" ON public.submissions;
+
 -- ============================================================================
 -- 4. photos: one headshot, one full body, six additional per user
 -- ----------------------------------------------------------------------------
--- Applies to inserts made by signed-in users. Existing rows are not touched;
--- an account that is already over a limit must remove photos before it can
--- add one of that type.
+-- Checked when a signed-in user adds a photo row, and when one is re-typed or
+-- moved to another user (otherwise six "additional" rows could be turned into
+-- six headshots). Existing rows are not touched; an account that is already
+-- over a limit must remove photos before it can add one of that type.
+-- This limits rows in public.photos. It does not limit files in storage.
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.enforce_photo_limits()
 RETURNS TRIGGER
@@ -189,10 +233,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  jwt_role text := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
   existing_count integer;
   allowed integer;
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF auth.uid() IS NULL AND coalesce(jwt_role, '') NOT IN ('anon', 'authenticated') THEN
+    RETURN NEW;
+  END IF;
+
+  -- An update that keeps the type and the owner cannot push anything over a limit
+  IF TG_OP = 'UPDATE'
+     AND NEW.type IS NOT DISTINCT FROM OLD.type
+     AND NEW.user_id IS NOT DISTINCT FROM OLD.user_id THEN
     RETURN NEW;
   END IF;
 
@@ -201,7 +253,8 @@ BEGIN
   SELECT count(*) INTO existing_count
     FROM public.photos
    WHERE user_id = NEW.user_id
-     AND type = NEW.type;
+     AND type = NEW.type
+     AND id IS DISTINCT FROM NEW.id;
 
   IF existing_count >= allowed THEN
     RAISE EXCEPTION 'You already have the maximum number of % photos (%). Remove one before uploading another.',
@@ -216,7 +269,7 @@ $$;
 
 DROP TRIGGER IF EXISTS photos_enforce_limits ON public.photos;
 CREATE TRIGGER photos_enforce_limits
-  BEFORE INSERT ON public.photos
+  BEFORE INSERT OR UPDATE OF type, user_id ON public.photos
   FOR EACH ROW
   EXECUTE FUNCTION public.enforce_photo_limits();
 
@@ -250,12 +303,24 @@ CREATE POLICY "Admins can upload role reference files"
 NOTIFY pgrst, 'reload schema';
 
 -- ============================================================================
+-- RESULT: the policies now on storage.objects (shown in the editor's grid)
+-- ----------------------------------------------------------------------------
+-- Expected for SELECT / ALL: exactly "Admins can read all photo files" and
+-- "Users can read own photo files". Any other SELECT or ALL row is a problem.
+-- ============================================================================
+SELECT policyname, cmd, roles::text AS roles
+  FROM pg_policies
+ WHERE schemaname = 'storage'
+   AND tablename = 'objects'
+ ORDER BY cmd, policyname;
+
+-- ============================================================================
 -- VERIFICATION QUERIES (run after applying)
 -- ============================================================================
--- V1: SELECT policies on the photos bucket. Expected: exactly the two below.
---   SELECT policyname, roles, qual FROM pg_policies
---    WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd = 'SELECT';
---   -- "Users can read own photo files", "Admins can read all photo files"
+-- V1: no SELECT or ALL policy on storage.objects other than the two new ones.
+--   SELECT policyname, cmd, roles, qual FROM pg_policies
+--    WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd IN ('SELECT', 'ALL');
+--   -- expected: "Users can read own photo files", "Admins can read all photo files"
 --
 -- V2: the three triggers exist.
 --   SELECT tgrelid::regclass AS table, tgname FROM pg_trigger
@@ -271,6 +336,29 @@ NOTIFY pgrst, 'reload schema';
 --   SELECT user_id, type, count(*) FROM public.photos GROUP BY user_id, type
 --   HAVING count(*) > CASE type WHEN 'portfolio' THEN 6 ELSE 1 END;
 --
+-- V5: talents can no longer delete their own profile or submission.
+--   SELECT tablename, policyname FROM pg_policies
+--    WHERE schemaname = 'public' AND tablename IN ('profiles', 'submissions') AND cmd = 'DELETE';
+--   -- expected: no "Users can delete own ..." rows
+--
 -- From outside the database, with only the anon key:
 --   POST /storage/v1/object/list/photos  {"prefix":"","limit":100}  -> []
 --   GET  <any existing photo URL>                                   -> 200
+--
+-- ============================================================================
+-- ROLLBACK (only if something goes wrong; this re-opens anonymous listing)
+-- ============================================================================
+--   DROP POLICY IF EXISTS "Users can read own photo files" ON storage.objects;
+--   DROP POLICY IF EXISTS "Admins can read all photo files" ON storage.objects;
+--   DROP POLICY IF EXISTS "Admins can upload role reference files" ON storage.objects;
+--   DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
+--   CREATE POLICY "Anyone can view photos" ON storage.objects FOR SELECT USING (bucket_id = 'photos');
+--   DROP TRIGGER IF EXISTS profiles_protect_admin_fields ON public.profiles;
+--   DROP TRIGGER IF EXISTS submissions_protect_review_fields ON public.submissions;
+--   DROP TRIGGER IF EXISTS photos_enforce_limits ON public.photos;
+--   DROP FUNCTION IF EXISTS public.protect_profile_admin_fields();
+--   DROP FUNCTION IF EXISTS public.protect_submission_review_fields();
+--   DROP FUNCTION IF EXISTS public.enforce_photo_limits();
+--   CREATE POLICY "Users can delete own profile" ON public.profiles FOR DELETE USING (auth.uid() = user_id);
+--   CREATE POLICY "Users can delete own submissions" ON public.submissions FOR DELETE USING (auth.uid() = user_id);
+-- Leave roles.reference_image_url in place: the app writes it.
