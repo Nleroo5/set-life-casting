@@ -6,10 +6,11 @@
  *   S-01  Anyone holding the public anon key could LIST the whole `photos`
  *         bucket (74 talent folders, 402 files) and download every photo.
  *         Policy "Anyone can view photos" (011) gave SELECT on every object
- *         to every role. A public bucket serves its files by URL without any
- *         SELECT policy; what that policy added was listing for everyone
- *         (and the SELECT an owner needs to delete their own file, which the
- *         narrower policies below keep).
+ *         to every role; in production it was created through the dashboard,
+ *         which named it "Anyone can view photos 1io9m69_0". A public bucket
+ *         serves its files by URL without any SELECT policy; what that policy
+ *         added was listing for everyone (and the SELECT an owner needs to
+ *         delete their own file, which the narrower policies below keep).
  *   S-02  "Users can update own profile" (006) has no column restriction, so
  *         a talent could change their own admin_tag, admin_notes and status
  *         (un-archive themselves, tag themselves green).
@@ -31,8 +32,8 @@
  *   - If it stops with "Stopped before changing anything", nothing was
  *     changed: the message lists a storage policy this file does not know
  *     about. Send that message back before going further.
- *   - When it succeeds, the result grid shows the storage policies now in
- *     place (see the last statement).
+ *   - When it succeeds, the result grid lists what is now in place (see the
+ *     last statement).
  */
 
 -- ============================================================================
@@ -43,6 +44,18 @@
 -- storage.objects can grant read (and therefore listing) access, and dropping
 -- one blind could break something else. So: if anything other than the known
 -- names exists, stop and report it instead of guessing.
+--
+-- Known in production (reported by this check on 2026-11-15). The dashboard's
+-- storage policy form adds a suffix to every name it creates:
+--   "Anyone can view photos 1io9m69_0"
+--       SELECT, USING bucket_id = 'photos'
+--       The listing hole. Dropped in section 1.
+--   "Users can delete own photos 1io9m69_1"
+--       SELECT, USING bucket_id = 'photos'
+--                     AND auth.uid()::text = (storage.foldername(name))[1]
+--       The read of the owner's own folder that the dashboard adds next to a
+--       DELETE policy. It gives nobody access to anyone else's files, so it
+--       is left alone.
 -- ============================================================================
 DO $$
 DECLARE
@@ -58,6 +71,8 @@ BEGIN
      AND cmd IN ('SELECT', 'ALL')
      AND policyname NOT IN (
        'Anyone can view photos',
+       'Anyone can view photos 1io9m69_0',
+       'Users can delete own photos 1io9m69_1',
        'Users can read own photo files',
        'Admins can read all photo files'
      );
@@ -105,7 +120,10 @@ CREATE POLICY "Admins can read all photo files"
     )
   );
 
+-- The broad policy, under the name in migration 011 and under the name the
+-- dashboard gave it in production
 DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view photos 1io9m69_0" ON storage.objects;
 
 -- ============================================================================
 -- 2. profiles: admin_tag, admin_notes and status belong to admins
@@ -303,24 +321,42 @@ CREATE POLICY "Admins can upload role reference files"
 NOTIFY pgrst, 'reload schema';
 
 -- ============================================================================
--- RESULT: the policies now on storage.objects (shown in the editor's grid)
+-- RESULT: what is now in place (shown in the editor's grid)
 -- ----------------------------------------------------------------------------
--- Expected for SELECT / ALL: exactly "Admins can read all photo files" and
--- "Users can read own photo files". Any other SELECT or ALL row is a problem.
+-- Expected:
+--   storage policy  with detail SELECT or ALL: "Admins can read all photo
+--                   files", "Users can read own photo files" and, where it
+--                   existed, "Users can delete own photos 1io9m69_1". Any
+--                   other SELECT or ALL row is a problem. Rows with another
+--                   detail (INSERT, UPDATE, DELETE) are listed for reference.
+--   trigger         three rows: profiles, submissions, photos
+--   delete policy   no row named "Users can delete own ..."
 -- ============================================================================
-SELECT policyname, cmd, roles::text AS roles
+SELECT 'storage policy' AS item, policyname::text AS name, cmd AS detail
   FROM pg_policies
  WHERE schemaname = 'storage'
    AND tablename = 'objects'
- ORDER BY cmd, policyname;
+UNION ALL
+SELECT 'trigger', tgname::text, tgrelid::regclass::text
+  FROM pg_trigger
+ WHERE tgname IN ('profiles_protect_admin_fields', 'submissions_protect_review_fields', 'photos_enforce_limits')
+UNION ALL
+SELECT 'delete policy', policyname::text, tablename::text
+  FROM pg_policies
+ WHERE schemaname = 'public'
+   AND tablename IN ('profiles', 'submissions')
+   AND cmd = 'DELETE'
+ ORDER BY item, detail, name;
 
 -- ============================================================================
 -- VERIFICATION QUERIES (run after applying)
 -- ============================================================================
--- V1: no SELECT or ALL policy on storage.objects other than the two new ones.
+-- V1: no SELECT or ALL policy on storage.objects that reaches beyond the
+--     owner's folder, apart from the admin one.
 --   SELECT policyname, cmd, roles, qual FROM pg_policies
 --    WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd IN ('SELECT', 'ALL');
 --   -- expected: "Users can read own photo files", "Admins can read all photo files"
+--   -- and, in production, "Users can delete own photos 1io9m69_1" (own folder only)
 --
 -- V2: the three triggers exist.
 --   SELECT tgrelid::regclass AS table, tgname FROM pg_trigger
@@ -352,6 +388,7 @@ SELECT policyname, cmd, roles::text AS roles
 --   DROP POLICY IF EXISTS "Admins can read all photo files" ON storage.objects;
 --   DROP POLICY IF EXISTS "Admins can upload role reference files" ON storage.objects;
 --   DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
+--   DROP POLICY IF EXISTS "Anyone can view photos 1io9m69_0" ON storage.objects;
 --   CREATE POLICY "Anyone can view photos" ON storage.objects FOR SELECT USING (bucket_id = 'photos');
 --   DROP TRIGGER IF EXISTS profiles_protect_admin_fields ON public.profiles;
 --   DROP TRIGGER IF EXISTS submissions_protect_review_fields ON public.submissions;
