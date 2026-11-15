@@ -357,7 +357,7 @@ export default function AdminCastingPage() {
   };
 
   const handleRestoreRole = async (roleId: string, roleName: string) => {
-    if (!confirm(`Restore role "${roleName}"?\n\nThis will reopen the role so talent can see it and submit again. Existing submissions are unchanged.`)) {
+    if (!confirm(`Restore role "${roleName}"?\n\nThis will reopen the role. Talent can see it and submit once its project is set to Booking. Existing submissions are unchanged.`)) {
       return;
     }
 

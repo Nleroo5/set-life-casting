@@ -174,8 +174,21 @@ export async function getUserSubmissions(userId: string) {
 
   const { data, error } = await supabase
     .from('submissions')
+    // Columns are named so admin_notes (admin-only) is not sent to the
+    // talent's own dashboard.
     .select(`
-      *,
+      id,
+      user_id,
+      profile_id,
+      role_id,
+      project_id,
+      status,
+      cover_letter,
+      preferred_contact,
+      submitted_at,
+      updated_at,
+      reviewed_at,
+      booked_at,
       roles (
         title,
         project_id
@@ -305,7 +318,9 @@ export async function getAllSubmissions(filters?: {
   // Apply ordering
   const orderBy = filters?.orderBy || 'submitted_at'
   const order = filters?.order || 'desc'
-  query = query.order(orderBy, { ascending: order === 'asc' })
+  // id breaks ties: rows sharing a timestamp must come back in the same order
+  // on every page, or one could appear twice and another not at all.
+  query = query.order(orderBy, { ascending: order === 'asc' }).order('id', { ascending: true })
 
   // Apply pagination
   if (filters?.limit) {

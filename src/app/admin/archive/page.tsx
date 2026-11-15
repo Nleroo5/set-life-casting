@@ -240,7 +240,7 @@ export default function ArchivePage() {
   const handleRestoreIndividualRole = async (role: ArchivedRole) => {
     if (!confirm(
       `Restore role "${role.name}"?\n\n` +
-      `This will reopen the role so talent can see it and submit again. Its ${role.submissionCount} existing submission(s) are unchanged.\n\n` +
+      `This will reopen the role. Talent can see it and submit while its project is set to Booking. Its ${role.submissionCount} existing submission(s) are unchanged.\n\n` +
       `Project: ${role.projectTitle} (${role.projectStatus === "archived" ? "Archived" : "Active"})\n\n` +
       `Continue?`
     )) {
@@ -257,7 +257,9 @@ export default function ArchivePage() {
       alert(
         `Role "${role.name}" restored successfully!\n\n` +
         `• ${role.submissionCount} submission(s) unchanged\n\n` +
-        `The role is now visible to talent.`
+        (role.projectStatus === "booking"
+          ? `The role is now visible to talent.`
+          : `The role is open. Talent will see it once the project is set to Booking.`)
       );
 
       await fetchArchivedProjects();

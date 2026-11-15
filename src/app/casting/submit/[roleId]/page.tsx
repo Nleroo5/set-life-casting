@@ -234,10 +234,11 @@ export default function SubmitPage() {
       }
     }
 
-    // Advance from the step this handler was rendered for, not from whatever the
-    // step is by now: a double-click on Next fires this twice, and counting up
-    // from the latest value would skip a step.
-    setCurrentStep(Math.min(currentStep + 1, 7));
+    // Advance only if the wizard is still on the step this handler was rendered
+    // for. A double-click on Next fires this twice (the second call must not
+    // skip a step), and the profile check may already have moved the wizard on
+    // to Review (this call must not pull it back).
+    setCurrentStep((prev) => (prev === currentStep ? Math.min(prev + 1, 7) : prev));
   };
 
   const handlePrevious = () => {

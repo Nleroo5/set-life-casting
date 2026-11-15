@@ -359,7 +359,11 @@ export default function AdminSubmissionsPage() {
         throw error;
       }
 
-      await fetchData();
+      // Reflect the saved status in place. Reloading would refetch every batch
+      // and blank the page for each click.
+      const status = newStatus as Submission["status"];
+      setSubmissions((prev) => prev.map((s) => (s.id === submissionId ? { ...s, status } : s)));
+      setSelectedSubmission((prev) => (prev && prev.id === submissionId ? { ...prev, status } : prev));
     } catch (error) {
       logger.error("Error updating status:", error);
       alert("Failed to update status");
@@ -451,7 +455,10 @@ export default function AdminSubmissionsPage() {
         throw error;
       }
 
-      await fetchData();
+      const status = newStatus as Submission["status"];
+      const updatedIds = selectedSubmissionIds;
+      setSubmissions((prev) => prev.map((s) => (updatedIds.has(s.id) ? { ...s, status } : s)));
+      setSelectedSubmission((prev) => (prev && updatedIds.has(prev.id) ? { ...prev, status } : prev));
       setSelectedSubmissionIds(new Set()); // Clear selection after bulk update
       alert(`Successfully updated ${selectedSubmissionIds.size} submission(s)`);
     } catch (error) {

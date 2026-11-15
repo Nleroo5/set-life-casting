@@ -158,7 +158,8 @@ export default function CreateProfilePage() {
 
       // Move to next step (photos step handles submission directly)
       if (currentStep < 5) {
-        setCurrentStep(Math.min(currentStep + 1, 5));
+        // Only if still on the step this handler was rendered for
+        setCurrentStep((prev) => (prev === currentStep ? Math.min(prev + 1, 5) : prev));
       }
     } finally {
       advancingRef.current = false;

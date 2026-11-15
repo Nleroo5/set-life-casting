@@ -64,6 +64,18 @@ function LoginForm() {
 
   const redirectTo = validateRedirectUrl(searchParams.get("redirect"), "/dashboard");
 
+  // A verification email sent by "Resend" is not a PKCE link: Supabase returns
+  // from it with the session in the URL fragment, which /auth/callback (a
+  // server route) never sees, so the visitor arrives here with
+  // ?error=auth_callback_failed even though the email was just verified.
+  // Recognise that case, say so, and take the tokens out of the address bar.
+  useEffect(() => {
+    if (!window.location.hash.includes("access_token=")) return;
+    window.history.replaceState(null, "", "/login");
+    setError("");
+    setNotice("Your email is verified. Sign in to continue.");
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -414,9 +426,11 @@ function LoginForm() {
             </>
           )}
 
-          <div className="mt-6">
-            <Turnstile onToken={setCaptchaToken} resetSignal={captchaReset} />
-          </div>
+          {turnstileEnabled && (
+            <div className="mt-6">
+              <Turnstile onToken={setCaptchaToken} resetSignal={captchaReset} />
+            </div>
+          )}
 
           {/* Divider - Only show on login form */}
           {!showForgotPassword && (
