@@ -8,6 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Turnstile, { turnstileEnabled } from "@/components/ui/Turnstile";
 import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { validateRedirectUrl } from "@/lib/utils/redirect";
@@ -45,6 +46,17 @@ function LoginForm() {
   // Set when sign-in is refused because the email is not verified yet
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const [resending, setResending] = useState(false);
+  // One Turnstile widget serves sign-in, resend and password reset. Each call
+  // spends the token, so the widget is reset after every one.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  // A Turnstile token can be used once: drop it and ask the widget for another
+  const renewCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  };
+  const captchaPending = turnstileEnabled && !captchaToken;
+  const CAPTCHA_WAIT = "Please wait for the verification check below to finish, then try again.";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -78,6 +90,12 @@ function LoginForm() {
     setError("");
     setNotice("");
     setUnverifiedEmail("");
+
+    if (captchaPending) {
+      setError(CAPTCHA_WAIT);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -86,7 +104,9 @@ function LoginForm() {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
+        ...(captchaToken ? { options: { captchaToken } } : {}),
       });
+      renewCaptcha();
 
       if (authError) {
         logger.error("Login error:", authError);
@@ -94,7 +114,11 @@ function LoginForm() {
           "Email not confirmed": "Please verify your email before logging in. Check your inbox for the verification link.",
           "Invalid login credentials": "Incorrect email or password.",
         };
-        setError(friendly[authError.message] ?? authError.message);
+        setError(
+          /captcha/i.test(authError.message)
+            ? "The verification check failed. Please try again."
+            : friendly[authError.message] ?? authError.message
+        );
         if (authError.message === "Email not confirmed") {
           setUnverifiedEmail(data.email);
         }
@@ -125,6 +149,10 @@ function LoginForm() {
   // for the verification email again.
   const handleResendVerification = async () => {
     if (!unverifiedEmail) return;
+    if (captchaPending) {
+      setError(CAPTCHA_WAIT);
+      return;
+    }
     setResending(true);
     setError("");
 
@@ -134,8 +162,12 @@ function LoginForm() {
       const { error: resendError } = await supabase.auth.resend({
         type: "signup",
         email: unverifiedEmail,
-        options: { emailRedirectTo: `${siteUrl}/auth/callback` },
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback`,
+          ...(captchaToken ? { captchaToken } : {}),
+        },
       });
+      renewCaptcha();
 
       if (resendError) {
         logger.error("Resend verification error:", resendError);
@@ -162,6 +194,12 @@ function LoginForm() {
     setError("");
     setNotice("");
     setUnverifiedEmail("");
+
+    if (captchaPending) {
+      setError(CAPTCHA_WAIT);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -170,8 +208,9 @@ function LoginForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: resetEmail }),
+        body: JSON.stringify({ email: resetEmail, ...(captchaToken ? { captchaToken } : {}) }),
       });
+      renewCaptcha();
 
       const data = await response.json();
 
@@ -374,6 +413,10 @@ function LoginForm() {
               </form>
             </>
           )}
+
+          <div className="mt-6">
+            <Turnstile onToken={setCaptchaToken} resetSignal={captchaReset} />
+          </div>
 
           {/* Divider - Only show on login form */}
           {!showForgotPassword && (

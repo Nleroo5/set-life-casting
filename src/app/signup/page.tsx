@@ -8,6 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Turnstile, { turnstileEnabled } from "@/components/ui/Turnstile";
 import { createClient } from "@/lib/supabase/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { validateRedirectUrl } from "@/lib/utils/redirect";
@@ -31,6 +32,13 @@ function SignupForm() {
   const { user, loading: authLoading } = useAuth();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  // A Turnstile token can be used once: drop it and ask the widget for another
+  const renewCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaReset((n) => n + 1);
+  };
 
   const redirectTo = validateRedirectUrl(searchParams.get("redirect"), "/dashboard");
 
@@ -49,8 +57,25 @@ function SignupForm() {
     }
   }, [authLoading, user, redirectTo, router]);
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = async (data: SignupFormData, event?: React.BaseSyntheticEvent) => {
     setError("");
+
+    // Honeypot: a field people never see. Scripts that fill in every input fill
+    // it too. If it has a value, answer as if signup worked, but create no
+    // account and send no email.
+    const form = event?.target as HTMLFormElement | undefined;
+    const honeypot = form?.elements?.namedItem("referral_code_confirm") as HTMLInputElement | null;
+    if (honeypot?.value) {
+      alert("Account created successfully! Please check your email to verify your account before logging in.");
+      router.push("/login");
+      return;
+    }
+
+    if (turnstileEnabled && !captchaToken) {
+      setError("Please wait for the verification check below to finish, then try again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -66,14 +91,19 @@ function SignupForm() {
             full_name: data.fullName,
           },
           emailRedirectTo: `${siteUrl}/auth/callback`,
+          ...(captchaToken ? { captchaToken } : {}),
         },
       });
+
+      renewCaptcha();
 
       if (signUpError) {
         logger.error("Signup error:", signUpError);
         setError(
           /rate limit/i.test(signUpError.message)
             ? "We couldn't send your verification email right now. Please try again in a few minutes."
+            : /captcha/i.test(signUpError.message)
+            ? "The verification check failed. Please try again."
             : signUpError.message
         );
         setIsSubmitting(false);
@@ -201,6 +231,20 @@ function SignupForm() {
               placeholder="••••••••"
               autoComplete="new-password"
             />
+
+            {/* Honeypot: off-screen, skipped by keyboard and screen readers */}
+            <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: "1px", height: "1px", overflow: "hidden" }}>
+              <label htmlFor="referral_code_confirm">Leave this field empty</label>
+              <input
+                id="referral_code_confirm"
+                name="referral_code_confirm"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
+            <Turnstile onToken={setCaptchaToken} resetSignal={captchaReset} />
 
             <Button
               type="submit"

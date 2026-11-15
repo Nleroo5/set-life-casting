@@ -13,6 +13,8 @@ import { logger } from "@/lib/logger";
 // Email validation schema
 const emailSchema = z.object({
   email: z.string().email("Invalid email address"),
+  // Present when Turnstile is switched on; Supabase verifies it
+  captchaToken: z.string().min(1).max(4096).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email } = validation.data;
+    const { email, captchaToken } = validation.data;
 
     // Send password reset email using Supabase's built-in function
     // This handles everything: email validation, template, security, etc.
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest) {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), {
       redirectTo: `${appUrl}/auth/callback?next=/auth/reset-password`,
+      ...(captchaToken ? { captchaToken } : {}),
     });
 
     // Supabase already answers success for unknown addresses, so an error here
@@ -45,6 +48,12 @@ export async function POST(request: NextRequest) {
     // instead of telling the user to check an inbox that will stay empty.
     if (error) {
       logger.error("Supabase password reset error:", error);
+      if (/captcha/i.test(error.message)) {
+        return NextResponse.json(
+          { error: "The verification check failed. Please try again." },
+          { status: 400 }
+        );
+      }
       const rateLimited = error.status === 429;
       return NextResponse.json(
         {
